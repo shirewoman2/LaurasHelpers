@@ -29,7 +29,7 @@
 #'   post-hoc stats.
 #' @export
 #'
-#' @examples
+
 tukeyStar <- function(data, groupColumn, valueColumn,
                       barsize = 1.5, textsize = 8,
                       includeN = FALSE,
