@@ -67,6 +67,7 @@ gm_mean <- function(x, na.rm=TRUE, zero.propagate = FALSE){
 #'
 #' @examples
 #' gm_sd(rnorm(10, 5, 1))
+#' @export
 
 gm_sd <- function(x, na.rm = TRUE, zero.propagate = FALSE) {
 
