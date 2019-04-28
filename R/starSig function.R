@@ -16,6 +16,8 @@
 #' starSig(0.0235, 2)
 #' starSig(0.5)
 #' starSig(0.0004235)
+#'
+#' @export
 
 starSig <- function(pval, sig = 1,
                     starlevels = c(0.001, 0.01, 0.05)) {

@@ -19,6 +19,8 @@
 #'   used as input. For that reason, I'm including the option of returning the
 #'   data that were used.
 #' @param weights Any weighting to be used for the nonlinear regression
+#'
+#' @export
 
 terminalFit <- function(DF, startValues = NA,
                         concentration = "Concentration",

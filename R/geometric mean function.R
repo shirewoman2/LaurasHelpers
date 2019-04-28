@@ -25,6 +25,8 @@
 #'
 #' @examples
 #' gm_mean(rnorm(10, 5, 1))
+#'
+#' @export
 
 gm_mean <- function(x, na.rm=TRUE, zero.propagate = FALSE){
 

@@ -40,6 +40,7 @@
 #' mean_sd(rnorm(10, 5, 1), reportn = TRUE)
 #' mean_sd(rnorm(10, 5, 1), calcRange = TRUE, calcCV = TRUE, reportn = TRUE)
 #'
+#' @export
 
 mean_sd <- function(x, stdev.x = NULL,
                     calcRange = FALSE, numDigRange = NA,
