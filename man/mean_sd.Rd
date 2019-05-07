@@ -38,7 +38,7 @@ to a specific value}
 \description{
 \code{mean_sd} takes as input a numeric vector \emph{or} the mean and sd values and
 outputs the mean plus or minus the standard deviation of that vector with an
-appropriate number of sig figs.
+appropriate number of sig figs. Output is ALWAYS of class character.
 }
 \details{
 Example of ultimate output with all possible options set to TRUE:

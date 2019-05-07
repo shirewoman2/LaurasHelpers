@@ -2,7 +2,7 @@
 #'
 #' \code{mean_sd} takes as input a numeric vector \emph{or} the mean and sd values and
 #' outputs the mean plus or minus the standard deviation of that vector with an
-#' appropriate number of sig figs.
+#' appropriate number of sig figs. Output is ALWAYS of class character.
 #'
 #' Example of ultimate output with all possible options set to TRUE:
 #'
@@ -53,24 +53,24 @@ mean_sd <- function(x, stdev.x = NULL,
       require(stringr)
 
       if(all(is.na(x))){
-            return(NA)
+            return(as.character(NA))
       }
 
       if(length(x) == 0){
-            return(NA)
+            return(as.character(NA))
       }
 
       if(length(x) == 1 & is.null(stdev.x)){
-            return(x)
+            return(as.character(x))
       }
 
       if(sd(x, na.rm = T) == 0 & is.null(stdev.x)){
-            return(unique(x))
+            return(as.character(unique(x)))
       }
 
       if(na.rm == FALSE & (all(complete.cases(x)) == FALSE |
                            all(is.finite(x)) == FALSE)){
-            return(NA)
+            return(as.character(NA))
       }
 
       n <- length(x)
@@ -78,7 +78,7 @@ mean_sd <- function(x, stdev.x = NULL,
       x <- x[complete.cases(x) & is.finite(x)]
 
       if(length(x) == 0){
-            return(NA)
+            return(as.character(NA))
       }
 
       if(is.null(stdev.x)){
@@ -86,7 +86,7 @@ mean_sd <- function(x, stdev.x = NULL,
             stdev.x <- sd(x)
       } else {
             if(is.na(stdev.x)){
-                  return(NA)
+                  return(as.character(NA))
             } else {
                   mean.x <- x
             }
