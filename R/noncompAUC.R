@@ -24,10 +24,9 @@ noncompAUC <- function(DF, concentration = "Concentration",
       names(DF)[names(DF) == concentration] <- "CONC"
       names(DF)[names(DF) == time] <- "TIME"
 
-      DF <- DF %>% select(TIME, CONC) %>%
+      DFmean <- DF %>% select(TIME, CONC) %>%
             filter(complete.cases(CONC)) %>%
-            mutate(TimePt = as.factor(TIME)) %>%
-            group_by(TimePt) %>%
+            group_by(TIME) %>%
             summarize(CONC = mean(CONC)) %>%
             arrange(TIME)
 
