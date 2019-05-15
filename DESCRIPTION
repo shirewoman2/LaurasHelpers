@@ -1,7 +1,7 @@
 Package: LaurasHelpers
 Type: Package
 Title: Miscellaneous Helper Functions for Common PK or Analytical Chemistry Tasks
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: person("Laura", "Shireman", email = "seattlescienceediting@gmail.com",
     role = c("aut", "cre"))
 Description: This is a collection of helper functions I've found useful in my 
@@ -12,5 +12,7 @@ LazyData: true
 Imports: 
     lubridate,
     stringr,
-    tidyverse
+    ggplot2,
+    dplyr,
+    tidyr
 RoxygenNote: 6.1.1

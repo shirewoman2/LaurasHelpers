@@ -4,6 +4,7 @@
 #' \code{dateConv} converts dates and times from decimal numbers to POSIXct.
 #'
 #' @param x A numeric string
+#' @export
 #'
 
 dateConv <- function(x) {
