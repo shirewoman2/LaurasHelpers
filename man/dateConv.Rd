@@ -2,7 +2,7 @@
 % Please edit documentation in R/dateConv.R
 \name{dateConv}
 \alias{dateConv}
-\title{Convert dates and times from numbers to POSIXct}
+\title{Convert dates from numbers to Date}
 \usage{
 dateConv(x)
 }
@@ -11,5 +11,5 @@ dateConv(x)
 }
 \description{
 Since data imported from Excel often changes date and time data to numeric,
-\code{dateConv} converts dates and times from decimal numbers to POSIXct.
+\code{dateConv} converts dates from decimal numbers to Date.
 }
