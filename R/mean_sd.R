@@ -66,7 +66,7 @@ mean_sd <- function(x, stdev.x = NULL,
 
       if(sd(x, na.rm = T) == 0 & is.null(stdev.x) |
          is.na(sd(x, na.rm = T))){
-            return(as.character(sort(unique(x))))
+            return(as.character(unique(x)))
       }
 
       if(na.rm == FALSE & (all(complete.cases(x)) == FALSE |
