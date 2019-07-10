@@ -33,12 +33,15 @@ calculated as mean(x) +/- t~n-1, 1-alpha/2~ * sd(x)/sqrt(n)}
 \item{ndig}{Optionally set the number of sig figs to use if you want to set
 to a specific value}
 
-\item{na.rm}{Should NA values be removed? (logical)}
+\item{na.rm}{Should NA values be removed when calculating the mean, standard
+deviation, etc.? (logical) They'll still be included in the count of
+observations if reportn is TRUE.}
 }
 \description{
-\code{mean_sd} takes as input a numeric vector \emph{or} the mean and sd values and
-outputs the mean plus or minus the standard deviation of that vector with an
-appropriate number of sig figs. Output is ALWAYS of class character.
+\code{mean_sd} takes as input a numeric vector \emph{or} the mean and sd
+values and outputs the mean plus or minus the standard deviation of that
+vector with an appropriate number of sig figs. Output is ALWAYS of class
+character.
 }
 \details{
 Example of ultimate output with all possible options set to TRUE:

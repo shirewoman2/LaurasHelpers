@@ -1,8 +1,9 @@
 #' Calculate mean +/- sd or other parameters with appropriate sig figs
 #'
-#' \code{mean_sd} takes as input a numeric vector \emph{or} the mean and sd values and
-#' outputs the mean plus or minus the standard deviation of that vector with an
-#' appropriate number of sig figs. Output is ALWAYS of class character.
+#' \code{mean_sd} takes as input a numeric vector \emph{or} the mean and sd
+#' values and outputs the mean plus or minus the standard deviation of that
+#' vector with an appropriate number of sig figs. Output is ALWAYS of class
+#' character.
 #'
 #' Example of ultimate output with all possible options set to TRUE:
 #'
@@ -29,7 +30,9 @@
 #' @param reportn Should the number of observations be reported? (logical)
 #' @param ndig Optionally set the number of sig figs to use if you want to set
 #'   to a specific value
-#' @param na.rm Should NA values be removed? (logical)
+#' @param na.rm Should NA values be removed when calculating the mean, standard
+#'   deviation, etc.? (logical) They'll still be included in the count of
+#'   observations if reportn is TRUE.
 #'
 #' @examples
 #' mean_sd(rnorm(10, 5, 1))
@@ -53,7 +56,11 @@ mean_sd <- function(x, stdev.x = NULL,
       require(stringr)
 
       if(all(is.na(x))){
-            return(as.character(NA))
+            if(reportn == TRUE){
+                  return(paste0("NA (n = ", length(x), ")"))
+            } else {
+                  return(as.character(NA))
+            }
       }
 
       if(length(x) == 0){
@@ -61,12 +68,21 @@ mean_sd <- function(x, stdev.x = NULL,
       }
 
       if(length(x) == 1 & is.null(stdev.x)){
-            return(as.character(x))
+            if(is.na(ndig)){
+                  ndig <- 3
+            }
+
+            if(reportn == TRUE){
+                  return(paste(signif(x, ndig),
+                                "(n = 1)"))
+            } else {
+                  return(as.character(signif(x, ndig)))
+            }
       }
 
       if(sd(x, na.rm = T) == 0 & is.null(stdev.x) |
          is.na(sd(x, na.rm = T))){
-            return(as.character(unique(x)))
+            return(as.character(sort(unique(x))))
       }
 
       if(na.rm == FALSE & (all(complete.cases(x)) == FALSE |
