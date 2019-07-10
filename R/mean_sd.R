@@ -118,9 +118,9 @@ mean_sd <- function(x, stdev.x = NULL,
       }
 
       Digits <- data.frame(
-            MinValue = 10^seq(-5, 5, 1),
-            MaxValue = 10^seq(-4, 6, 1),
-            Place = log10(10^seq(-4, 6, 1)))
+            MinValue = 10^seq(-7, 7, 1),
+            MaxValue = 10^seq(-6, 8, 1),
+            Place = log10(10^seq(-6, 8, 1)))
 
       # How many places should we go back to find the decimal
       PlacesSD <- Digits$Place[which(signif(stdev.x, 1) >= Digits$MinValue &
