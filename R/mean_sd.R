@@ -81,8 +81,17 @@ mean_sd <- function(x, stdev.x = NULL,
       }
 
       if(sd(x, na.rm = T) == 0 & is.null(stdev.x) |
-         is.na(sd(x, na.rm = T))){
-            return(as.character(sort(unique(x))))
+            is.na(sd(x, na.rm = T))){
+               if(is.na(ndig)){
+                  ndig <- 3
+               }
+
+               if(reportn == TRUE){
+                     return(paste0(signif(sort(unique(x)), ndig),
+                                  " (n =", length(x), ")"))
+               } else {
+                     return(as.character(signif(sort(unique(x)), ndig)))
+               }
       }
 
       if(na.rm == FALSE & (all(complete.cases(x)) == FALSE |
