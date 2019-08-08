@@ -81,7 +81,7 @@ mean_sd <- function(x, stdev.x = NULL,
       }
 
       if(sd(x, na.rm = T) == 0 & is.null(stdev.x) |
-            is.na(sd(x, na.rm = T))){
+            is.na(sd(x, na.rm = T)) & is.null(stdev.x)){
                if(is.na(ndig)){
                   ndig <- 3
                }
