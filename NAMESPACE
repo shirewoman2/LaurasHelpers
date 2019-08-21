@@ -2,6 +2,7 @@
 
 export(anyDup)
 export(dateConv)
+export(fillRep)
 export(gg_color_hue)
 export(gm_mean)
 export(gm_sd)

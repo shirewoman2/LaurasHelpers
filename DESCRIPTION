@@ -1,7 +1,7 @@
 Package: LaurasHelpers
 Type: Package
 Title: Miscellaneous Helper Functions for Common PK or Analytical Chemistry Tasks
-Version: 0.1.4
+Version: 0.1.5
 Authors@R: person("Laura", "Shireman", email = "seattlescienceediting@gmail.com",
     role = c("aut", "cre"))
 Description: This is a collection of helper functions I've found useful in my 
