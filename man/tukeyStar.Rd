@@ -21,8 +21,8 @@ interest (character).}
 \item{textsize}{The size of the asterisks or other text to display in the
 graph. Default is 8.}
 
-\item{includeN}{Include the number of observations for each group? (TRUE or
-FALSE)}
+\item{includeN}{Include a label with the number of observations for each
+group? (TRUE or FALSE)}
 
 \item{returnStats}{Return the overall p value from the ANOVA and the results
 from the Tukey post-hoc test? If TRUE, output will be a list of the plot,
@@ -33,14 +33,15 @@ If returnStats is FALSE, then the output will be the ggplot2 style
   boxplot. If returnStats is TRUE, then the output will be a list of the
   ggplot2 style boxplot, the overall p value, and the data.frame of Tukey
   post-hoc stats.
+
+  @examples
+  DF <- data.frame(Hen = rep(c("A", "B", "C"), each = 5), ChickWeight = rep(c(rnorm(5, mean = 5, sd = 1), rnorm(5, mean = 6, sd = 1), rnorm(5, mean = 4, sd = 1))))
+  tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight")
+  tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight", includeN = TRUE)
+  tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight", returnStats = TRUE)
 }
 \description{
-\code{tukeyStar} makes a boxplot of data that were compared with an ANOVA and
-then evaluated with a Tukey post-hoc test.
-}
-\details{
-INPUT: "data" is the data.frame you're plotting with ggplot2 "Tukey.df" is
-the data.frame of results from as.data.frame(TukeyHSD(aov(Y ~ X))[[1]])
-"valueColumn" is the column in "data" that the y axis is mapped to.
-"groupColumn" is the corollary for the x axis. Title
+\code{tukeyStar} makes a boxplot of data to be analyzed with an ANOVA and
+draws brackets between comparisons found to be significant by a Tukey
+post-hoc test.
 }
