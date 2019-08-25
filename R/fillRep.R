@@ -20,6 +20,13 @@
 #'   the same. If you list "DataSource" for "concatFields", then the result will
 #'   be one row where the column "DataSource" contains the concatenated names of
 #'   the original two files.
+#' @param returnDifs If set to TRUE, returns a list with the name of the
+#'   original data.frame where the contents of the list are 1. a data.frame
+#'   called "differences" that shows differences between all the subsets of data
+#'   that `fillRep` was not able to reduce. It will have 0 rows if there are no
+#'   problematic data. 2. a data.frame called "new data.frame" that is the new,
+#'   unique data.frame. If set to FALSE, the default value, the differences will
+#'   be printed but the output object will be only the new, unique data.frame.
 #' @export
 #'
 

@@ -1,34 +1,15 @@
 #' Fit data to a standard curve
 #'
-#' \code{stdCurve} was designed with mass spectrometry data in mind.
+#' \code{stdCurve}, which was designed with mass spectrometry data in mind, fits
+#' concentration and signal data to a standard curve and returns the calculated
+#' betas, a plot of the standard curve, the data that were used to generate the
+#' fitted line, and the original data that were used to generate the standard
+#' curve.
 #'
-
-
-# This function fits data for a standard curve. Input:
-# 1. DF = the data.frame with the input data
-# If the data are the raw peak heights or areas:
-#     2. rawPeak = the column with the raw peak heights or areas
-#     3. rawIS = the column with the IS peak heights or areas
-# OR if the data are the peak heights or areas divided by the internal standard
-# peak heights or areas already, then
-#     4. normPeak = the column with the normalized peak heights or areas
-# 5. nominal = the column with the nominal concentrations or masses
-# 6. poly = whether to fit the data to a 1st or 2nd order polynomial. Enter "1st" or "2nd".
-# 7. weights = a vector of weights to use for the regression. If left as NA,
-#    no weighting scheme will be used. Be careful that you don't have any infinite values!
-# 8. colorBy = what column to color the points by. If left as NA, points will all be black.
-
-# Output:
-#   1. Fit = a list object that is the fitted parameters,
-#   2. CurvePlot = a plot of the curve and the fitted line,
-#   3. Curve.DF = a data.frame of the points used for graphing the fitted line.
-#   4. Data = the original data with a column Calculatedulating the percent difference between
-#      the Calculatedulated and the nominal concentrations or masses
-
 #' @param DF The input data.frame with columns containing the nominal analyte
 #'   concentration and the instrument response
-#' @param rawPeak The unadjusted instrument response column name (character). Ok
-#'   to ignore if data are already normalized by internal standard.
+#' @param rawPeak The unadjusted instrument response column name (character).
+#'   Ignore this if data are already normalized by internal standard.
 #' @param rawIS The internal standard column name (character). Ok to ignore if
 #'   data are already normalized by internal standard.
 #' @param normPeak The name of the column containing instrument response
@@ -41,14 +22,20 @@
 #' @param weights A vector of weights to use for the regression. If left as NA,
 #'   no weighting scheme will be used. Be careful that you don't have any
 #'   infinite values!
-#' @param colorBy What column to color the points by. If left as NA, points will
-#'   all be black.
+#' @param colorBy What column to color the points by in the standard curve
+#'   graph. If left as NA, points will all be black.
 #'
-#' @return Output is a list of the following named objects: 1. Fit - A list of
-#'   the fitted parameters 2. CurvePlot - A plot of the curve and the fitted
-#'   line, 3. Curve.DF - A data.frame of the points used for graphing the fitted
-#'   line. 4. Data - The original data with a column calculating the percent
+#' @return Output is a list of the following named objects:
+#'
+#'   1. Fit - A list of the fitted parameters
+#'
+#'   2. CurvePlot - A plot of the data and the fitted line,
+#'
+#'   3. Curve.DF - A data.frame of the points used for graphing the fitted line.
+#'
+#'   4. Data - The original data with a column calculating the percent
 #'   difference between the calculated and the nominal concentrations or masses
+#'
 #' @export
 #'
 

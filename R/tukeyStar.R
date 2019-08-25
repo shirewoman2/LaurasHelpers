@@ -24,11 +24,11 @@
 #'   ggplot2 style boxplot, the overall p value, and the data.frame of Tukey
 #'   post-hoc stats.
 #'
-#'   @examples
-#'   DF <- data.frame(Hen = rep(c("A", "B", "C"), each = 5), ChickWeight = rep(c(rnorm(5, mean = 5, sd = 1), rnorm(5, mean = 6, sd = 1), rnorm(5, mean = 4, sd = 1))))
-#'   tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight")
-#'   tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight", includeN = TRUE)
-#'   tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight", returnStats = TRUE)
+#' @examples
+#' DF <- data.frame(Hen = rep(c("A", "B", "C"), each = 5), ChickWeight = rep(c(rnorm(5, mean = 5, sd = 1), rnorm(5, mean = 6, sd = 1), rnorm(5, mean = 4, sd = 1))))
+#' tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight")
+#' tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight", includeN = TRUE)
+#' tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight", returnStats = TRUE)
 #'
 #' @export
 #'
