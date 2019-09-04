@@ -46,7 +46,7 @@ tukeyStar <- function(data, groupColumn, valueColumn,
       names(data)[names(data) == groupColumn] <- "X"
 
       if(class(data$X) == "factor"){
-            Groups <- levels(data$X)
+            Groups <- levels(droplevels(sort(data$X)))
       } else {
             Groups <- levels(as.factor(data$X))
       }
