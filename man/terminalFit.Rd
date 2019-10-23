@@ -6,7 +6,8 @@
 concentration-time curve}
 \usage{
 terminalFit(DF, startValues = NA, concentration = "Concentration",
-  time = "Time", tmax = NA, returnDataUsed = FALSE, weights = NULL)
+  time = "Time", tmax = NA, modelType = "monoexponential",
+  returnDataUsed = FALSE, weights = NULL)
 }
 \arguments{
 \item{DF}{The data.frame with the concentration-time data}
@@ -21,7 +22,11 @@ contains concentration data}
 data}
 
 \item{tmax}{The putative tmax, which is used for estimating the terminal
-elimination rate. Time points \emph{before} tmax will be omitted from the fit.}
+elimination rate. Time points \emph{before} tmax will be omitted from the
+fit.}
+
+\item{modelType}{The mathematical model to use for fitting the data, either
+"monoexponential" or "biexponential".}
 
 \item{returnDataUsed}{Should the data used be returned? I wrote this script
 initially for bootstrapping, where it can be useful to see what data were
