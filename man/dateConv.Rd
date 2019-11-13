@@ -4,12 +4,13 @@
 \alias{dateConv}
 \title{Convert dates from numbers to Date}
 \usage{
-dateConv(x)
+dateConv(x, dataSource = "Excel")
 }
 \arguments{
 \item{x}{A numeric string}
 }
 \description{
-Since data imported from Excel often changes date and time data to numeric,
-\code{dateConv} converts dates from decimal numbers to Date.
+Since data imported from Excel or simply manipulated within R often changes
+date and time data to numeric, \code{dateConv} converts dates from decimal
+numbers to Date.
 }

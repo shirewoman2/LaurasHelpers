@@ -4,7 +4,7 @@
 \alias{timeConv}
 \title{Convert times from numbers to POSIXct}
 \usage{
-timeConv(x, tz = "UTC")
+timeConv(x, tz = "UTC", dataSource = "Excel")
 }
 \arguments{
 \item{x}{A numeric string}

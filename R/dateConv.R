@@ -1,15 +1,25 @@
 #' Convert dates from numbers to Date
 #'
-#' Since data imported from Excel often changes date and time data to numeric,
-#' \code{dateConv} converts dates from decimal numbers to Date.
+#' Since data imported from Excel or simply manipulated within R often changes
+#' date and time data to numeric, \code{dateConv} converts dates from decimal
+#' numbers to Date.
 #'
 #' @param x A numeric string
+#' @dataSource dataSource Either "Excel" (default), "Unix" or "R" depending on
+#'   where the data are coming from. Excel data have an origin of Dec. 30, 1899
+#'   whereas Unix or R data have an origin of Jan. 1, 1970.
 #' @export
 #'
 
-dateConv <- function(x) {
+dateConv <- function(x, dataSource = "Excel") {
 
-      output <- as.Date(as.numeric(x), origin = "1899-12-30")
+      if(dataSource %in% c("Excel", "Unix", "R") == FALSE){
+            stop("Invalid selection for dataSource. Valid selections are 'Excel', 'Unix', or 'R'.")
+      }
+
+      output <- as.Date(as.numeric(x),
+                        origin = ifelse(dataSource == "Excel",
+                                        "1899-12-30", "1970-01-01"))
       return(output)
 }
 
