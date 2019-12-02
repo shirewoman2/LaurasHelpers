@@ -2,7 +2,7 @@
 % Please edit documentation in R/gm_95CI.R
 \name{gm_95CI}
 \alias{gm_95CI}
-\title{Calculate the geometric 95% confidence interval}
+\title{Calculate the geometric 95 percent confidence interval}
 \usage{
 gm_95CI(x, na.rm = TRUE, zero.propagate = FALSE)
 }
@@ -14,8 +14,8 @@ gm_95CI(x, na.rm = TRUE, zero.propagate = FALSE)
 \item{zero.propagate}{Should zeroes be propagated? (logical)}
 }
 \description{
-\code{gm_95CI} takes as input a numeric vector and returns the geometric 95%
-confidence interval
+\code{gm_95CI} takes as input a numeric vector and returns the geometric 95
+percent confidence interval
 }
 \details{
 Because this calculation log-transforms the input data, 1. values of zero

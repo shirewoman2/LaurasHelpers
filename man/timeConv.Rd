@@ -8,6 +8,10 @@ timeConv(x, tz = "UTC", dataSource = "Excel")
 }
 \arguments{
 \item{x}{A numeric string}
+
+\item{dataSource}{dataSource Either "Excel" (default) or "Unix" depending on where
+the data are coming from. Excel data have an origin of Dec. 30, 1899
+whereas Unix or R data have an origin of Jan. 1, 1970.}
 }
 \description{
 Since data imported from Excel often changes date and time data to numeric,

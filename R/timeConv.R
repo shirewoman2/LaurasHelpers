@@ -5,7 +5,7 @@
 #' of "UTC" unless otherwise specified.
 #'
 #' @param x A numeric string
-#' @dataSource dataSource Either "Excel" (default) or "Unix" depending on where
+#' @param dataSource dataSource Either "Excel" (default) or "Unix" depending on where
 #'   the data are coming from. Excel data have an origin of Dec. 30, 1899
 #'   whereas Unix or R data have an origin of Jan. 1, 1970.
 #' @export
