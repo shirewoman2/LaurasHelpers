@@ -25,8 +25,8 @@ data}
 elimination rate. Time points \emph{before} tmax will be omitted from the
 fit.}
 
-\item{modelType}{The mathematical model to use for fitting the data, either
-"monoexponential" or "biexponential".}
+\item{modelType}{The mathematical model to use for fitting the data; options
+are "monoexponential", "biexponential", or "triexponential".}
 
 \item{returnDataUsed}{Should the data used be returned? I wrote this script
 initially for bootstrapping, where it can be useful to see what data were
@@ -37,6 +37,6 @@ data that were used.}
 }
 \description{
 \code{terminalFit} fits concentration-time data to an exponential equation of
-the form f(t) = A*exp(-k * t) where A is Cmax, k is the terminal elimination
+the form f(t) = A*exp(-k * t) where A is ~Cmax, k is the terminal elimination
 rate constant, and t is time.
 }

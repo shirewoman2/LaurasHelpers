@@ -2,7 +2,7 @@
 #' concentration-time curve
 #'
 #' \code{terminalFit} fits concentration-time data to an exponential equation of
-#' the form f(t) = A*exp(-k * t) where A is Cmax, k is the terminal elimination
+#' the form f(t) = A*exp(-k * t) where A is ~Cmax, k is the terminal elimination
 #' rate constant, and t is time.
 #'
 #' @param DF The data.frame with the concentration-time data
@@ -15,8 +15,8 @@
 #' @param tmax The putative tmax, which is used for estimating the terminal
 #'   elimination rate. Time points \emph{before} tmax will be omitted from the
 #'   fit.
-#' @param modelType The mathematical model to use for fitting the data, either
-#'   "monoexponential" or "biexponential".
+#' @param modelType The mathematical model to use for fitting the data; options
+#'   are "monoexponential", "biexponential", or "triexponential".
 #' @param returnDataUsed Should the data used be returned? I wrote this script
 #'   initially for bootstrapping, where it can be useful to see what data were
 #'   used as input. For that reason, I'm including the option of returning the
@@ -32,8 +32,9 @@ terminalFit <- function(DF, startValues = NA,
                         returnDataUsed = FALSE,
                         weights = NULL){
 
-      if(modelType %in% c("monoexponential", "biexponential") == FALSE){
-            return("Acceptable model types are 'monoexponential' or 'biexponential'.")
+      if(modelType %in% c("monoexponential", "biexponential",
+                          "triexponential") == FALSE){
+            return("Acceptable model types are 'monoexponential', 'biexponential', or 'triexponential'.")
       }
 
       DFinit <- DF
@@ -65,13 +66,14 @@ terminalFit <- function(DF, startValues = NA,
       }
 
       if(is.na(startValues[[1]])){
-            # Determining good starting values for the fit if the user
-            # didn't already supply them
+            # Determining good starting values for the fit if the user didn't
+            # already supply them
             startValues.A <- max(DF$CONC)
             tfirstlast <- DF[c(1, nrow(DF)), ]
             startValues.k <- -1*((log(tfirstlast$CONC[2]) - log(tfirstlast$CONC[1]))/
-                                 (tfirstlast$Time.offset[2] -
-                                        tfirstlast$Time.offset[1]))
+                                       (tfirstlast$Time.offset[2] -
+                                              tfirstlast$Time.offset[1]))
+
             if(startValues.k == Inf | is.nan(startValues.k)){
                   startValues.k <- 0.01
             }
@@ -79,12 +81,24 @@ terminalFit <- function(DF, startValues = NA,
             if(modelType == "monoexponential"){
                   startValues <- list(A = startValues.A,
                                       k = startValues.k)
-            } else {
+            }
+
+            if(modelType == "biexponential"){
                   startValues <- list(A = startValues.A,
                                       alpha = startValues.k,
                                       B = startValues.A/2,
                                       beta = 0.1) # Just guessing that this value might work
             }
+
+            if(modelType == "triexponential"){
+                  startValues <- list(A = startValues.A,
+                                      alpha = startValues.k,
+                                      B = startValues.A/2,
+                                      beta = 0.1,
+                                      G = startValues.A/3,
+                                      gamma = 0.01) # Just guessing that this value might work
+            }
+
       }
 
       Fit <- NULL
@@ -98,7 +112,9 @@ terminalFit <- function(DF, startValues = NA,
                                       weights = weights),
                                   error = function(x) return("Cannot fit to model"))
 
-            } else {
+            }
+
+            if(modelType == "biexponential"){
 
                   Fit <- tryCatch(nls(CONC ~ A*exp(-alpha * Time.offset) +
                                             B*exp(-beta * Time.offset),
@@ -109,24 +125,37 @@ terminalFit <- function(DF, startValues = NA,
 
             }
 
-                  if(!is.null(Fit)){
-                        if(class(Fit) == "character"){
-                              Result <- list(
-                                    DataUsed = DFinit,
-                                    Estimates = Fit)
-                        } else {
+            if(modelType == "triexponential"){
 
-                              Result <- list(
-                                    DataUsed = DFinit,
-                                    Estimates = as.data.frame(summary(Fit)[["coefficients"]]))
-                        }
+                  Fit <- tryCatch(nls(CONC ~ A*exp(-alpha * Time.offset) +
+                                            B*exp(-beta * Time.offset) +
+                                                  G*exp(-gamma * Time.offset),
+                                      data = DF,
+                                      start = startValues,
+                                      weights = weights),
+                                  error = function(x) return("Cannot fit to model"))
+
+            }
+
+            # Only giving results if the fit worked
+            if(!is.null(Fit)){
+                  if(class(Fit) == "character"){
+                        Result <- list(
+                              DataUsed = DFinit,
+                              Estimates = Fit)
                   } else {
-                        DataUsed <- DF
-                        Estimates <- data.frame(Estimate = NA,
-                                                SE = NA,
-                                                tval = NA,
-                                                pval = NA)
-                        names(Estimates) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+
+                        Result <- list(
+                              DataUsed = DFinit,
+                              Estimates = as.data.frame(summary(Fit)[["coefficients"]]))
+                  }
+            } else {
+                  DataUsed <- DF
+                  Estimates <- data.frame(Estimate = NA,
+                                          SE = NA,
+                                          tval = NA,
+                                          pval = NA)
+                  names(Estimates) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
 
                   Result <- list(DataUsed = DataUsed, Estimates = Estimates)
             }
