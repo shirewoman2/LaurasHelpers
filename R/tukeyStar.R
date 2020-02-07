@@ -59,7 +59,9 @@ tukeyStar <- function(data, groupColumn, valueColumn,
                   summarize(n = paste("n =", n()))
 
             data <- left_join(data, Count) %>%
-                  mutate(X = paste0(X, "\n", n))
+                  mutate(X = paste0(X, "\n", n)) %>%
+                  arrange(Xorig) %>%
+                  mutate(X = factor(X, levels = unique(X)))
       }
 
       # anova
