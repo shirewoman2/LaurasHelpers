@@ -9,13 +9,17 @@ noncompAUC(DF, concentration = "Concentration", time = "Time")
 \arguments{
 \item{DF}{Input data.frame with concentration-time data.}
 
-\item{concentration}{The name of the column containing drug concentrations (character).}
+\item{concentration}{The name of the column containing drug concentrations
+(character).}
 
 \item{time}{The name of the column containing time data (character).}
+}
+\value{
+Returns a number
 }
 \description{
 Given a data.frame of concentration-time data, \code{noncompAUC} calculates
 the area-under-the-concentration-time curve for the times included in the
-input data.frame. This function does \emph{not} do any extrapolation to
-infinity.
+input data.frame using the linear trapezoidal rule. This function does
+\emph{not} do any extrapolation to infinity.
 }

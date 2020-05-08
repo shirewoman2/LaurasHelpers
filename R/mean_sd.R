@@ -1,9 +1,9 @@
 #' Calculate mean +/- sd or other parameters with appropriate sig figs
 #'
-#' \code{mean_sd} takes as input a numeric vector \emph{or} the mean and sd
-#' values and outputs the mean plus or minus the standard deviation of that
-#' vector with an appropriate number of sig figs. Output is ALWAYS of class
-#' character.
+#' \code{mean_sd} takes as input a numeric vector \emph{or} a number for the
+#' mean and a second number for the sd and outputs the mean plus or minus the
+#' standard deviation of that vector with an appropriate number of sig figs.
+#' Output is ALWAYS of class character.
 #'
 #' Example of ultimate output with all possible options set to TRUE:
 #'
@@ -12,12 +12,12 @@
 #' mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
 #' = n).
 #'
-#' NB: I have not set this up to deal with mean values in scientific notation.
+#' \emph{NB:} I have not set this up to deal with mean values in scientific notation.
 #'
-#' NB: If sd(x) == 0, output will be unique(x).
+#' \emph{NB:} If sd(x) == 0, output will be unique(x).
 #'
 #' @param x A vector of numbers OR a single mean
-#' @param stdev.x The sd of the mean provided (leave as NULL if providing a
+#' @param stdev.x The sd when you want to provide it (leave as NULL if providing a
 #'   vector of numbers)
 #' @param calcRange Should the range be reported? (logical) (TRUE or FALSE)
 #' @param numDigRange Number of digits to report for the range
@@ -25,14 +25,16 @@
 #' @param calcMedian Should the median be reported? (logical)
 #' @param calc95CI Should the 95\% confidence interval be reported? (logical) If
 #'   calc95CI is set to TRUE, it will return the 95\% confidence interval as
-#'   calculated as mean(x) +/- t~n-1, 1-alpha/2~ * sd(x)/sqrt(n)
+#'   calculated as \deqn{mean(x) +/- t~n-1, 1-alpha/2~ * sd(x)/sqrt(n)}
 #' @param calcQuantiles Should the quantiles be reported? (logical)
 #' @param reportn Should the number of observations be reported? (logical)
 #' @param ndig Optionally set the number of sig figs to use if you want to set
 #'   to a specific value
 #' @param na.rm Should NA values be removed when calculating the mean, standard
 #'   deviation, etc.? (logical) They'll still be included in the count of
-#'   observations if reportn is TRUE.
+#'   observations if \code{reportn} is TRUE.
+#'
+#' @return Returns a character string
 #'
 #' @examples
 #' mean_sd(rnorm(10, 5, 1))

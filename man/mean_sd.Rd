@@ -21,7 +21,7 @@ mean_sd(
 \arguments{
 \item{x}{A vector of numbers OR a single mean}
 
-\item{stdev.x}{The sd of the mean provided (leave as NULL if providing a
+\item{stdev.x}{The sd when you want to provide it (leave as NULL if providing a
 vector of numbers)}
 
 \item{calcRange}{Should the range be reported? (logical) (TRUE or FALSE)}
@@ -34,7 +34,7 @@ vector of numbers)}
 
 \item{calc95CI}{Should the 95\% confidence interval be reported? (logical) If
 calc95CI is set to TRUE, it will return the 95\% confidence interval as
-calculated as mean(x) +/- t~n-1, 1-alpha/2~ * sd(x)/sqrt(n)}
+calculated as \deqn{mean(x) +/- t~n-1, 1-alpha/2~ * sd(x)/sqrt(n)}}
 
 \item{calcQuantiles}{Should the quantiles be reported? (logical)}
 
@@ -45,13 +45,16 @@ to a specific value}
 
 \item{na.rm}{Should NA values be removed when calculating the mean, standard
 deviation, etc.? (logical) They'll still be included in the count of
-observations if reportn is TRUE.}
+observations if \code{reportn} is TRUE.}
+}
+\value{
+Returns a character string
 }
 \description{
-\code{mean_sd} takes as input a numeric vector \emph{or} the mean and sd
-values and outputs the mean plus or minus the standard deviation of that
-vector with an appropriate number of sig figs. Output is ALWAYS of class
-character.
+\code{mean_sd} takes as input a numeric vector \emph{or} a number for the
+mean and a second number for the sd and outputs the mean plus or minus the
+standard deviation of that vector with an appropriate number of sig figs.
+Output is ALWAYS of class character.
 }
 \details{
 Example of ultimate output with all possible options set to TRUE:
@@ -61,9 +64,9 @@ Example of ultimate output with all possible options set to TRUE:
 mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
 = n).
 
-NB: I have not set this up to deal with mean values in scientific notation.
+\emph{NB:} I have not set this up to deal with mean values in scientific notation.
 
-NB: If sd(x) == 0, output will be unique(x).
+\emph{NB:} If sd(x) == 0, output will be unique(x).
 }
 \examples{
 mean_sd(rnorm(10, 5, 1))

@@ -14,14 +14,16 @@
 #' Alternatively, if you want to just ignore 0 values, you can choose
 #' zero.propagate = FALSE. Then, either definition works, and, since R has a
 #' built-in sum(...) function but not a built-in product(...) function, you use
-#' the definition where the geometric mean = exp(1/n * the sum of the logs of
-#' each value) and that will give you an actual number if you ignore the zeroes.
+#' the definition where the geometric \eqn{mean = exp(1/n * the sum of the logs of
+#' each value)} and that will give you an actual number if you ignore the zeroes.
 #'
 #' Note that the geometric mean is undefined for negative numbers.
 #'
 #' @param x A vector of numbers
 #' @param na.rm Should NA values be removed? (logical)
 #' @param zero.propagate Should zeroes be propagated? (logical)
+#'
+#' @return Returns a number
 #'
 #' @examples
 #' gm_mean(rnorm(10, 5, 1))
@@ -59,9 +61,10 @@ gm_mean <- function(x, na.rm=TRUE, zero.propagate = FALSE){
 #' formula used.
 #'
 #' Also, note that the way you determine the range of the data for the geometric
-#' mean +/- one geometric standard deviation is NOT geometric mean value +/- the
-#' geometric standard deviation! Instead, it is geometric mean / geometric
-#' standard deviation to geometric mean * geometric standard deviation!
+#' mean and one geometric standard deviation is NOT \eqn{geometric mean value
+#' +/- the geometric standard deviation}! Instead, it is \eqn{geometric mean /
+#' geometric standard deviation} to \eqn{geometric mean * geometric standard
+#' deviation}!
 #'
 #'
 #' @param x A vector of numbers
@@ -69,7 +72,10 @@ gm_mean <- function(x, na.rm=TRUE, zero.propagate = FALSE){
 #' @param zero.propagate Should zeroes be propagated? (logical)
 #'
 #' @examples
+#'
 #' gm_sd(rnorm(10, 5, 1))
+#' gm_sd(c(5, 3, 6, 10, 2, 0), zero.propagate = TRUE)
+#'
 #' @export
 
 gm_sd <- function(x, na.rm = TRUE, zero.propagate = FALSE) {

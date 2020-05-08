@@ -13,26 +13,34 @@ terminalFit(
   tmax = NA,
   modelType = "monoexponential",
   returnDataUsed = FALSE,
-  weights = NULL
+  weights = NULL,
+  returnRSS = FALSE,
+  useNLS_outnames = TRUE
 )
 }
 \arguments{
 \item{DF}{The data.frame with the concentration-time data}
 
 \item{startValues}{list of starting values for A and k, NA if the start
-values should be determined automatically. Coefficients for the
-biexponential fit that will need values: A, alpha, B, and beta. For the
-triexponential: A, alpha, B, beta, G, gamma. *An alternative approach:*
-After having a lot of trouble with finding decent starting values for
-triexponential decays using nls behind the scenes here, I've now changed
-this function to optionally use the function nls2, which does a rigorous
-search for starting values. For triexponential fits, if you submit a list
-of starting values like usual, this function will use the regular nls
-function. However, to use nls2 instead, set startValues to a two row
-data.frame with columns for each coefficient in which the first row is the
-minimum possible value to start using and the 2nd row is the maximum value
-to start using for that coefficient. A warning: Because nls2 searches more
-possible starting values, it is appreciably slower.}
+  values should be determined automatically. \itemize{
+
+  \item Coefficients for the monoexponential fit that will need values: A, k.
+
+  \item Coefficients for the biexponential fit: A, alpha, B, and beta.
+
+  \item For the triexponential: A, alpha, B, beta, G, gamma.
+
+  \item \emph{An alternative approach:} After having a lot of trouble with
+  finding decent starting values for triexponential decays using \code{nls}
+  behind the scenes here, I've now changed this function to optionally use
+  the function \code{nls2}, which does a more rigorous search for starting
+  values than \code{nls}. For triexponential fits, if you submit a list of
+  starting values like usual, this function will use the regular \code{nls}
+  function. However, to use \code{nls2} instead, set startValues to a two row
+  data.frame with columns for each coefficient in which the first row is the
+  minimum possible value to start using and the 2nd row is the maximum value
+  to start using for that coefficient. \strong{A warning:} Because nls2
+  searches more possible starting values, it can be appreciably slower.}}
 
 \item{concentration}{A character string of the column name in DF that
 contains concentration data}
@@ -53,9 +61,43 @@ used as input. For that reason, I'm including the option of returning the
 data that were used.}
 
 \item{weights}{Any weighting to be used for the nonlinear regression}
+
+\item{returnRSS}{TRUE or FALSE for whether to resturn the residual sum of
+squares. If set to TRUE, this will be the last column of the output
+data.frame where all rows = the residual sum of squares. (I wanted the
+output to still be a data.frame, so that's the place I could think of to
+put it.)}
+
+\item{useNLS_outnames}{TRUE or FALSE for whether to use the standard output
+coeffecient names that come with the nls or nls2 functions, e.g.,
+"Estimate", "Std. Error", "t value", and "Pr(>|t|)". These names are
+annoying to work with for output data.frames b/c they don't follow standard
+column-naming practices (they contain spaces and symbols). If set to FALSE,
+the names of the output coefficient data.frame will be "Estimate", "SE",
+"tvalue" and "pvalue".}
+}
+\value{
+Returns a data.frame of the coefficients or a list containing a
+  data.frame of the input data and a data.frame of the estimated coefficients
 }
 \description{
-\code{terminalFit} fits concentration-time data to an exponential equation of
-the form f(t) = A*exp(-k * t) where A is ~Cmax, k is the terminal elimination
-rate constant, and t is time.
+\code{terminalFit} fits an exponential equation to concentration-time data.
+The equation should be of the form \eqn{f(t) = concentration = A * exp(-kt)}
+where A is ~Cmax, k is the terminal elimination rate constant, and t is time,
+and the model can be monoexponential, biexponential, or triexponential decay.
+}
+\examples{
+
+terminalFit(ConcTimeData, concentration = "Conc", time = "Time_min",
+            tmax = 15, modelType = "biexponential")
+
+terminalFit(ConcTimeData, concentration = "ConcA_ngmL", time = "Time_min",
+            tmax = NA, modelType = "triexponential",
+            startValues = data.frame(A = c(100, 1000),
+                                     alpha = c(0.01, 0.1),
+                                     B = c(100, 1000),
+                                     beta = c(0.001, 0.1),
+                                     G = c(0.1, 100),
+                                     gamma = c(1e-6, 0.01)))
+
 }

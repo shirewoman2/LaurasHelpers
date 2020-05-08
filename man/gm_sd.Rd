@@ -24,10 +24,14 @@ the geometric standard deviation is dimensionless. See that entry for the
 formula used.
 
 Also, note that the way you determine the range of the data for the geometric
-mean +/- one geometric standard deviation is NOT geometric mean value +/- the
-geometric standard deviation! Instead, it is geometric mean / geometric
-standard deviation to geometric mean * geometric standard deviation!
+mean and one geometric standard deviation is NOT \eqn{geometric mean value
++/- the geometric standard deviation}! Instead, it is \eqn{geometric mean /
+geometric standard deviation} to \eqn{geometric mean * geometric standard
+deviation}!
 }
 \examples{
+
 gm_sd(rnorm(10, 5, 1))
+gm_sd(c(5, 3, 6, 10, 2, 0), zero.propagate = TRUE)
+
 }

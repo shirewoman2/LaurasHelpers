@@ -43,16 +43,17 @@ infinite values!}
 graph. If left as NA, points will all be black.}
 }
 \value{
-Output is a list of the following named objects:
+Output is a list of the following named objects:\describe{
 
-  1. Fit - A list of the fitted parameters
+  \item{Fit}{A list of the fitted parameters}
 
-  2. CurvePlot - A plot of the data and the fitted line,
+  \item{CurvePlot}{A plot of the data and the fitted line}
 
-  3. Curve.DF - A data.frame of the points used for graphing the fitted line.
+  \item{Curve.DF}{A data.frame of the points used for graphing the fitted
+  line.}
 
-  4. Data - The original data with a column calculating the percent
-  difference between the calculated and the nominal concentrations or masses
+  \item{Data}{The original data with a column calculating the percent
+  difference between the calculated and the nominal concentrations or masses}}
 }
 \description{
 \code{stdCurve}, which was designed with mass spectrometry data in mind, fits
@@ -60,4 +61,15 @@ concentration and signal data to a standard curve and returns the calculated
 betas, a plot of the standard curve, the data that were used to generate the
 fitted line, and the original data that were used to generate the standard
 curve.
+}
+\examples{
+stdCurve(MyCurveData, rawPeak = "Metformin_height",
+         rawIS = "d6Metformin_height",
+         nominal = "MET_mass_added", poly = "2nd",
+         weights = 1/MyCurveData$MET_mass_added)
+
+stdCurve(MyCurveData, normPeak = "MET_PeakAreaRatio",
+         nominal = "MET_mass_added", poly = "2nd",
+         weights = 1/MyCurveData$MET_mass_added)
+
 }

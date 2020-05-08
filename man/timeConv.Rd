@@ -13,6 +13,9 @@ timeConv(x, tz = "UTC", dataSource = "Excel")
 the data are coming from. Excel data have an origin of Dec. 30, 1899
 whereas Unix or R data have an origin of Jan. 1, 1970.}
 }
+\value{
+Returns a POSIXct object
+}
 \description{
 Since data imported from Excel often changes date and time data to numeric,
 \code{timeConv} converts dates from decimal numbers to Date with a time zone

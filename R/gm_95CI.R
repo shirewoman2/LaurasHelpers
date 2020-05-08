@@ -3,10 +3,10 @@
 #' \code{gm_95CI} takes as input a numeric vector and returns the geometric 95
 #' percent confidence interval
 #'
-#' Because this calculation log-transforms the input data, 1. values of zero
-#' must be either omitted (zero.propagate = FALSE) or included (zero.propagate =
-#' TRUE) with the result being NA, and 2. the function is undefined for negative
-#' numbers.
+#' Because this calculation log-transforms the input data: \enumerate{\item values of zero
+#' must be either omitted (zero.propagate = FALSE) or, if included (zero.propagate =
+#' TRUE), the result will be NA, and \item the function is undefined for negative
+#' numbers.}
 #'
 #' @param x A vector of numbers
 #' @param na.rm Should NA values be removed? (logical)
@@ -14,6 +14,10 @@
 #'
 #' @examples
 #' gm_95CI(rnorm(10, 5, 1))
+#' gm_95CI(c(4, 3, 7, 19, 4, 0), zero.propagate = TRUE)
+#' gm_95CI(c(4, 3, 7, 19, 4, 0), zero.propagate = FALSE)
+#'
+#' @return Returns a list of numbers
 #'
 #' @export
 

@@ -1,6 +1,6 @@
 #' ggplot2 boxplots of ANOVA results
 #'
-#' \code{tukeyStar} makes a boxplot of data to be analyzed with an ANOVA and
+#' \code{tukeyStar} makes a boxplot of data that could be analyzed by ANOVA and
 #' draws brackets between comparisons found to be significant by a Tukey
 #' post-hoc test.
 #'
@@ -21,14 +21,23 @@
 #'
 #' @return If returnStats is FALSE, then the output will be the ggplot2 style
 #'   boxplot. If returnStats is TRUE, then the output will be a list of the
-#'   ggplot2 style boxplot, the overall p value, and the data.frame of Tukey
+#'   ggplot2-style boxplot, the overall p value, and the data.frame of Tukey
 #'   post-hoc stats.
 #'
 #' @examples
-#' DF <- data.frame(Hen = rep(c("A", "B", "C"), each = 5), ChickWeight = rep(c(rnorm(5, mean = 5, sd = 1), rnorm(5, mean = 6, sd = 1), rnorm(5, mean = 4, sd = 1))))
-#' tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight")
-#' tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight", includeN = TRUE)
-#' tukeyStar(data = DF, groupColumn = "Hen", valueColumn = "ChickWeight", returnStats = TRUE)
+#' DF <- data.frame(Hen = rep(c("A", "B", "C"), each = 5),
+#'                  ChickWeight = rep(c(rnorm(5, mean = 5, sd = 1),
+#'                                      rnorm(5, mean = 6, sd = 1),
+#'                                      rnorm(5, mean = 4, sd = 1))))
+#'
+#' tukeyStar(data = DF, groupColumn = "Hen",
+#'           valueColumn = "ChickWeight")
+#'
+#' tukeyStar(data = DF, groupColumn = "Hen",
+#'           valueColumn = "ChickWeight", includeN = TRUE)
+#'
+#' tukeyStar(data = DF, groupColumn = "Hen",
+#'           valueColumn = "ChickWeight", returnStats = TRUE)
 #'
 #' @export
 #'

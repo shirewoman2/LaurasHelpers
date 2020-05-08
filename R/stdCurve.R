@@ -25,16 +25,26 @@
 #' @param colorBy What column to color the points by in the standard curve
 #'   graph. If left as NA, points will all be black.
 #'
-#' @return Output is a list of the following named objects:
+#' @return Output is a list of the following named objects:\describe{
 #'
-#'   1. Fit - A list of the fitted parameters
+#'   \item{Fit}{A list of the fitted parameters}
 #'
-#'   2. CurvePlot - A plot of the data and the fitted line,
+#'   \item{CurvePlot}{A plot of the data and the fitted line}
 #'
-#'   3. Curve.DF - A data.frame of the points used for graphing the fitted line.
+#'   \item{Curve.DF}{A data.frame of the points used for graphing the fitted
+#'   line.}
 #'
-#'   4. Data - The original data with a column calculating the percent
-#'   difference between the calculated and the nominal concentrations or masses
+#'   \item{Data}{The original data with a column calculating the percent
+#'   difference between the calculated and the nominal concentrations or masses}}
+#' @examples
+#' stdCurve(MyCurveData, rawPeak = "Metformin_height",
+#'          rawIS = "d6Metformin_height",
+#'          nominal = "MET_mass_added", poly = "2nd",
+#'          weights = 1/MyCurveData$MET_mass_added)
+#'
+#' stdCurve(MyCurveData, normPeak = "MET_PeakAreaRatio",
+#'          nominal = "MET_mass_added", poly = "2nd",
+#'          weights = 1/MyCurveData$MET_mass_added)
 #'
 #' @export
 #'

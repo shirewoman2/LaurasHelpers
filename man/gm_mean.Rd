@@ -13,6 +13,9 @@ gm_mean(x, na.rm = TRUE, zero.propagate = FALSE)
 
 \item{zero.propagate}{Should zeroes be propagated? (logical)}
 }
+\value{
+Returns a number
+}
 \description{
 \code{gm_mean} takes as input a numeric vector and returns the geometric mean
 }
@@ -29,8 +32,8 @@ the product of all values, so that would be zero.propagate = TRUE.
 Alternatively, if you want to just ignore 0 values, you can choose
 zero.propagate = FALSE. Then, either definition works, and, since R has a
 built-in sum(...) function but not a built-in product(...) function, you use
-the definition where the geometric mean = exp(1/n * the sum of the logs of
-each value) and that will give you an actual number if you ignore the zeroes.
+the definition where the geometric \eqn{mean = exp(1/n * the sum of the logs of
+each value)} and that will give you an actual number if you ignore the zeroes.
 
 Note that the geometric mean is undefined for negative numbers.
 }

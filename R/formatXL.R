@@ -1,5 +1,5 @@
-#' Format data with text colors, font sizes, alignments, etc. when you write
-#' them to an Excel file
+#' Format data with font colors, font sizes, alignments, borders, etc. when you
+#' write them to an Excel file
 #'
 #' This function takes a data.frame you want to save to an Excel file using the
 #' package \code{xlsx} and applies the formatting you want for the Excel file.
@@ -7,8 +7,8 @@
 #'
 #' @param DF
 #' @param file
-#' @param sheet sheet name (character). Defaults to the name of the supplied data.frame if
-#'   no other name is supplied.
+#' @param sheet sheet name (character). Defaults to the name of the supplied
+#'   data.frame if no other name is supplied.
 
 #' @param colWidth A named list of \code{colNum} or \code{colName} and
 #'   \code{width} in pixels. Examples: \itemize{ \item \code{colWidth =
@@ -89,9 +89,9 @@
 #'   has no sheets!" that I \emph{cannot} seem to get rid of.
 #'
 #'   \strong{COMMON ERRORS or ERROR MESSAGES} since this is a tad (ok, a LOT)
-#'   glitchy: styles is meant to accommodate multiple sets of formatting, so you
-#'   have to have \code{styles} be a list but then also each set of cells that
-#'   you're formatting must also be a list. This means that styles should
+#'   glitchy: \code{styles} is meant to accommodate multiple sets of formatting,
+#'   so you have to have \code{styles} be a list but then also each set of cells
+#'   that you're formatting must also be a list. This means that styles should
 #'   probably look like this in your code: \code{styles = list(list(...))}
 #'
 #'   If you set a style for a cell and then set another style for that same
@@ -99,13 +99,15 @@
 #'   For example, say you select row 1 and make it blue and bold, and then you
 #'   add a border on the left side of all cells in column 4. The cell in row 1,
 #'   column 4 will be the default Excel style of text plus having a border on
-#'   the left side, not blue, bold, \emph{and} border on left.
+#'   the left side -- not blue, bold, \emph{and} border on left.
 #'
+#' @return This does not return any R objects; instead, it saves an Excel file.
 #' @examples
 #' data(iris)
 #'
 #' formatXL(DF = iris %>%
-#'          mutate(Date = as.Date("2020-11-04"), Money = rnorm(nrow(.), 20, 20)),
+#'          mutate(Date = as.Date("2020-11-03"),
+#'                 Money = rnorm(nrow(.), 20, 20)),
 #'          file = "test.xlsx", sheet = "iris1",
 #'          colWidth = list(colNum = NA, width = 30),
 #'          styles = list(list(rows = 0, columns = NA,
