@@ -1,11 +1,15 @@
-#' Cut a set of numeric data into bins and then set the new value to be the left
-#' or right side of the bin
+#' Cut numeric data into bins with vector output
 #'
+#' This function cuts a vector of numbers just like the base R function "cut"
+#' except that the output will be a vector of numbers rather than that weird
+#' factor that's the default. The number listed in the output will be the lower
+#' boundary of the bin for the number that was used in the input.
 #'
 #' @param x A numeric string
 #' @param breaks the desired breaks in that string; these are the same as for
 #'   the base function "cut"
 #'
+#' @return Returns a vector of numeric data
 #' @export
 #'
 

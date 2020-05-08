@@ -4,7 +4,8 @@
 \name{Metformin}
 \alias{Metformin}
 \title{Example data for data manipulation, graphing}
-\format{A data.frame with 37 rows and 6 variables:
+\format{
+A data.frame with 37 rows and 6 variables:
 \describe{
   \item{SampleID}{Sample ID}
   \item{Matrix}{biological matrix sample was in}
@@ -12,7 +13,8 @@
   \item{Volume.working.solution.added..uL.}{Volume of working solution added to sample (uL)}
   \item{metformin.peak.area}{Metformin peak area (counts)}
   \item{d6.metformin.peak.area}{d6-metformin peak area (counts)}
-}}
+}
+}
 \usage{
 Metformin
 }

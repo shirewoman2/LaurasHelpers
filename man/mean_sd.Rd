@@ -4,9 +4,19 @@
 \alias{mean_sd}
 \title{Calculate mean +/- sd or other parameters with appropriate sig figs}
 \usage{
-mean_sd(x, stdev.x = NULL, calcRange = FALSE, numDigRange = NA,
-  calcCV = FALSE, calcMedian = FALSE, calc95CI = FALSE,
-  calcQuantiles = FALSE, reportn = FALSE, ndig = NA, na.rm = TRUE)
+mean_sd(
+  x,
+  stdev.x = NULL,
+  calcRange = FALSE,
+  numDigRange = NA,
+  calcCV = FALSE,
+  calcMedian = FALSE,
+  calc95CI = FALSE,
+  calcQuantiles = FALSE,
+  reportn = FALSE,
+  ndig = NA,
+  na.rm = TRUE
+)
 }
 \arguments{
 \item{x}{A vector of numbers OR a single mean}

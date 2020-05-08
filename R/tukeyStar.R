@@ -38,8 +38,6 @@ tukeyStar <- function(data, groupColumn, valueColumn,
                       includeN = FALSE,
                       returnStats = FALSE) {
 
-      require(ggplot2)
-      require(stringr)
       require(dplyr)
 
       names(data)[names(data) == valueColumn] <- "Y"
@@ -72,7 +70,7 @@ tukeyStar <- function(data, groupColumn, valueColumn,
       Tukey.df <- Tukey.df[Tukey.df$"p adj" < 0.05 |
                                  is.nan(Tukey.df$"p adj"), ]
 
-      plot <- ggplot(data, aes(x = X, y = Y, fill = X)) +
+      plot <- ggplot2::ggplot(data, aes(x = X, y = Y, fill = X)) +
             geom_boxplot() +
             xlab(groupColumn) + ylab(valueColumn) +
             labs(fill = valueColumn) +
@@ -81,7 +79,7 @@ tukeyStar <- function(data, groupColumn, valueColumn,
       if(nrow(Tukey.df) > 0){
             Comparisons <- row.names(Tukey.df)
             Tukey.df$Comparison <- row.names(Tukey.df)
-            Comparisons.l <- str_split(Comparisons, "-")
+            Comparisons.l <- stringr::str_split(Comparisons, "-")
             names(Comparisons.l) <- row.names(Tukey.df)
 
             Segments <- data.frame(Comparison = Comparisons,
@@ -112,7 +110,7 @@ tukeyStar <- function(data, groupColumn, valueColumn,
 
                   # Determining number of stars
                   Segments$Star[l] <-
-                        ifelse(is.nan(Tukey.df$"p adj"[l]), "can't calc p val",
+                        ifelse(is.nan(Tukey.df$"p adj"[l]), "can't calculate p value",
                                ifelse(Tukey.df$"p adj"[l] < 0.001, "***",
                                       ifelse(Tukey.df$"p adj"[l] < 0.01, "**", "*")))
 

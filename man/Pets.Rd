@@ -4,11 +4,13 @@
 \name{Pets}
 \alias{Pets}
 \title{Example data for joining data.frames}
-\format{A data.frame with 29 rows and 2 variables:
+\format{
+A data.frame with 29 rows and 2 variables:
 \describe{
   \item{Name}{Student's name}
   \item{Number.of.pets}{Number of pets that student has}
-}}
+}
+}
 \usage{
 Pets
 }

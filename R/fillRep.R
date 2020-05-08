@@ -5,28 +5,34 @@
 #' fills in all missing values and returns the unique (no replicates) data.frame
 #' whenever possible. When replicates cannot be removed because there are
 #' differences, fillRep returns a data.frame of those differences. Whenever the
-#' function encounters a set of rows that will *not* reduce, it prints the
+#' function encounters a set of rows that will \emph{not} reduce, it prints the
 #' problematic fields as a data.frame. Optionally, you can keep this data.frame
 #' of problems by setting `returnDifs` to TRUE.
 #'
 #' @param DF a data.frame that you want to remove replicates from
 #' @param dlplyBy a character string of the columns in DF that you want to use
-#'   to break down DF; it's what you're supplying to "plyr::dlply" as the
-#'   ".variables" parameter.
+#'   to break down DF; it's what you're supplying to \code{plyr::dlply} as the
+#'   \code{.variables} parameter.
 #' @param concatFields a string of columns that are likely to contain replicates
 #'   that you want to concatenate. For example, say you've got two rows in a
 #'   merged data.frame where one row has the value "File1" listed for the column
 #'   "DataSource", and the other has the value "File2", but everything else is
-#'   the same. If you list "DataSource" for "concatFields", then the result will
-#'   be one row where the column "DataSource" contains the concatenated names of
-#'   the original two files.
+#'   the same. If you list "DataSource" for \code{concatFields}, then the result
+#'   will condense those two original rows into one row where the column
+#'   "DataSource" contains the concatenated names of the original two files.
 #' @param returnDifs If set to TRUE, returns a list with the name of the
-#'   original data.frame where the contents of the list are 1. a data.frame
-#'   called "differences" that shows differences between all the subsets of data
-#'   that `fillRep` was not able to reduce. It will have 0 rows if there are no
-#'   problematic data. 2. a data.frame called "new data.frame" that is the new,
-#'   unique data.frame. If set to FALSE, the default value, the differences will
-#'   be printed but the output object will be only the new, unique data.frame.
+#'   original data.frame where the contents of the list are: \enumerate{ \item a
+#'   data.frame called "differences" that shows differences between all the
+#'   subsets of data that \code{fillRep} was not able to reduce. It will have 0
+#'   rows if there are no problematic data. \item a data.frame called "new
+#'   data.frame" that is the new, unique data.frame.} If set to FALSE, the
+#'   default value, the differences will be printed but the output object will
+#'   be only the new, unique data.frame.
+#' @return Returns a unique data.frame
+#' @examples fillRep(MyDF, dlplyby = c("SubjectID", "StudyDay"),
+#'         concatFields = "SourceFile", returnDifs = FALSE)
+#'
+#' fillRep(MyDF, dlplyby = "SubjectID")
 #' @export
 #'
 

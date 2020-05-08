@@ -4,7 +4,8 @@
 \name{Students}
 \alias{Students}
 \title{Example data for data manipulation, data checking, etc.}
-\format{A data.frame with 37 rows and 6 variables:
+\format{
+A data.frame with 37 rows and 6 variables:
 \describe{
   \item{Name}{First name}
   \item{Department}{Department}
@@ -12,7 +13,8 @@
   \item{Cookie}{Favorite type of cookie}
   \item{VampTV.hr}{Amount of time spent watching trashy vampire TV last week (hr)}
   \item{Sleep.hr}{Amount of sleep last night (hr)}
-}}
+}
+}
 \usage{
 Students
 }

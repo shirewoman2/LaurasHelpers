@@ -4,7 +4,8 @@
 \name{UWsalaries}
 \alias{UWsalaries}
 \title{Salaries of University of Washington employees from 2013-2017 (public record)}
-\format{A data.frame with ~124,000 rows and 7 variables:
+\format{
+A data.frame with ~124,000 rows and 7 variables:
 \describe{
   \item{Name}{Employee name}
   \item{JobTitle}{Job title}
@@ -13,7 +14,8 @@
   \item{Sal2015}{Salary in 2015}
   \item{Sal2016}{Salary in 2016}
   \item{Sal2017}{Salary in 2017}
-}}
+}
+}
 \usage{
 UWsalaries
 }

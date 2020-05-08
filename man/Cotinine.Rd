@@ -4,7 +4,8 @@
 \name{Cotinine}
 \alias{Cotinine}
 \title{Example data for converting data.frames from long to wide format}
-\format{A data.frame with 44 rows and 9 variables:
+\format{
+A data.frame with 44 rows and 9 variables:
 \describe{
   \item{SampleID}{Sample ID}
   \item{File}{MS data file}
@@ -15,7 +16,8 @@
   \item{RT}{Retention time (min)}
   \item{Area}{Peak area (counts)}
   \item{Height}{Peak height (counts)}
-}}
+}
+}
 \usage{
 Cotinine
 }

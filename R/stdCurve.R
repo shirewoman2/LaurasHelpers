@@ -84,7 +84,7 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak = NA,
 
       if(is.na(colorBy)){
 
-            CurvePlot <- ggplot(DF, aes(x = nominal, y = normPeak)) +
+            CurvePlot <- ggplot2::ggplot(DF, aes(x = nominal, y = normPeak)) +
                   geom_point() +
                   geom_line(data = Curve, aes(x = nominal, y = normPeak)) +
                   xlab(nominal) + ylab(normPeak)
@@ -93,7 +93,7 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak = NA,
 
             names(DF)[names(DF) == colorBy] <- "COLOR"
 
-            CurvePlot <- ggplot(DF, aes(x = nominal, y = normPeak,
+            CurvePlot <- ggplot2::ggplot(DF, aes(x = nominal, y = normPeak,
                                         color = COLOR)) +
                   geom_point() +
                   geom_line(data = Curve, aes(x = nominal, y = normPeak),

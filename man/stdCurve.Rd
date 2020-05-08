@@ -4,8 +4,16 @@
 \alias{stdCurve}
 \title{Fit data to a standard curve}
 \usage{
-stdCurve(DF, rawPeak, rawIS, normPeak = NA, nominal, poly = "1st",
-  weights = NULL, colorBy = NA)
+stdCurve(
+  DF,
+  rawPeak,
+  rawIS,
+  normPeak = NA,
+  nominal,
+  poly = "1st",
+  weights = NULL,
+  colorBy = NA
+)
 }
 \arguments{
 \item{DF}{The input data.frame with columns containing the nominal analyte

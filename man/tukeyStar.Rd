@@ -4,8 +4,15 @@
 \alias{tukeyStar}
 \title{ggplot2 boxplots of ANOVA results}
 \usage{
-tukeyStar(data, groupColumn, valueColumn, barsize = 1.5, textsize = 8,
-  includeN = FALSE, returnStats = FALSE)
+tukeyStar(
+  data,
+  groupColumn,
+  valueColumn,
+  barsize = 1.5,
+  textsize = 8,
+  includeN = FALSE,
+  returnStats = FALSE
+)
 }
 \arguments{
 \item{data}{The input data.frame on which to perform an ANOVA}

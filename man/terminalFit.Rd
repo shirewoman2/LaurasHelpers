@@ -5,15 +5,34 @@
 \title{Calculate the elimination rate of the terminal portion of a
 concentration-time curve}
 \usage{
-terminalFit(DF, startValues = NA, concentration = "Concentration",
-  time = "Time", tmax = NA, modelType = "monoexponential",
-  returnDataUsed = FALSE, weights = NULL)
+terminalFit(
+  DF,
+  startValues = NA,
+  concentration = "Concentration",
+  time = "Time",
+  tmax = NA,
+  modelType = "monoexponential",
+  returnDataUsed = FALSE,
+  weights = NULL
+)
 }
 \arguments{
 \item{DF}{The data.frame with the concentration-time data}
 
 \item{startValues}{list of starting values for A and k, NA if the start
-values should be determined automatically}
+values should be determined automatically. Coefficients for the
+biexponential fit that will need values: A, alpha, B, and beta. For the
+triexponential: A, alpha, B, beta, G, gamma. *An alternative approach:*
+After having a lot of trouble with finding decent starting values for
+triexponential decays using nls behind the scenes here, I've now changed
+this function to optionally use the function nls2, which does a rigorous
+search for starting values. For triexponential fits, if you submit a list
+of starting values like usual, this function will use the regular nls
+function. However, to use nls2 instead, set startValues to a two row
+data.frame with columns for each coefficient in which the first row is the
+minimum possible value to start using and the 2nd row is the maximum value
+to start using for that coefficient. A warning: Because nls2 searches more
+possible starting values, it is appreciably slower.}
 
 \item{concentration}{A character string of the column name in DF that
 contains concentration data}

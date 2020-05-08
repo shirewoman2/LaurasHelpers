@@ -7,7 +7,19 @@
 #'
 #' @param DF The data.frame with the concentration-time data
 #' @param startValues list of starting values for A and k, NA if the start
-#'   values should be determined automatically
+#'   values should be determined automatically. Coefficients for the
+#'   biexponential fit that will need values: A, alpha, B, and beta. For the
+#'   triexponential: A, alpha, B, beta, G, gamma. *An alternative approach:*
+#'   After having a lot of trouble with finding decent starting values for
+#'   triexponential decays using nls behind the scenes here, I've now changed
+#'   this function to optionally use the function nls2, which does a rigorous
+#'   search for starting values. For triexponential fits, if you submit a list
+#'   of starting values like usual, this function will use the regular nls
+#'   function. However, to use nls2 instead, set startValues to a two row
+#'   data.frame with columns for each coefficient in which the first row is the
+#'   minimum possible value to start using and the 2nd row is the maximum value
+#'   to start using for that coefficient. A warning: Because nls2 searches more
+#'   possible starting values, it is appreciably slower.
 #' @param concentration A character string of the column name in DF that
 #'   contains concentration data
 #' @param time A character string of the column name in DF that contains time
@@ -125,7 +137,7 @@ terminalFit <- function(DF, startValues = NA,
 
             }
 
-            if(modelType == "triexponential"){
+            if(modelType == "triexponential" & class(startValues) == "list"){
 
                   Fit <- tryCatch(nls(CONC ~ A*exp(-alpha * Time.offset) +
                                             B*exp(-beta * Time.offset) +
@@ -136,6 +148,26 @@ terminalFit <- function(DF, startValues = NA,
                                   error = function(x) return("Cannot fit to model"))
 
             }
+
+            if(modelType == "triexponential" &
+               class(startValues) == "data.frame"){
+
+                  if(nrow(startValues) != 2 |
+                     all(c("A", "alpha", "B", "beta", "G", "gamma") %in%
+                         names(startValues)) == FALSE){
+                        stop("If you submit a data.frame with possible starting values for a triexponential model, there must be two rows for each coefficient to be fit.")
+                  }
+
+                  Fit <- tryCatch(nls2(CONC ~ A*exp(-alpha * Time.offset) +
+                                            B*exp(-beta * Time.offset) +
+                                            G*exp(-gamma * Time.offset),
+                                      data = DF,
+                                      start = startValues,
+                                      weights = weights),
+                                  error = function(x) return("Cannot fit to model"))
+
+            }
+
 
             # Only giving results if the fit worked
             if(!is.null(Fit)){

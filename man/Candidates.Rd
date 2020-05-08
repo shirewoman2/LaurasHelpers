@@ -4,7 +4,8 @@
 \name{Candidates}
 \alias{Candidates}
 \title{King County contributions to candidates and political committees in 2018}
-\format{A data.frame with 39192 rows and 37 variables:
+\format{
+A data.frame with 39192 rows and 37 variables:
 \describe{
   \item{filer_name}{Name of the candidate}
   \item{office}{The office they're running for}
@@ -13,7 +14,8 @@
   \item{amount}{The dollar amount of the contribution}
   \item{contributor_name}{The name of the person who made the donation}
   ...
-}}
+}
+}
 \source{
 \url{http://www.pdc.wa.gov}
 }
