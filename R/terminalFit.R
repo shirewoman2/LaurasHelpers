@@ -39,6 +39,13 @@
 #'   data.frame where all rows = the residual sum of squares. (I wanted the
 #'   output to still be a data.frame, so that's one place I could think of to
 #'   put it.)
+#' @param useNLS_outnames TRUE or FALSE for whether to use the standard output
+#'   coeffecient names that come with the nls or nls2 functions, e.g.,
+#'   "Estimate", "Std. Error", "t value", and "Pr(>|t|)". These names are
+#'   annoying to work with for output data.frames b/c they don't follow standard
+#'   column-naming practices (they contain spaces and symbols). If set to FALSE,
+#'   the names of the output coefficient data.frame will be "Estimate", "SE",
+#'   "tvalue" and "pvalue".
 #'
 #' @export
 
@@ -47,7 +54,8 @@ terminalFit <- function(DF, startValues = NA,
                         time = "Time",
                         tmax = NA, modelType = "monoexponential",
                         returnDataUsed = FALSE,
-                        weights = NULL, returnRSS = FALSE){
+                        weights = NULL, returnRSS = FALSE,
+                        useNLS_outnames = TRUE){
 
       if(modelType %in% c("monoexponential", "biexponential",
                           "triexponential") == FALSE){
@@ -185,8 +193,8 @@ terminalFit <- function(DF, startValues = NA,
                   DataUsed <- DF
                   Estimates <- data.frame(Estimate = NA,
                                           SE = NA,
-                                          tval = NA,
-                                          pval = NA)
+                                          tvalue = NA,
+                                          pvalue = NA)
                   names(Estimates) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
 
                   Result <- list(DataUsed = DataUsed, Estimates = Estimates)
@@ -203,13 +211,17 @@ terminalFit <- function(DF, startValues = NA,
       if(is.null(Fit)){
             Estimates <- data.frame(Estimate = NA,
                                     SE = NA,
-                                    tval = NA,
-                                    pval = NA)
+                                    tvalue = NA,
+                                    pvalue = NA)
             names(Estimates) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
 
             Result <- list(
                   DataUsed = DFinit,
                   Estimates = Estimates)
+      }
+
+      if(useNLS_outnames == FALSE){
+            names(Result[["Estimates"]]) <- c("Estimate", "SE", "tvalue", "pvalue")
       }
 
       if(returnRSS & !is.null(Fit)){
