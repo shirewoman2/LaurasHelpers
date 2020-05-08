@@ -34,6 +34,11 @@
 #'   used as input. For that reason, I'm including the option of returning the
 #'   data that were used.
 #' @param weights Any weighting to be used for the nonlinear regression
+#' @param returnRSS TRUE or FALSE for whether to resturn the residual sum of
+#'   squares. If set to TRUE, this will be the last column of the output
+#'   data.frame where all rows = the residual sum of squares. (I wanted the
+#'   output to still be a data.frame, so that's one place I could think of to
+#'   put it.)
 #'
 #' @export
 
@@ -42,7 +47,7 @@ terminalFit <- function(DF, startValues = NA,
                         time = "Time",
                         tmax = NA, modelType = "monoexponential",
                         returnDataUsed = FALSE,
-                        weights = NULL){
+                        weights = NULL, returnRSS = FALSE){
 
       if(modelType %in% c("monoexponential", "biexponential",
                           "triexponential") == FALSE){
@@ -77,7 +82,7 @@ terminalFit <- function(DF, startValues = NA,
             }
       }
 
-      if(is.na(startValues[[1]])){
+      if(is.na(startValues[[1]][1])){
             # Determining good starting values for the fit if the user didn't
             # already supply them
             startValues.A <- max(DF$CONC)
@@ -137,35 +142,31 @@ terminalFit <- function(DF, startValues = NA,
 
             }
 
-            if(modelType == "triexponential" & class(startValues) == "list"){
+            if(modelType == "triexponential"){
+                  if(class(startValues) == "list"){
 
-                  Fit <- tryCatch(nls(CONC ~ A*exp(-alpha * Time.offset) +
-                                            B*exp(-beta * Time.offset) +
+                        Fit <- tryCatch(nls(CONC ~ A*exp(-alpha * Time.offset) +
+                                                  B*exp(-beta * Time.offset) +
                                                   G*exp(-gamma * Time.offset),
-                                      data = DF,
-                                      start = startValues,
-                                      weights = weights),
-                                  error = function(x) return("Cannot fit to model"))
+                                            data = DF,
+                                            start = startValues,
+                                            weights = weights),
+                                        error = function(x) return("Cannot fit to model"))
+                  } else {
+                        if(nrow(startValues) != 2 |
+                           all(c("A", "alpha", "B", "beta", "G", "gamma") %in%
+                               names(startValues)) == FALSE){
+                              stop("If you submit a data.frame with possible starting values for a triexponential model, there must be two rows for each coefficient to be fit.")
+                        }
 
-            }
-
-            if(modelType == "triexponential" &
-               class(startValues) == "data.frame"){
-
-                  if(nrow(startValues) != 2 |
-                     all(c("A", "alpha", "B", "beta", "G", "gamma") %in%
-                         names(startValues)) == FALSE){
-                        stop("If you submit a data.frame with possible starting values for a triexponential model, there must be two rows for each coefficient to be fit.")
+                        Fit <- tryCatch(nls2::nls2(CONC ~ A*exp(-alpha * Time.offset) +
+                                                   B*exp(-beta * Time.offset) +
+                                                   G*exp(-gamma * Time.offset),
+                                             data = DF,
+                                             start = startValues,
+                                             weights = weights),
+                                        error = function(x) return("Cannot fit to model"))
                   }
-
-                  Fit <- tryCatch(nls2(CONC ~ A*exp(-alpha * Time.offset) +
-                                            B*exp(-beta * Time.offset) +
-                                            G*exp(-gamma * Time.offset),
-                                      data = DF,
-                                      start = startValues,
-                                      weights = weights),
-                                  error = function(x) return("Cannot fit to model"))
-
             }
 
 
@@ -176,7 +177,6 @@ terminalFit <- function(DF, startValues = NA,
                               DataUsed = DFinit,
                               Estimates = Fit)
                   } else {
-
                         Result <- list(
                               DataUsed = DFinit,
                               Estimates = as.data.frame(summary(Fit)[["coefficients"]]))
@@ -193,14 +193,11 @@ terminalFit <- function(DF, startValues = NA,
             }
 
       } else {
-            if(length(unique(DF$TIME)) == 2){
-                  Result <- list(
-                        DataUsed = DFinit,
-                        Estimates = data.frame(Estimate = c(A = startValues$A,
-                                                            k = startValues$k))
-                  )
-                  Fit <- "fitted"
-            }
+            Result <- list(
+                  DataUsed = DFinit,
+                  Estimates = data.frame(Estimate = c(A = startValues$A,
+                                                      k = startValues$k)))
+            Fit <- "fitted"
       }
 
       if(is.null(Fit)){
@@ -213,6 +210,10 @@ terminalFit <- function(DF, startValues = NA,
             Result <- list(
                   DataUsed = DFinit,
                   Estimates = Estimates)
+      }
+
+      if(returnRSS & !is.null(Fit)){
+            Result[["Estimates"]]$RSS <- as.numeric(Fit$m$deviance())
       }
 
       if(returnDataUsed == FALSE){
