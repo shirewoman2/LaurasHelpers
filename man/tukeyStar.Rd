@@ -46,6 +46,14 @@ If returnStats is FALSE, then the output will be the ggplot2 style
 draws brackets between comparisons found to be significant by a Tukey
 post-hoc test.
 }
+\details{
+\strong{Warning:} Because I'm not yet proficient at nonstandard
+  evaluation, you must enter the names of the columns to use for grouping and
+  for the values as character strings, and there must not be any other
+  columns named "XXXX" or "YYYY" or this will not work properly. (Yes, I
+  picked "XXXX" and "YYYY" as column names because they seemed unlikely
+  choices for column names, so I'm hoping this won't be a problem.)
+}
 \examples{
 DF <- data.frame(Hen = rep(c("A", "B", "C"), each = 5),
                  ChickWeight = rep(c(rnorm(5, mean = 5, sd = 1),

@@ -8,6 +8,13 @@
 #' @param dataSource Either "Excel" (default), "Unix" or "R" depending on
 #'   where the data are coming from. Excel data have an origin of Dec. 30, 1899
 #'   whereas Unix and R data have an origin of Jan. 1, 1970.
+#' @examples
+#'
+#' dateConv(43252)
+#' # "2018-06-01"
+#'
+#' dateConv(18526, dataSource = "R")
+#' # "2020-09-21"
 #'
 #' @return Returns a date object
 #' @export

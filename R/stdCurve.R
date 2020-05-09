@@ -37,14 +37,16 @@
 #'   \item{Data}{The original data with a column calculating the percent
 #'   difference between the calculated and the nominal concentrations or masses}}
 #' @examples
-#' stdCurve(MyCurveData, rawPeak = "Metformin_height",
-#'          rawIS = "d6Metformin_height",
-#'          nominal = "MET_mass_added", poly = "2nd",
-#'          weights = 1/MyCurveData$MET_mass_added)
 #'
-#' stdCurve(MyCurveData, normPeak = "MET_PeakAreaRatio",
-#'          nominal = "MET_mass_added", poly = "2nd",
-#'          weights = 1/MyCurveData$MET_mass_added)
+#' data(ExStdCurve)
+#' stdCurve(ExStdCurve, rawPeak = "MET.area",
+#'          rawIS = "d6MET.area",
+#'          nominal = "MET.nominalmass", poly = "2nd",
+#'          weights = 1/ExStdCurve$MET.nominalmass)
+#'
+#' stdCurve(ExStdCurve, normPeak = "MET.peakarearatio",
+#'          nominal = "MET.nominalmass", poly = "1st",
+#'          weights = 1/ExStdCurve$MET.nominalmass)
 #'
 #' @export
 #'
@@ -54,14 +56,29 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak = NA,
                      nominal, poly = "1st", weights = NULL,
                      colorBy = NA) {
 
+      # When normalized peak height or area is not given, only raw, calculate.
       if(is.na(normPeak)){
-            # Normalized peak height or area is not given, only raw
+            # First, checking that anything the user inputs for a peak name is a
+            # column in the data.frame.
+            if(any(c(rawPeak, rawIS, nominal) %in% names(DF) == FALSE)){
+                  stop("Your data.frame must include the same columns you input for 'rawPeak', 'rawIS', and 'nominal'.")
+            }
+
             names(DF)[names(DF) == rawPeak] <- "rawPeak"
             names(DF)[names(DF) == rawIS] <- "rawIS"
             DF$normPeak <- DF$rawPeak/DF$rawIS
+
       } else {
+
+            # Checking that anything the user inputs for a peak name is a column
+            # in the data.frame.
+            if(any(c(normPeak, nominal) %in% names(DF) == FALSE)){
+                  stop("Your data.frame must include the same columns you input for 'normPeak' and 'nominal'.")
+            }
+
             names(DF)[names(DF) == normPeak] <- "normPeak"
       }
+
       names(DF)[names(DF) == nominal] <- "nominal"
 
       Maxnominal <- max(DF$nominal, na.rm = TRUE)

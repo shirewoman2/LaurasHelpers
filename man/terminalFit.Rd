@@ -88,16 +88,40 @@ and the model can be monoexponential, biexponential, or triexponential decay.
 }
 \examples{
 
-terminalFit(ConcTimeData, concentration = "Conc", time = "Time_min",
-            tmax = 15, modelType = "biexponential")
+data(ConcTime)
+Subj101 <- ConcTime \%>\% filter(SubjectID == 101 & DoseRoute == "IV" &
+                                     Drug == "A") \%>\%
+      select(SubjectID, TimeHr, Concentration)
 
-terminalFit(ConcTimeData, concentration = "ConcA_ngmL", time = "Time_min",
-            tmax = NA, modelType = "triexponential",
-            startValues = data.frame(A = c(100, 1000),
-                                     alpha = c(0.01, 0.1),
-                                     B = c(100, 1000),
-                                     beta = c(0.001, 0.1),
-                                     G = c(0.1, 100),
-                                     gamma = c(1e-6, 0.01)))
+# Automatically select the start values...
+terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+            modelType = "monoexponential")
+
+# Set the start values yourself
+terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+            tmax = 0, startValues = list(A = 30, k = 0.01),
+            modelType = "monoexponential")
+
+# Use the more robuse nls2 function to do the regression by selecting a range of
+# values to search.
+terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+            tmax = 0,
+            startValues = data.frame(A = c(5, 50), k = c(0.0001, 0.05)),
+            modelType = "monoexponential")
+
+# Weight by 1/y
+terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+            tmax = 0,
+            weight = 1/Subj101$Concentration,
+            modelType = "monoexponential")
+
+# Get the residual sum of squares
+terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+            modelType = "monoexponential", returnRSS = TRUE)
+
+# Use better names for the columns in the output
+terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+            modelType = "monoexponential", useNLS_outnames = FALSE)
+
 
 }

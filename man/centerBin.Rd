@@ -24,3 +24,25 @@ Set the bins here to the nominal times, and the data will be filed into the
 slot that's closest to the nominal time at which that sample should have been
 drawn.
 }
+\examples{
+
+# Let's look at an example where the times in a PK study weren't perfect.
+data(ConcTime)
+IdealTimes <- unique(ConcTime$TimeHr)
+
+# Let's add a little bit of noise for one subject.
+Subj101 <- ConcTime \%>\% filter(SubjectID == 101 & DoseRoute == "IV" &
+                               Drug == "A") \%>\%
+         select(SubjectID, TimeHr, Concentration)
+Subj101$ActualTimeHr <- Subj101$TimeHr *
+          rnorm(nrow(Subj101), 1, 0.1))
+
+ActualTimes <- IdealTimes * rnorm(length(IdealTimes), 0, 0.1)
+
+# Finally, use centerBin to get (close to) back to the ideal time.
+Subj101$TimeHr_ideal <- centerBin(Subj101$ActualTimeHr,
+                                  breaks = IdealTimes)
+# (This is obviously not perfect, but play with the bins you set and you
+# can do ok here.)
+
+}

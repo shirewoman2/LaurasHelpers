@@ -19,6 +19,14 @@
 #'   from the Tukey post-hoc test? If TRUE, output will be a list of the plot,
 #'   the overall p value, and the data.frame of the Tukey post-hoc comparisons.
 #'
+#' @details \strong{Warning:} Because I'm not yet proficient at nonstandard
+#'   evaluation, you must enter the names of the columns to use for grouping and
+#'   for the values as character strings, and there must not be any other
+#'   columns named "XXXX" or "YYYY" or this will not work properly. (Yes, I
+#'   picked "XXXX" and "YYYY" as column names because they seemed unlikely
+#'   choices for column names, so I'm hoping this won't be a problem.)
+
+#'
 #' @return If returnStats is FALSE, then the output will be the ggplot2 style
 #'   boxplot. If returnStats is TRUE, then the output will be a list of the
 #'   ggplot2-style boxplot, the overall p value, and the data.frame of Tukey
@@ -49,37 +57,37 @@ tukeyStar <- function(data, groupColumn, valueColumn,
 
       require(dplyr)
 
-      names(data)[names(data) == valueColumn] <- "Y"
-      names(data)[names(data) == groupColumn] <- "X"
+      names(data)[names(data) == valueColumn] <- "YYYY"
+      names(data)[names(data) == groupColumn] <- "XXXX"
 
-      if(class(data$X) == "factor"){
-            Groups <- levels(droplevels(sort(data$X)))
+      if(class(data$XXXX) == "factor"){
+            Groups <- levels(droplevels(sort(data$XXXX)))
       } else {
-            Groups <- levels(as.factor(data$X))
+            Groups <- levels(as.factor(data$XXXX))
       }
 
-      data$Xorig <- factor(data$X, levels = Groups)
+      data$Xorig <- factor(data$XXXX, levels = Groups)
       rm(Groups)
 
       if(includeN){
-            Count <- data %>% group_by(X) %>%
+            Count <- data %>% group_by(XXXX) %>%
                   summarize(n = paste("n =", n()))
 
             data <- left_join(data, Count) %>%
-                  mutate(X = paste0(X, "\n", n)) %>%
+                  mutate(XXXX = paste0(XXXX, "\n", n)) %>%
                   arrange(Xorig) %>%
-                  mutate(X = factor(X, levels = unique(X)))
+                  mutate(XXXX = factor(XXXX, levels = unique(XXXX)))
       }
 
       # anova
-      MyAOV <- aov(data$Y ~ data$Xorig)
+      MyAOV <- aov(data$YYYY ~ data$Xorig)
       Tukey.df <- as.data.frame(TukeyHSD(MyAOV)[[1]])
 
       # Only drawing segments for comparisons with p adjusted < 0.05
       Tukey.df <- Tukey.df[Tukey.df$"p adj" < 0.05 |
                                  is.nan(Tukey.df$"p adj"), ]
 
-      plot <- ggplot2::ggplot(data, aes(x = X, y = Y, fill = X)) +
+      plot <- ggplot2::ggplot(data, aes(x = XXXX, y = YYYY, fill = XXXX)) +
             geom_boxplot() +
             xlab(groupColumn) + ylab(valueColumn) +
             labs(fill = valueColumn) +
@@ -108,10 +116,10 @@ tukeyStar <- function(data, groupColumn, valueColumn,
                         which(levels(data$Xorig) == Comparisons.l[[l]][1])
                   Segments$xend[l] <-
                         which(levels(data$Xorig) == Comparisons.l[[l]][2])
-                  Segments$ystart[l] <- max(data$Y, na.rm = TRUE) +
-                        0.1*max(data$Y, na.rm = TRUE)*l
-                  Segments$yend[l] <- max(data$Y, na.rm = TRUE) +
-                        0.1*max(data$Y, na.rm = TRUE)*l
+                  Segments$ystart[l] <- max(data$YYYY, na.rm = TRUE) +
+                        0.1*max(data$YYYY, na.rm = TRUE)*l
+                  Segments$yend[l] <- max(data$YYYY, na.rm = TRUE) +
+                        0.1*max(data$YYYY, na.rm = TRUE)*l
 
                   # Adding vertical bars
                   Segments$ystartV[l] <- Segments$ystart[l]
@@ -125,8 +133,8 @@ tukeyStar <- function(data, groupColumn, valueColumn,
 
                   Segments$StarPosX[l] <- mean(c(Segments$xstart[l],
                                                  Segments$xend[l]))
-                  Segments$StarPosY[l] <- max(data$Y, na.rm = TRUE) +
-                        0.11*max(data$Y, na.rm = TRUE)*l
+                  Segments$StarPosY[l] <- max(data$YYYY, na.rm = TRUE) +
+                        0.11*max(data$YYYY, na.rm = TRUE)*l
 
             }
 

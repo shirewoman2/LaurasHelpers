@@ -58,18 +58,42 @@
 #'   data.frame of the input data and a data.frame of the estimated coefficients
 #'
 #' @examples
+#' # Example data to work with:
+#' data(ConcTime)
+#' Subj101 <- ConcTime %>% filter(SubjectID == 101 & DoseRoute == "IV" &
+#'                                      Drug == "A") %>%
+#'       select(SubjectID, TimeHr, Concentration)
 #'
-#' terminalFit(ConcTimeData, concentration = "Conc", time = "Time_min",
-#'             tmax = 15, modelType = "biexponential")
+#' # Automatically select the start values
+#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#'             modelType = "monoexponential")
 #'
-#' terminalFit(ConcTimeData, concentration = "ConcA_ngmL", time = "Time_min",
-#'             tmax = NA, modelType = "triexponential",
-#'             startValues = data.frame(A = c(100, 1000),
-#'                                      alpha = c(0.01, 0.1),
-#'                                      B = c(100, 1000),
-#'                                      beta = c(0.001, 0.1),
-#'                                      G = c(0.1, 100),
-#'                                      gamma = c(1e-6, 0.01)))
+#' # Set the start values yourself
+#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#'             tmax = 0, startValues = list(A = 30, k = 0.01),
+#'             modelType = "monoexponential")
+#'
+#' # Use the more robuse nls2 function to do the regression by selecting a range of
+#' # values to search.
+#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#'             tmax = 0,
+#'             startValues = data.frame(A = c(5, 50), k = c(0.0001, 0.05)),
+#'             modelType = "monoexponential")
+#'
+#' # Weight by 1/y
+#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#'             tmax = 0,
+#'             weight = 1/Subj101$Concentration,
+#'             modelType = "monoexponential")
+#'
+#' # Get the residual sum of squares
+#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#'             modelType = "monoexponential", returnRSS = TRUE)
+#'
+#' # Use better names for the columns in the output
+#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#'             modelType = "monoexponential", useNLS_outnames = FALSE)
+#'
 #'
 #' @export
 
@@ -81,42 +105,43 @@ terminalFit <- function(DF, startValues = NA,
                         weights = NULL, returnRSS = FALSE,
                         useNLS_outnames = TRUE){
 
+      # Catching inappropriate model input
       if(modelType %in% c("monoexponential", "biexponential",
-                          "triexponential") == FALSE){
+                          "triexponential") == FALSE) {
             return("Acceptable model types are 'monoexponential', 'biexponential', or 'triexponential'.")
       }
 
+      # Setting up the input data.frame
       DFinit <- DF
-
       names(DF)[names(DF) == concentration] <- "CONC"
       names(DF)[names(DF) == time] <- "TIME"
-
-      DF <- DF[complete.cases(DF$CONC) &
-                     complete.cases(DF$TIME), ]
+      DF <- DF[complete.cases(DF$CONC) & complete.cases(DF$TIME), ]
       DF <- dplyr::arrange(DF, TIME)
 
-      if(is.na(tmax)){
+      # Setting tmax if it wasn't already.
+      if(is.na(tmax)) {
             tmax <- DF$TIME[which.max(DF$CONC)]
       }
-
       DF <- DF[DF$TIME >= tmax, ]
 
       # Accounting for the offset in time since tmax is often not at t0.
       DF$Time.offset <- DF$TIME - tmax
 
-      if(nrow(DF) < 2 | length(unique(DF$TIME)) < 2){
-            if(returnDataUsed){
+      # Catching inappropriate input with < 2 rows
+      if(nrow(DF) < 2 | length(unique(DF$TIME)) <= 2) {
+            if(returnDataUsed) {
                   Result <- list(DataUsed = DFinit,
                                  Estimates = "Insufficient data to create model")
                   return(Result)
-            } else {
+            }
+            else {
                   return("Insufficient data to create model")
             }
       }
 
-      if(is.na(startValues[[1]][1])){
-            # Determining good starting values for the fit if the user didn't
-            # already supply them
+      # Determining good starting values for the fit if the user didn't
+      # already supply them
+      if(is.na(startValues[[1]][1])) {
             startValues.A <- max(DF$CONC)
             tfirstlast <- DF[c(1, nrow(DF)), ]
             startValues.k <- -1*((log(tfirstlast$CONC[2]) - log(tfirstlast$CONC[1]))/
@@ -150,109 +175,135 @@ terminalFit <- function(DF, startValues = NA,
 
       }
 
+
+      # Fitting
       Fit <- NULL
-      if(length(unique(DF$TIME)) > 2){
-
-            if(modelType == "monoexponential"){
-
-                  Fit <- tryCatch(nls(CONC ~ A*exp(-k * Time.offset),
-                                      data = DF,
-                                      start = startValues,
-                                      weights = weights),
+      if(modelType == "monoexponential") {
+            # Determining whether to use nls or nls2 and then fitting
+            if(class(startValues) == "list") {
+                  Fit <- tryCatch(nls(CONC ~ A * exp(-k * Time.offset),
+                                      data = DF, start = startValues, weights = weights),
                                   error = function(x) return("Cannot fit to model"))
-
-            }
-
-            if(modelType == "biexponential"){
-
-                  Fit <- tryCatch(nls(CONC ~ A*exp(-alpha * Time.offset) +
-                                            B*exp(-beta * Time.offset),
-                                      data = DF,
-                                      start = startValues,
-                                      weights = weights),
-                                  error = function(x) return("Cannot fit to model"))
-
-            }
-
-            if(modelType == "triexponential"){
-                  if(class(startValues) == "list"){
-
-                        Fit <- tryCatch(nls(CONC ~ A*exp(-alpha * Time.offset) +
-                                                  B*exp(-beta * Time.offset) +
-                                                  G*exp(-gamma * Time.offset),
-                                            data = DF,
-                                            start = startValues,
-                                            weights = weights),
-                                        error = function(x) return("Cannot fit to model"))
-                  } else {
-                        if(nrow(startValues) != 2 |
-                           all(c("A", "alpha", "B", "beta", "G", "gamma") %in%
-                               names(startValues)) == FALSE){
-                              stop("If you submit a data.frame with possible starting values for a triexponential model, there must be two rows for each coefficient to be fit.")
-                        }
-
-                        Fit <- tryCatch(nls2::nls2(CONC ~ A*exp(-alpha * Time.offset) +
-                                                   B*exp(-beta * Time.offset) +
-                                                   G*exp(-gamma * Time.offset),
-                                             data = DF,
-                                             start = startValues,
-                                             weights = weights),
-                                        error = function(x) return("Cannot fit to model"))
-                  }
-            }
-
-
-            # Only giving results if the fit worked
-            if(!is.null(Fit)){
-                  if(class(Fit) == "character"){
-                        Result <- list(
-                              DataUsed = DFinit,
-                              Estimates = Fit)
-                  } else {
-                        Result <- list(
-                              DataUsed = DFinit,
-                              Estimates = as.data.frame(summary(Fit)[["coefficients"]]))
-                  }
             } else {
-                  DataUsed <- DF
-                  Estimates <- data.frame(Estimate = NA,
-                                          SE = NA,
-                                          tvalue = NA,
-                                          pvalue = NA)
-                  names(Estimates) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+                  if(nrow(startValues) != 2 |
+                     all(c("A", "k") %in%
+                         names(startValues)) == FALSE) {
+                        stop("If you submit a data.frame with possible starting values for a monoexponential model, there must be two rows for each coefficient -- A and k -- to be fit.")
+                  }
 
-                  Result <- list(DataUsed = DataUsed, Estimates = Estimates)
+                  Fit <- tryCatch(nls2::nls2(CONC ~ A * exp(-k * Time.offset),
+                                             data = DF, start = startValues,
+                                             weights = weights),
+                                  error = function(x) return("Cannot fit to model"))
             }
+      }
 
+      if(modelType == "biexponential") {
+            # Determining whether to use nls or nls2 and then fitting
+            if(class(startValues) == "list") {
+                  Fit <- tryCatch(nls(
+                        CONC ~ A * exp(-alpha * Time.offset) +
+                              B * exp(-beta * Time.offset),
+                        data = DF,
+                        start = startValues,
+                        weights = weights),
+                        error = function(x) return("Cannot fit to model"))
+            } else {
+                  if(nrow(startValues) != 2 |
+                     all(c("A", "alpha", "B", "beta") %in%
+                         names(startValues)) == FALSE) {
+                        stop("If you submit a data.frame with possible starting values for a biexponential model, there must be two rows for each coefficient -- A, alpha, B, and beta -- to be fit.")
+                  }
+
+                  Fit <- tryCatch(nls2::nls2(
+                        CONC ~ A * exp(-alpha * Time.offset) +
+                              B * exp(-beta * Time.offset),
+                        data = DF,
+                        start = startValues,
+                        weights = weights),
+                        error = function(x) return("Cannot fit to model"))
+            }
+      }
+
+      if(modelType == "triexponential") {
+            # Determining whether to use nls or nls2
+            if(class(startValues) == "list") {
+                  Fit <- tryCatch(nls(
+                        CONC ~ A * exp(-alpha * Time.offset) +
+                              B * exp(-beta * Time.offset) +
+                              G * exp(-gamma * Time.offset),
+                        data = DF,
+                        start = startValues,
+                        weights = weights),
+                        error = function(x) return("Cannot fit to model"))
+            } else {
+                  if(nrow(startValues) != 2 |
+                     all(c("A", "alpha", "B", "beta", "G", "gamma") %in%
+                         names(startValues)) == FALSE) {
+                        stop("If you submit a data.frame with possible starting values for a triexponential model, there must be two rows for each coefficient -- A, alpha, B, beta, G, and gamma -- to be fit.")
+                  }
+
+                  Fit <- tryCatch(nls2::nls2(
+                        CONC ~ A * exp(-alpha * Time.offset) +
+                              B * exp(-beta * Time.offset) +
+                              G * exp(-gamma * Time.offset),
+                        data = DF,
+                        start = startValues,
+                        weights = weights),
+                        error = function(x) return("Cannot fit to model"))
+            }
+      }
+
+      # Checking whether the fit worked at all
+      if(!is.null(Fit)) {
+            # If it did work, setting the output appropriately for whether the
+            # fit converged.
+            if(class(Fit) == "character") {
+                  Result <- list(DataUsed = DFinit,
+                                 Estimates = Fit)
+            } else {
+                  Result <- list(DataUsed = DFinit,
+                                 Estimates = as.data.frame(
+                                       summary(Fit)[["coefficients"]]))
+            }
       } else {
-            Result <- list(
-                  DataUsed = DFinit,
-                  Estimates = data.frame(Estimate = c(A = startValues$A,
-                                                      k = startValues$k)))
-            Fit <- "fitted"
-      }
-
-      if(is.null(Fit)){
-            Estimates <- data.frame(Estimate = NA,
-                                    SE = NA,
-                                    tvalue = NA,
+            # If it did not work at all, returning a data.frame of NA values.
+            DataUsed <- DF
+            Estimates <- data.frame(Estimate = NA, SE = NA, tvalue = NA,
                                     pvalue = NA)
-            names(Estimates) <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
-
-            Result <- list(
-                  DataUsed = DFinit,
-                  Estimates = Estimates)
+            names(Estimates) <- c("Estimate", "Std. Error", "t value",
+                                  "Pr(>|t|)")
+            Result <- list(DataUsed = DataUsed,
+                           Estimates = Estimates)
       }
 
-      if(useNLS_outnames == FALSE){
-            names(Result[["Estimates"]]) <- c("Estimate", "SE", "tvalue", "pvalue")
+      # Here's what to do if the fit didn't work at all. I can't remember what
+      # caused this to happen, but I know I needed to catch this.
+      if(is.null(Fit)) {
+            Estimates <- data.frame(Estimate = NA, SE = NA, tvalue = NA,
+                                    pvalue = NA)
+            names(Estimates) <- c("Estimate", "Std. Error", "t value",
+                                  "Pr(>|t|)")
+            Result <- list(DataUsed = DFinit,
+                           Estimates = Estimates)
       }
 
-      if(returnRSS & !is.null(Fit) & class(Fit) == "data.frame"){
+      # If the user wants to use better names for the output data.frame, setting
+      # those here.
+      if(useNLS_outnames == FALSE & class(Fit) == "nls"){
+            names(Result[["Estimates"]]) <- c("Estimate", "SE", "tvalue",
+                                              "pvalue")
+      }
+
+      # If the user wanted to have an estimate of the residual sum of squares,
+      # adding that to the output data.frame.
+      if(returnRSS & !is.null(Fit) & class(Fit) == "nls") {
             Result[["Estimates"]]$RSS <- as.numeric(Fit$m$deviance())
       }
 
-      if(returnDataUsed == FALSE){
+      # If the only thing the user wants is the estimates and not the input
+      # data, make "Result" only include the estimates.
+      if(returnDataUsed == FALSE) {
             Result <- Result[["Estimates"]]
       }
 

@@ -63,13 +63,15 @@ fitted line, and the original data that were used to generate the standard
 curve.
 }
 \examples{
-stdCurve(MyCurveData, rawPeak = "Metformin_height",
-         rawIS = "d6Metformin_height",
-         nominal = "MET_mass_added", poly = "2nd",
-         weights = 1/MyCurveData$MET_mass_added)
 
-stdCurve(MyCurveData, normPeak = "MET_PeakAreaRatio",
-         nominal = "MET_mass_added", poly = "2nd",
-         weights = 1/MyCurveData$MET_mass_added)
+data(ExStdCurve)
+stdCurve(ExStdCurve, rawPeak = "MET.area",
+         rawIS = "d6MET.area",
+         nominal = "MET.nominalmass", poly = "2nd",
+         weights = 1/ExStdCurve$MET.nominalmass)
+
+stdCurve(ExStdCurve, normPeak = "MET.peakarearatio",
+         nominal = "MET.nominalmass", poly = "1st",
+         weights = 1/ExStdCurve$MET.nominalmass)
 
 }

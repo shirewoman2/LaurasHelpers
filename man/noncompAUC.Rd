@@ -4,7 +4,7 @@
 \alias{noncompAUC}
 \title{Calculate the AUC using the trapezoidal rule}
 \usage{
-noncompAUC(DF, concentration = "Concentration", time = "Time")
+noncompAUC(DF, concentration = "Concentration", time = "Time", type = "LULD")
 }
 \arguments{
 \item{DF}{Input data.frame with concentration-time data.}
@@ -13,6 +13,9 @@ noncompAUC(DF, concentration = "Concentration", time = "Time")
 (character).}
 
 \item{time}{The name of the column containing time data (character).}
+
+\item{type}{The type of trapezoidal rule to use. Options are "LULD" (default)
+for "linear up, log down" or "linear".}
 }
 \value{
 Returns a number
@@ -22,4 +25,18 @@ Given a data.frame of concentration-time data, \code{noncompAUC} calculates
 the area-under-the-concentration-time curve for the times included in the
 input data.frame using the linear trapezoidal rule. This function does
 \emph{not} do any extrapolation to infinity.
+}
+\details{
+\strong{Warning:} Because I'm not yet proficient at nonstandard evaluation, you must
+  enter the names of the columns containing concentration and time data as
+  character strings, and there must not be any other columns named "CONC" or
+  "TIME" or this will not work properly.
+}
+\examples{
+
+data(ConcTime)
+noncompAUC(ConcTime, time = "Time_hr")
+noncompAUC(ConcTime, time = "Time_hr", type = "LULD")
+noncompAUC(ConcTime, time = "Time_hr", type = "linear")
+
 }

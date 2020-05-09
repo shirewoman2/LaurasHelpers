@@ -9,35 +9,73 @@
 #' @param concentration The name of the column containing drug concentrations
 #'   (character).
 #' @param time The name of the column containing time data (character).
-#'
+#' @param type The type of trapezoidal rule to use. Options are "LULD" (default)
+#'   for "linear up, log down" or "linear".
+#' @details \strong{Warning:} Because I'm not yet proficient at nonstandard evaluation, you must
+#'   enter the names of the columns containing concentration and time data as
+#'   character strings, and there must not be any other columns named "CONC" or
+#'   "TIME" or this will not work properly.
 #' @return Returns a number
+#' @examples
+#'
+#' data(ConcTime)
+#' noncompAUC(ConcTime, time = "Time_hr")
+#' noncompAUC(ConcTime, time = "Time_hr", type = "LULD")
+#' noncompAUC(ConcTime, time = "Time_hr", type = "linear")
+
 #'
 #' @export
 #'
 
 noncompAUC <- function(DF, concentration = "Concentration",
-                       time = "Time") {
-      # DF = a data.frame including a column Time and a column of the
-      # concentrations of the analyte of interest. To analyze a data.frame
-      # MyData with columns "Time.min" and
-      # "Norbup.Conc", use the syntax:
-      #     noncompAUC(MyData,"Norbup.Conc", "Time.min")
+                       time = "Time", type = "LULD") {
 
-      library(tidyverse)
+      if(type %in% c("linear", "LULD") == FALSE){
+            stop("The only options for type of AUC calculation are 'LULD' for 'linear up, log down' or 'linear'.")
+      }
 
       names(DF)[names(DF) == concentration] <- "CONC"
       names(DF)[names(DF) == time] <- "TIME"
 
-      DFmean <- DF %>% select(TIME, CONC) %>%
-            filter(complete.cases(CONC)) %>%
-            group_by(TIME) %>%
-            summarize(CONC = mean(CONC)) %>%
-            arrange(TIME)
+      DFmean <- DF %>% dplyr::select(TIME, CONC) %>%
+            dplyr::filter(complete.cases(CONC)) %>%
+            dplyr::group_by(TIME) %>%
+            dplyr::summarize(CONC = mean(CONC)) %>%
+            dplyr::arrange(TIME)
 
-      AUC <- sum(0.5*((DFmean$TIME[2:length(DFmean$TIME)] -
-                             DFmean$TIME[1:(length(DFmean$TIME)-1)]) *
-                            (DFmean$CONC[2:length(DFmean$CONC)] +
-                                   DFmean$CONC[1:(length(DFmean$CONC)-1)])))
+      if(type == "linear"){
+            AUC <- sum(0.5*((DFmean$TIME[2:length(DFmean$TIME)] -
+                                   DFmean$TIME[1:(length(DFmean$TIME)-1)]) *
+                                  (DFmean$CONC[2:length(DFmean$CONC)] +
+                                         DFmean$CONC[1:(length(DFmean$CONC)-1)])))
+
+      } else {
+            tmax <- DFmean$TIME[which.max(DFmean$CONC)]
+
+            DFup <- DFmean %>% dplyr::filter(TIME <= tmax)
+            DFdown <- DFmean %>% dplyr::filter(TIME >= tmax)
+
+            AUCup <- sum(0.5*((DFup$TIME[2:length(DFup$TIME)] -
+                                     DFup$TIME[1:(length(DFup$TIME)-1)]) *
+                                    (DFup$CONC[2:length(DFup$CONC)] +
+                                           DFup$CONC[1:(length(DFup$CONC)-1)])))
+            AUCdown <- sum(
+                  # C1 - C2
+                  ((DFdown$CONC[1:(length(DFdown$CONC)-1)] -
+                          DFdown$CONC[2:length(DFdown$CONC)]) /
+                         # ln(C1) - ln(C2)
+                         (log(DFdown$CONC[1:(length(DFdown$CONC)-1)]) -
+                                log(DFdown$CONC[2:length(DFdown$CONC)])) ) *
+                        # t2 - t1
+                        (DFdown$TIME[2:length(DFdown$TIME)] -
+                               DFdown$TIME[1:(length(DFdown$TIME)-1)])
+            )
+
+            AUC <- AUCup + AUCdown
+
+      }
 
       return(AUC)
 }
+
+

@@ -11,6 +11,26 @@
 #' @param x A numeric string
 #' @param breaks the desired breaks in that string set by what the middle value
 #'   should be
+#' @examples
+#'
+#' # Let's look at an example where the times in a PK study weren't perfect.
+#' data(ConcTime)
+#' IdealTimes <- unique(ConcTime$TimeHr)
+#'
+#' # Let's add a little bit of noise for one subject.
+#' Subj101 <- ConcTime %>% filter(SubjectID == 101 & DoseRoute == "IV" &
+#'                                Drug == "A") %>%
+#'          select(SubjectID, TimeHr, Concentration)
+#' Subj101$ActualTimeHr <- Subj101$TimeHr *
+#'           rnorm(nrow(Subj101), 1, 0.1))
+#'
+#' ActualTimes <- IdealTimes * rnorm(length(IdealTimes), 0, 0.1)
+#'
+#' # Finally, use centerBin to get (close to) back to the ideal time.
+#' Subj101$TimeHr_ideal <- centerBin(Subj101$ActualTimeHr,
+#'                                   breaks = IdealTimes)
+#' # (This is obviously not perfect, but play with the bins you set and you
+#' # can do ok here.)
 #'
 #' @return Returns a vector of numeric data
 #' @export
