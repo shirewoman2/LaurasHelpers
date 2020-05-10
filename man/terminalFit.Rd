@@ -34,13 +34,15 @@ terminalFit(
   finding decent starting values for triexponential decays using \code{nls}
   behind the scenes here, I've now changed this function to optionally use
   the function \code{nls2}, which does a more rigorous search for starting
-  values than \code{nls}. For triexponential fits, if you submit a list of
-  starting values like usual, this function will use the regular \code{nls}
-  function. However, to use \code{nls2} instead, set startValues to a two row
-  data.frame with columns for each coefficient in which the first row is the
-  minimum possible value to start using and the 2nd row is the maximum value
-  to start using for that coefficient. \strong{A warning:} Because nls2
-  searches more possible starting values, it can be appreciably slower.}}
+  values than \code{nls}. (For more information, see the documentation on
+  \code{\link[nls2]{nls2}} and the algorithm "\code{random-search}".) For
+  triexponential fits, if you submit a list of starting values like usual,
+  this function will use the regular \code{nls} function. However, to use
+  \code{nls2} instead, set \code{startValues} to a two row data.frame with
+  columns for each coefficient in which the first row is the minimum possible
+  value to start using and the 2nd row is the maximum value to start using
+  for that coefficient. \strong{A warning:} Because nls2 searches more
+  possible starting values, it can be appreciably slower.}}
 
 \item{concentration}{A character string of the column name in DF that
 contains concentration data}
@@ -87,13 +89,13 @@ where A is ~Cmax, k is the terminal elimination rate constant, and t is time,
 and the model can be monoexponential, biexponential, or triexponential decay.
 }
 \examples{
-
+# Example data to work with:
 data(ConcTime)
 Subj101 <- ConcTime \%>\% filter(SubjectID == 101 & DoseRoute == "IV" &
                                      Drug == "A") \%>\%
       select(SubjectID, TimeHr, Concentration)
 
-# Automatically select the start values...
+# Automatically select the start values
 terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
             modelType = "monoexponential")
 

@@ -16,8 +16,9 @@ the base function "cut"}
 Returns a vector of numeric data
 }
 \description{
-This function cuts a vector of numbers just like the base R function "cut"
-except that the output will be a vector of numbers rather than that weird
-factor that's the default. The number listed in the output will be the lower
-boundary of the bin for the number that was used in the input.
+This function cuts a vector of numbers just like the base R function
+\code{\link[base]{cut}} except that the output will be a vector of numbers
+rather than that weird factor that's the default. The number listed in the
+output will be the lower boundary of the bin for the number that was used in
+the input.
 }

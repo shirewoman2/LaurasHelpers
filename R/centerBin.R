@@ -3,10 +3,10 @@
 #' This function cuts a vector of numeric data such that the breaks are set
 #' using the middle value of a given bin rather than setting upper or lower
 #' boundaries for each bin. For example, say you've got a vector of blood draw
-#' times that weren't drawn at *exactly* the nominal time but were close to it.
+#' times that weren't drawn at \emph{exactly} the nominal time but were close to it.
 #' Set the bins here to the nominal times, and the data will be filed into the
 #' slot that's closest to the nominal time at which that sample should have been
-#' drawn.
+#' drawn. For a similar option, see \code{\link{cutNumeric}}.
 #'
 #' @param x A numeric string
 #' @param breaks the desired breaks in that string set by what the middle value
