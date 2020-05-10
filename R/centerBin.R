@@ -3,10 +3,11 @@
 #' This function cuts a vector of numeric data such that the breaks are set
 #' using the middle value of a given bin rather than setting upper or lower
 #' boundaries for each bin. For example, say you've got a vector of blood draw
-#' times that weren't drawn at \emph{exactly} the nominal time but were close to it.
-#' Set the bins here to the nominal times, and the data will be filed into the
-#' slot that's closest to the nominal time at which that sample should have been
-#' drawn. For a similar option, see \code{\link{cutNumeric}}.
+#' times that weren't drawn at \emph{exactly} the nominal time but were close to
+#' it. Set the bins here to the nominal times, and the data will be filed into
+#' the slot that's closest to the nominal time at which that sample should have
+#' been drawn. For a similar option, see \code{\link{cutNumeric}} or see the
+#' base R function \code{\link[base]{cut}}.
 #'
 #' @param x A numeric string
 #' @param breaks the desired breaks in that string set by what the middle value
@@ -17,16 +18,19 @@
 #' data(ConcTime)
 #' IdealTimes <- unique(ConcTime$TimeHr)
 #'
-#' # Let's add a little bit of noise for one subject.
+#' # Say the actual draw times didn't perfectly match the nominal times laid out
+#' # in the study, which often happens. To simulate that scenario, let's add a
+#' # little bit of noise to the times for one example subject.
 #' Subj101 <- ConcTime %>% filter(SubjectID == 101 & DoseRoute == "IV" &
 #'                                Drug == "A") %>%
 #'          select(SubjectID, TimeHr, Concentration)
 #' Subj101$ActualTimeHr <- Subj101$TimeHr *
 #'           rnorm(nrow(Subj101), 1, 0.1))
 #'
-#' ActualTimes <- IdealTimes * rnorm(length(IdealTimes), 0, 0.1)
-#'
-#' # Finally, use centerBin to get (close to) back to the ideal time.
+#' # Now that we've got some simulated imperfect draw times, use centerBin to
+#' # get (close to) the ideal draw times. This way, you can bin the real data
+#' # reasonably such that you can then calculate mean concentrations at each
+#' # nominal sampling time.
 #' Subj101$TimeHr_ideal <- centerBin(Subj101$ActualTimeHr,
 #'                                   breaks = IdealTimes)
 #' # (This is obviously not perfect, but play with the bins you set and you
