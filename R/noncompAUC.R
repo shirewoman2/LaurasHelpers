@@ -71,7 +71,10 @@ noncompAUC <- function(DF, concentration = "Concentration",
                                DFdown$TIME[1:(length(DFdown$TIME)-1)])
             )
 
-            AUC <- AUCup + AUCdown
+            # If AUCup is NA, e.g., when it's an IV bolus so there's no point
+            # where the concentration is increasing, then AUCup will be NA. Need
+            # to account for that with na.rm = T.
+            AUC <- sum(AUCup, AUCdown, na.rm = TRUE)
 
       }
 
