@@ -19,18 +19,24 @@
 #'   \item \emph{An alternative approach:} After having a lot of trouble with
 #'   finding decent starting values for triexponential decays using \code{nls}
 #'   behind the scenes here, I've now changed this function to optionally use
-#'   the function \code{nls2}, which does a more rigorous search for starting
-#'   values than \code{nls}. (For more information, see the documentation on
-#'   \code{\link[nls2]{nls2}} and the algorithm "\code{random-search}".) For
-#'   triexponential fits, if you submit a list of starting values like usual,
-#'   this function will use the regular \code{nls} function. However, to use
-#'   \code{nls2} instead, set \code{startValues} to a two row data.frame with
-#'   columns for each coefficient in which the first row is the minimum possible
-#'   value to start using and the 2nd row is the maximum value to start using
-#'   for that coefficient. Also, when \code{nls2} is used, the maximum number of
-#'   iterations is set to increase from 50 (default) to 200. \strong{A warning:}
-#'   Because nls2 searches more possible starting values, it can be appreciably
-#'   slower.}
+#'   the function \code{\link[nls2]{nls2}}, which does a more rigorous search
+#'   for starting values than \code{\link[stats]{nls}}}. (For more information,
+#'   see the documentation on \code{\link[nls2]{nls2}} and the algorithm
+#'   "\code{random-search}".) For triexponential fits, if you submit a list of
+#'   starting values like usual, this function will use the regular \code{nls}
+#'   function. However, to use \code{nls2} instead, set \code{startValues} to a
+#'   two row data.frame with columns for each coefficient in which the first row
+#'   is the minimum possible value to start using and the 2nd row is the maximum
+#'   value to start using for that coefficient. \strong{A warning:} Because nls2
+#'   searches more possible starting values, it can be appreciably slower.}
+#'
+#'   \item \strong{A piece of advice:} Regardless of whether you choose to use
+#'   \code{nls} or \code{nls2}, you really will benefit by supplying reasonable
+#'   start values. Even if you're supplying a data.frame for \code{nls2} to
+#'   search, those values should still be reasonable or you just won't randomly
+#'   select enough decent starting places to come up with regressions that will
+#'   converge.
+#'
 #' @param concentration A character string of the column name in DF that
 #'   contains concentration data
 #' @param time A character string of the column name in DF that contains time
@@ -57,6 +63,11 @@
 #'   column-naming practices (they contain spaces and symbols). If set to FALSE,
 #'   the names of the output coefficient data.frame will be "Estimate", "SE",
 #'   "tvalue" and "pvalue".
+#' @param maxiter Maximum number of iterations of start values to use; default
+#'   is 50, just like \code{\link[stats]{nls}}}. (See also
+#'   \code{\link[stats]{nls.control}}.) Using more iterations means more random
+#'   sampling of starting values and thus a higher likelihood of the fit
+#'   converging. However, it also means more processing time.
 #'
 #' @return Returns a data.frame of the coefficients or a list containing a
 #'   data.frame of the input data and a data.frame of the estimated coefficients
@@ -107,7 +118,8 @@ terminalFit <- function(DF, startValues = NA,
                         tmax = NA, modelType = "monoexponential",
                         returnDataUsed = FALSE,
                         weights = NULL, returnRSS = FALSE,
-                        useNLS_outnames = TRUE){
+                        useNLS_outnames = TRUE,
+                        maxiter = 50){
 
       # Catching inappropriate model input
       if(modelType %in% c("monoexponential", "biexponential",
@@ -186,7 +198,10 @@ terminalFit <- function(DF, startValues = NA,
             # Determining whether to use nls or nls2 and then fitting
             if(class(startValues) == "list") {
                   Fit <- tryCatch(nls(CONC ~ A * exp(-k * Time.offset),
-                                      data = DF, start = startValues, weights = weights),
+                                      data = DF,
+                                      start = startValues,
+                                      weights = weights,
+                                      nls.control(maxiter = maxiter)),
                                   error = function(x) return("Cannot fit to model"))
             } else {
                   if(nrow(startValues) != 2 |
@@ -196,8 +211,10 @@ terminalFit <- function(DF, startValues = NA,
                   }
 
                   Fit <- tryCatch(nls2::nls2(CONC ~ A * exp(-k * Time.offset),
-                                             data = DF, start = startValues,
-                                             weights = weights),
+                                             data = DF,
+                                             start = startValues,
+                                             weights = weights,
+                                             nls.control(maxiter = maxiter)),
                                   error = function(x) return("Cannot fit to model"))
             }
       }
@@ -210,7 +227,8 @@ terminalFit <- function(DF, startValues = NA,
                               B * exp(-beta * Time.offset),
                         data = DF,
                         start = startValues,
-                        weights = weights),
+                        weights = weights,
+                        nls.control(maxiter = maxiter)),
                         error = function(x) return("Cannot fit to model"))
             } else {
                   if(nrow(startValues) != 2 |
@@ -224,7 +242,7 @@ terminalFit <- function(DF, startValues = NA,
                               B * exp(-beta * Time.offset),
                         data = DF,
                         start = startValues,
-                        nls.control(maxiter = 200),
+                        nls.control(maxiter = maxiter),
                         weights = weights),
                         error = function(x) return("Cannot fit to model"))
             }
@@ -239,7 +257,8 @@ terminalFit <- function(DF, startValues = NA,
                               G * exp(-gamma * Time.offset),
                         data = DF,
                         start = startValues,
-                        weights = weights),
+                        weights = weights,
+                        nls.control(maxiter = maxiter)),
                         error = function(x) return("Cannot fit to model"))
             } else {
                   if(nrow(startValues) != 2 |
@@ -254,7 +273,8 @@ terminalFit <- function(DF, startValues = NA,
                               G * exp(-gamma * Time.offset),
                         data = DF,
                         start = startValues,
-                        weights = weights),
+                        weights = weights,
+                        nls.control(maxiter = maxiter)),
                         error = function(x) return("Cannot fit to model"))
             }
       }

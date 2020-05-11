@@ -15,36 +15,12 @@ terminalFit(
   returnDataUsed = FALSE,
   weights = NULL,
   returnRSS = FALSE,
-  useNLS_outnames = TRUE
+  useNLS_outnames = TRUE,
+  maxiter = 50
 )
 }
 \arguments{
 \item{DF}{The data.frame with the concentration-time data}
-
-\item{startValues}{list of starting values for A and k, NA if the start
-  values should be determined automatically. \itemize{
-
-  \item Coefficients for the monoexponential fit that will need values: A, k.
-
-  \item Coefficients for the biexponential fit: A, alpha, B, and beta.
-
-  \item For the triexponential: A, alpha, B, beta, G, gamma.
-
-  \item \emph{An alternative approach:} After having a lot of trouble with
-  finding decent starting values for triexponential decays using \code{nls}
-  behind the scenes here, I've now changed this function to optionally use
-  the function \code{nls2}, which does a more rigorous search for starting
-  values than \code{nls}. (For more information, see the documentation on
-  \code{\link[nls2]{nls2}} and the algorithm "\code{random-search}".) For
-  triexponential fits, if you submit a list of starting values like usual,
-  this function will use the regular \code{nls} function. However, to use
-  \code{nls2} instead, set \code{startValues} to a two row data.frame with
-  columns for each coefficient in which the first row is the minimum possible
-  value to start using and the 2nd row is the maximum value to start using
-  for that coefficient. Also, when \code{nls2} is used, the maximum number of
-  iterations is set to increase from 50 (default) to 200. \strong{A warning:}
-  Because nls2 searches more possible starting values, it can be appreciably
-  slower.}}
 
 \item{concentration}{A character string of the column name in DF that
 contains concentration data}
