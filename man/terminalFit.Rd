@@ -41,8 +41,10 @@ terminalFit(
   \code{nls2} instead, set \code{startValues} to a two row data.frame with
   columns for each coefficient in which the first row is the minimum possible
   value to start using and the 2nd row is the maximum value to start using
-  for that coefficient. \strong{A warning:} Because nls2 searches more
-  possible starting values, it can be appreciably slower.}}
+  for that coefficient. Also, when \code{nls2} is used, the maximum number of
+  iterations is set to increase from 50 (default) to 200. \strong{A warning:}
+  Because nls2 searches more possible starting values, it can be appreciably
+  slower.}}
 
 \item{concentration}{A character string of the column name in DF that
 contains concentration data}
