@@ -6,15 +6,20 @@
 #' There are dozens of columns in \code{MyDF}, so finding the column{s} that
 #' differs would be tedious. This function will do that for you.
 #'
-#' @param x
-#' @param ignore.na
+#' @param x A two-row data.frame
+#' @param ignore.na TRUE or FALSE for whether to ignore NA values. Default is
+#'   TRUE. If \code{ignore.na = TRUE}, then one column with a missing value and
+#'   another column with a complete case will be counted as a match and the
+#'   missing value will be filled in with the complete one. If \code{ignore.na =
+#'   FALSE}, then one missing value and one complete case always counts as a
+#'   mismatch.
 #'
 #' @return
 #' @export
 #'
 #' @examples
 #'
-#' whichDif(MyDF[MyDF$SubjectID == "Subject623", ])
+#' whichDif(Pets[Pets$Name == "Eddie", ])
 #'
 #'
 whichDif <- function(x, ignore.na = TRUE) {
@@ -39,9 +44,3 @@ whichDif <- function(x, ignore.na = TRUE) {
 
 
 
-# function for checking on which column differs in values
-
-# Input is a 2-row data.frame.
-# If ignore.na = TRUE, then one column with a missing value and another
-# column with a complete case will be counted as a match. If ignore.na = FALSE,
-# then one missing value and one complete case always counts as a mismatch.

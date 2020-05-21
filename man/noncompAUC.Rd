@@ -4,7 +4,16 @@
 \alias{noncompAUC}
 \title{Calculate the AUC using the trapezoidal rule}
 \usage{
-noncompAUC(DF, concentration = "Concentration", time = "Time", type = "LULD")
+noncompAUC(
+  DF,
+  concentration = "Concentration",
+  time = "Time",
+  type = "LULD",
+  backExtrap = FALSE,
+  backExtrap_coefs = NULL,
+  backExtrap_model = "monoexponential",
+  backExtrap_times = c(NA, NA)
+)
 }
 \arguments{
 \item{DF}{Input data.frame with concentration-time data.}
@@ -16,6 +25,33 @@ noncompAUC(DF, concentration = "Concentration", time = "Time", type = "LULD")
 
 \item{type}{The type of trapezoidal rule to use. Options are "LULD" (default)
 for "linear up, log down" or "linear".}
+
+\item{backExtrap}{Back extrapolate the curve to 0? TRUE or FALSE. This is
+useful when the dose was administered IV and you know you're missing a
+significant portion of the curve from t0 to the first sampling time.}
+
+\item{backExtrap_coefs}{If you've already performed a nonlinear regression to
+a monoexponential, biexponential, or triexponential, \code{noncompAUC} will
+use those for back extrapolation to t0. Provide a named list of:
+\describe{\item{\code{coefs}}{the coefficients from a \code{nls}
+regression. Format must be the standard output from
+\code{summary(nls(...))[["coefficients"]]}. It doesn't matter what you name
+the coefficients, but this function assumes that they will be listed with
+the y-intercept for the first term in the first row, the rate constant for
+the first term in the next row, the y intercept for the second term in the
+next row, the rate constant for the second term in the next row after that,
+etc.} \item{\code{tmax}}{The time to start fitting the elimination curve.
+This will be used to determine how far back in time t0 is.} }}
+
+\item{backExtrap_model}{If \code{backExtrap} is TRUE and you haven't supplied
+your own fitted coefficients, choose whether to fit a
+\code{monoexponential} or \code{biexponential} decay equation. Inputting
+anything other than "monoexponential" or "biexponential" will result in the
+model being a biexponential.}
+
+\item{backExtrap_times}{If \code{backExtrap} is TRUE, specify the time range
+to use for fitting the exponential decay as \code{c(minTime,
+maxTime)}.}
 }
 \value{
 Returns a number
@@ -27,16 +63,34 @@ input data.frame using the linear trapezoidal rule. This function does
 \emph{not} do any extrapolation to infinity.
 }
 \details{
-\strong{Warning:} Because I'm not yet proficient at nonstandard evaluation, you must
-  enter the names of the columns containing concentration and time data as
-  character strings, and there must not be any other columns named "CONC" or
-  "TIME" or this will not work properly.
+\strong{Warning:} Because I'm not yet proficient at nonstandard
+  evaluation, you must enter the names of the columns containing
+  concentration and time data as character strings, and there must not be any
+  other columns named "CONC" or "TIME" or this will not work properly.
 }
 \examples{
 
 data(ConcTime)
-noncompAUC(ConcTime, time = "Time_hr")
-noncompAUC(ConcTime, time = "Time_hr", type = "LULD")
-noncompAUC(ConcTime, time = "Time_hr", type = "linear")
+IV1 <- ConcTime \%>\% dplyr::filter(SubjectID == 101 & Drug == "A" &
+                                 DoseRoute == "IV")
+noncompAUC(IV1, time = "TimeHr")
+noncompAUC(IV1, time = "TimeHr", type = "LULD")
+noncompAUC(IV1, time = "TimeHr", type = "linear")
+noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
+          backExtrap_model = "monoexponential",
+          backExtrap_times = c(0.5, 12))
+
+# For supplying your own coefficients to back extrapolate with:
+tmax <- 0.5
+# The elimination phase begins at t = 0.5 hrs here, so don't start fitting at
+# t0; you'll get bad estimates.
+
+Fit <- nls(Concentration ~ A * exp(-k * (TimeHr - tmax)),
+          data = IV1 \%>\% filter(TimeHr >= tmax),
+          start = list(A = max(IV1$Concentration), k = 0.01))
+MyCoeffs <- summary(Fit)[["coefficients"]]
+noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
+          backExtrap_coefs = list(coeffs = MyCoeffs,
+                                 tmax = tmax))
 
 }

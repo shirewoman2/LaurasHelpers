@@ -7,7 +7,14 @@
 whichDif(x, ignore.na = TRUE)
 }
 \arguments{
-\item{ignore.na}{}
+\item{x}{A two-row data.frame}
+
+\item{ignore.na}{TRUE or FALSE for whether to ignore NA values. Default is
+TRUE. If \code{ignore.na = TRUE}, then one column with a missing value and
+another column with a complete case will be counted as a match and the
+missing value will be filled in with the complete one. If \code{ignore.na =
+FALSE}, then one missing value and one complete case always counts as a
+mismatch.}
 }
 \value{
 
@@ -21,7 +28,7 @@ differs would be tedious. This function will do that for you.
 }
 \examples{
 
-whichDif(MyDF[MyDF$SubjectID == "Subject623", ])
+whichDif(Pets[Pets$Name == "Eddie", ])
 
 
 }

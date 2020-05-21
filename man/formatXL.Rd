@@ -14,6 +14,10 @@ formatXL(
 )
 }
 \arguments{
+\item{DF}{input data.frame}
+
+\item{file}{file name (character)}
+
 \item{sheet}{sheet name (character). Defaults to the name of the supplied
 data.frame if no other name is supplied.}
 

@@ -5,8 +5,8 @@
 #' package \code{xlsx} and applies the formatting you want for the Excel file.
 #' \strong{Warning: I'm still developing this so it's glitchier than I wish!}
 #'
-#' @param DF
-#' @param file
+#' @param DF input data.frame
+#' @param file file name (character)
 #' @param sheet sheet name (character). Defaults to the name of the supplied
 #'   data.frame if no other name is supplied.
 
@@ -166,20 +166,20 @@ formatXL <- function(DF, file, sheet = NA,
       }
 
       # Check whether the sheet already exists. If it does, remove it.
-      AnySheets <- getSheets(WB)
+      AnySheets <- xlsx::getSheets(WB)
       if(!is.null(AnySheets)){
             if(sheet %in% names(getSheets(WB))){
                   removeSheet(WB, sheetName = sheet)
             }
       }
 
-      NewSheet <- createSheet(WB, sheetName = sheet)
-      SheetRows <- createRow(NewSheet, rowIndex = 1:(nrow(DF) + 1))
-      addDataFrame(DF %>% as.data.frame(),
-                   sheet = NewSheet, row.names = FALSE)
+      NewSheet <- xlsx::createSheet(WB, sheetName = sheet)
+      SheetRows <- xlsx::createRow(NewSheet, rowIndex = 1:(nrow(DF) + 1))
+      xlsx::addDataFrame(DF %>% as.data.frame(),
+                         sheet = NewSheet, row.names = FALSE)
 
       # Getting all the cells in that object and then their names
-      AllCells <- getCells(SheetRows)
+      AllCells <- xlsx::getCells(SheetRows)
       AllCellNames <- tibble(AllNames = names(AllCells)) %>%
             separate(AllNames, c("Row", "Column"), "\\.", remove = FALSE)
 
@@ -226,9 +226,9 @@ formatXL <- function(DF, file, sheet = NA,
                                                     "$#,##0.00_);[Red]($#,##0.00)"))
 
                         NumFormatArgs <-
-                              DataFormat(NumFormatOptions %>%
-                                               filter(Input == styles[[i]]$numberFormat) %>%
-                                               pull(Output))
+                              xlsx::DataFormat(NumFormatOptions %>%
+                                                     filter(Input == styles[[i]]$numberFormat) %>%
+                                                     pull(Output))
                         # ADD ERROR CATCHING LATER. Add a message if they don't use
                         # one of these possible options for number format. See
                         # https://www.excelhowto.com/macros/formatting-a-range-of-cells-in-excel-vba/
@@ -286,63 +286,63 @@ formatXL <- function(DF, file, sheet = NA,
                          styles[[i]]$textposition$wrapping)
 
             if(styles[[i]]$textposition$alignment == "middle"){
-                  AlignArg <- Alignment(horizontal = "ALIGN_CENTER",
-                                        vertical = "VERTICAL_CENTER",
-                                        wrapText = styles[[i]]$textposition$wrapping)
+                  AlignArg <- xlsx::Alignment(horizontal = "ALIGN_CENTER",
+                                              vertical = "VERTICAL_CENTER",
+                                              wrapText = styles[[i]]$textposition$wrapping)
             } else {
                   AlignArg <-
-                        Alignment(horizontal =
-                                        paste0("ALIGN_",
-                                               toupper(styles[[i]]$textposition$alignment)),
-                                  wrapText = styles[[i]]$textposition$wrapping)
+                        xlsx::Alignment(horizontal =
+                                              paste0("ALIGN_",
+                                                     toupper(styles[[i]]$textposition$alignment)),
+                                        wrapText = styles[[i]]$textposition$wrapping)
             }
 
             ### Setting the fill
             if(is.null(styles[[i]]$fill)){
-                  FillArg <- Fill(pattern = "NO_FILL")
+                  FillArg <- xlsx::Fill(pattern = "NO_FILL")
             } else {
-                  FillArg <- Fill(foregroundColor = styles[[i]]$fill)
+                  FillArg <- xlsx::Fill(foregroundColor = styles[[i]]$fill)
             }
 
             ### Setting the border
             if(is.null(styles[[i]]$border)){
-                  BorderArg <- Border(pen = "BORDER_NONE")
+                  BorderArg <- xlsx::Border(pen = "BORDER_NONE")
             } else {
                   BorderArg <-
-                        Border(color = ifelse(is.null(styles[[i]]$border$color),
-                                              "black", styles[[i]]$border$color),
-                               position = toupper(styles[[i]]$border$position),
-                               pen = paste0("BORDER_",
-                                            toupper(
-                                                  ifelse(styles[[i]]$border$pen ==
-                                                               "solid",
-                                                         "thin", styles[[i]]$border$pen))))
+                        xlsx::Border(color = ifelse(is.null(styles[[i]]$border$color),
+                                                    "black", styles[[i]]$border$color),
+                                     position = toupper(styles[[i]]$border$position),
+                                     pen = paste0("BORDER_",
+                                                  toupper(
+                                                        ifelse(styles[[i]]$border$pen ==
+                                                                     "solid",
+                                                               "thin", styles[[i]]$border$pen))))
             }
 
 
             ### Applying the styles the user has set
 
             StylesToApply[[i]] <-
-                  CellStyle(WB,
-                            font = Font(WB, color = styles[[i]]$font$color,
-                                        isItalic = styles[[i]]$font$italics,
-                                        underline = ifelse(styles[[i]]$font$underline,
-                                                           1, 0),
-                                        heightInPoints = styles[[i]]$font$size,
-                                        isBold = styles[[i]]$font$bold),
+                  xlsx::CellStyle(WB,
+                                  font = xlsx::Font(WB, color = styles[[i]]$font$color,
+                                                    isItalic = styles[[i]]$font$italics,
+                                                    underline = ifelse(styles[[i]]$font$underline,
+                                                                       1, 0),
+                                                    heightInPoints = styles[[i]]$font$size,
+                                                    isBold = styles[[i]]$font$bold),
 
-                            alignment = AlignArg,
+                                  alignment = AlignArg,
 
-                            fill = FillArg,
+                                  fill = FillArg,
 
-                            border = BorderArg,
+                                  border = BorderArg,
 
-                            dataFormat = NumFormatArgs)
+                                  dataFormat = NumFormatArgs)
 
 
             for(j in MyCells){
-                  setCellStyle(cell = AllCells[[j]],
-                               cellStyle = StylesToApply[[i]])
+                  xlsx::setCellStyle(cell = AllCells[[j]],
+                                     cellStyle = StylesToApply[[i]])
             }
 
             rm(MyCells, FillArg, BorderArg)
@@ -375,33 +375,25 @@ formatXL <- function(DF, file, sheet = NA,
                   }
 
                   for(k in 1:length(colWidth$width)){
-                        setColumnWidth(NewSheet, colIndex = colWidth$colNum[k],
-                                       colWidth = colWidth$width[k])
+                        xlsx::setColumnWidth(NewSheet, colIndex = colWidth$colNum[k],
+                                             colWidth = colWidth$width[k])
                   }
 
             } else {
 
-                  setColumnWidth(NewSheet,
-                                 colIndex = colWidth$colNum,
-                                 colWidth = colWidth$width)
+                  xlsx::setColumnWidth(NewSheet,
+                                       colIndex = colWidth$colNum,
+                                       colWidth = colWidth$width)
 
             }
       }
 
       # Finally, saving.
-      saveWorkbook(WB, file)
+      xlsx::saveWorkbook(WB, file)
 
 }
 
 
 
-# data(iris)
-#
-#
-#
-#
-#
-#
-#
 # To do:
 # Catch errors in all the possible input formats.

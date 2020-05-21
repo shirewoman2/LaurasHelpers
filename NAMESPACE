@@ -2,10 +2,12 @@
 
 export(anyDup)
 export(centerBin)
+export(countWords)
 export(cutNumeric)
 export(dateConv)
 export(fillRep)
 export(formatXL)
+export(formatXL_head)
 export(gg_color_hue)
 export(gm_95CI)
 export(gm_mean)

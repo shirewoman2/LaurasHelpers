@@ -22,6 +22,36 @@ terminalFit(
 \arguments{
 \item{DF}{The data.frame with the concentration-time data}
 
+\item{startValues}{list of starting values for A and k, NA if the start
+  values should be determined automatically. \itemize{
+
+  \item Coefficients for the monoexponential fit that will need values: A, k.
+
+  \item Coefficients for the biexponential fit: A, alpha, B, and beta.
+
+  \item For the triexponential: A, alpha, B, beta, G, gamma.
+
+  \item \emph{An alternative approach:} After having a lot of trouble with
+  finding decent starting values for triexponential decays using \code{nls}
+  behind the scenes here, I've now changed this function to optionally use
+  the function \code{\link[nls2]{nls2}}, which does a more rigorous search
+  for starting values than \code{\link[stats]{nls}}. (For more information,
+  see the documentation on \code{\link[nls2]{nls2}} and the algorithm
+  "\code{random-search}".) For triexponential fits, if you submit a list of
+  starting values like usual, this function will use the regular \code{nls}
+  function. However, to use \code{nls2} instead, set \code{startValues} to a
+  two row data.frame with columns for each coefficient in which the first row
+  is the minimum possible value to start using and the 2nd row is the maximum
+  value to start using for that coefficient. \strong{A warning:} Because nls2
+  searches more possible starting values, it can be appreciably slower.
+
+  \item \strong{A piece of advice:} Regardless of whether you choose to use
+  \code{nls} or \code{nls2}, you really will benefit by supplying reasonable
+  start values. Even if you're supplying a data.frame for \code{nls2} to
+  search, those values should still be reasonable or you just won't randomly
+  select enough decent starting places to come up with regressions that will
+  converge. }}
+
 \item{concentration}{A character string of the column name in DF that
 contains concentration data}
 
@@ -55,6 +85,12 @@ annoying to work with for output data.frames b/c they don't follow standard
 column-naming practices (they contain spaces and symbols). If set to FALSE,
 the names of the output coefficient data.frame will be "Estimate", "SE",
 "tvalue" and "pvalue".}
+
+\item{maxiter}{Maximum number of iterations of start values to use; default
+is 50, just like \code{\link[stats]{nls}}. (See also
+\code{\link[stats]{nls.control}}.) Using more iterations means more random
+sampling of starting values and thus a higher likelihood of the fit
+converging. However, it also means more processing time.}
 }
 \value{
 Returns a data.frame of the coefficients or a list containing a
