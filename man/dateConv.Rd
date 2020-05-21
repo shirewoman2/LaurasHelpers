@@ -22,7 +22,6 @@ date and time data to numeric, \code{dateConv} converts dates from decimal
 numbers to Date.
 }
 \examples{
-
 dateConv(43252)
 # "2018-06-01"
 

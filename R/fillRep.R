@@ -29,6 +29,7 @@
 #'   "new data.frame" that is the new, unique data.frame.} If set to FALSE, the
 #'   default value, the differences will be printed but the output object will
 #'   be only the new, unique data.frame.
+#' @importFrom plyr dlply
 #' @return Returns a unique data.frame or, if \code{returnDifs} is TRUE, a list
 #'   of two data.frames.
 #' @examples
