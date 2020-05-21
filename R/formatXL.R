@@ -400,3 +400,6 @@ formatXL <- function(DF, file, sheet = NA,
 
 # To do:
 # Catch errors in all the possible input formats.
+
+
+

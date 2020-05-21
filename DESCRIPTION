@@ -10,9 +10,9 @@ License: none
 Encoding: UTF-8
 LazyData: true
 Imports: 
+    dplyr,
+    ggplot2,
     lubridate,
     stringr,
-    ggplot2,
-    dplyr,
     tidyr
 RoxygenNote: 7.1.0
