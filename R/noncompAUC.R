@@ -32,12 +32,20 @@
 #'   anything other than "monoexponential" or "biexponential" will result in the
 #'   model being a biexponential.
 #' @param backExtrap_times If \code{backExtrap} is TRUE, specify the time range
-#'   to use for fitting the exponential decay as \code{c(minTime,
-#'   maxTime)}.
+#'   to use for fitting the exponential decay as \code{c(minTime, maxTime)}.
 #' @details \strong{Warning:} Because I'm not yet proficient at nonstandard
 #'   evaluation, you must enter the names of the columns containing
 #'   concentration and time data as character strings, and there must not be any
 #'   other columns named "CONC" or "TIME" or this will not work properly.
+#'
+#'   \strong{Note:} If there are two consecutive time points with the same
+#'   measured concentration, that results in an undefined value for the log
+#'   trapezoidal rule. To deal with this, anytime the user has opted for the
+#'   linear up/log down trapezoidal rule but there are also consecutive time
+#'   points with the same concentration, those individual trapezoids will be
+#'   calculated linearly rather than using a log function and all AUCs will be
+#'   added together at the end.
+#'
 #' @return Returns a number
 #' @examples
 #'
@@ -48,8 +56,8 @@
 #' noncompAUC(IV1, time = "TimeHr", type = "LULD")
 #' noncompAUC(IV1, time = "TimeHr", type = "linear")
 #' noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
-#'           backExtrap_model = "monoexponential",
-#'           backExtrap_times = c(0.5, 12))
+#'            backExtrap_model = "monoexponential",
+#'            backExtrap_times = c(0.5, 12))
 #'
 #' # For supplying your own coefficients to back extrapolate with:
 #' tmax <- 0.5
@@ -61,7 +69,7 @@
 #'           start = list(A = max(IV1$Concentration), k = 0.01))
 #' MyCoefs <- summary(Fit)[["coefficients"]]
 #' noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
-#'           backExtrap_coefs = list(coefs = MyCoefs,
+#'            backExtrap_coefs = list(coefs = MyCoefs,
 #'                                  tmax = tmax))
 #'
 #' @export
@@ -153,46 +161,86 @@ noncompAUC <- function(DF, concentration = "Concentration",
 
             DFmean$CONC[DFmean$TIME == 0] <- C0
       }
+
+
+      # function for linear trapezoidal rule
+      lintrap <- function(DFmean){
+            sum(0.5*((DFmean$TIME[2:length(DFmean$TIME)] -
+                            DFmean$TIME[1:(length(DFmean$TIME)-1)]) *
+                           (DFmean$CONC[2:length(DFmean$CONC)] +
+                                  DFmean$CONC[1:(length(DFmean$CONC)-1)])))
+      }
+
       if(type == "linear"){
-            AUC <- sum(0.5*((DFmean$TIME[2:length(DFmean$TIME)] -
-                                   DFmean$TIME[1:(length(DFmean$TIME)-1)]) *
-                                  (DFmean$CONC[2:length(DFmean$CONC)] +
-                                         DFmean$CONC[1:(length(DFmean$CONC)-1)])))
+            AUC <- lintrap(DFmean)
 
       } else {
-            tmax <- DFmean$TIME[which.max(DFmean$CONC)]
+            TMAX <- DFmean$TIME[which.max(DFmean$CONC)]
 
-            DFup <- DFmean %>% dplyr::filter(TIME <= tmax)
-            DFdown <- DFmean %>% dplyr::filter(TIME >= tmax)
+            DFup <- DFmean %>% dplyr::filter(TIME <= TMAX)
+            DFdown <- DFmean %>% dplyr::filter(TIME >= TMAX)
 
-            AUCup <- sum(0.5*((DFup$TIME[2:length(DFup$TIME)] -
-                                     DFup$TIME[1:(length(DFup$TIME)-1)]) *
-                                    (DFup$CONC[2:length(DFup$CONC)] +
-                                           DFup$CONC[1:(length(DFup$CONC)-1)])))
-            AUCdown <- sum(
-                  # C1 - C2
-                  ((DFdown$CONC[1:(length(DFdown$CONC)-1)] -
-                          DFdown$CONC[2:length(DFdown$CONC)]) /
-                         # ln(C1) - ln(C2)
-                         (log(DFdown$CONC[1:(length(DFdown$CONC)-1)]) -
-                                log(DFdown$CONC[2:length(DFdown$CONC)])) ) *
-                        # t2 - t1
-                        (DFdown$TIME[2:length(DFdown$TIME)] -
-                               DFdown$TIME[1:(length(DFdown$TIME)-1)])
-            )
+            AUCup <- lintrap(DFup)
 
-            # If AUCup is NA, e.g., when it's an IV bolus so there's no point
-            # where the concentration is increasing, then AUCup will be NA. Need
-            # to account for that with na.rm = T.
+            # function for log trapezoidal rule
+            logtrap <- function(DFdown){
+                  sum(# C1 - C2
+                        ((DFdown$CONC[1:(length(DFdown$CONC)-1)] -
+                                DFdown$CONC[2:length(DFdown$CONC)]) /
+                               # ln(C1) - ln(C2)
+                               (log(DFdown$CONC[1:(length(DFdown$CONC)-1)]) -
+                                      log(DFdown$CONC[2:length(DFdown$CONC)])) ) *
+                              # t2 - t1
+                              (DFdown$TIME[2:length(DFdown$TIME)] -
+                                     DFdown$TIME[1:(length(DFdown$TIME)-1)]) )
+            }
+
+            # If any values for concentration are the same for two time points,
+            # which WILL happen randomly sometimes due to inherent limitations
+            # in measurements, use the linear trapezoidal rule to add that
+            # trapezoid to the total AUC. To do that, I'll need to break those
+            # up into multiple DFs.
+            if(any(DFdown$CONC[1:(length(DFdown$CONC)-1)] ==
+                   DFdown$CONC[2:length(DFdown$CONC)])){
+
+                  # Noting which are problematic.
+                  ProbPoints <- which(DFdown$CONC[1:(length(DFdown$CONC)-1)] ==
+                                            DFdown$CONC[2:length(DFdown$CONC)])
+                  AUCsToAdd <- c()
+                  RowsToUse <- sort(unique(c(1, ProbPoints, ProbPoints + 1,
+                                             nrow(DFdown))))
+                  for(k in 1:(length(RowsToUse) - 1)){
+
+                        if(RowsToUse[k] %in% ProbPoints){
+                              tempDF <- DFdown[RowsToUse[k]:(RowsToUse[k] + 1), ]
+                              AUCsToAdd[k] <- lintrap(tempDF)
+                        } else {
+                              tempDF <- DFdown[RowsToUse[k]:RowsToUse[k + 1], ]
+                              AUCsToAdd[k] <- logtrap(tempDF)
+                        }
+                        rm(tempDF)
+                  }
+
+                  AUCdown <- sum(AUCsToAdd)
+
+            } else {
+                  AUCdown <- logtrap(DFdown)
+            }
+
+            # Adding up and down portions of the curve
+
+            # If AUCup is NA, e.g., when it's an IV bolus so there's no
+            # point where the concentration is increasing, then AUCup will
+            # be NA. Need to account for that with na.rm = T.
             AUC <- sum(AUCup, AUCdown, na.rm = TRUE)
-
       }
 
       return(AUC)
+
 }
 
 
 
-# to do:
-# Make a forward extrapolation option.
+      # to do:
+      # Make a forward extrapolation option.
 

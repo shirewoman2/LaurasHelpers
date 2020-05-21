@@ -50,8 +50,7 @@ anything other than "monoexponential" or "biexponential" will result in the
 model being a biexponential.}
 
 \item{backExtrap_times}{If \code{backExtrap} is TRUE, specify the time range
-to use for fitting the exponential decay as \code{c(minTime,
-maxTime)}.}
+to use for fitting the exponential decay as \code{c(minTime, maxTime)}.}
 }
 \value{
 Returns a number
@@ -67,6 +66,14 @@ input data.frame using the linear trapezoidal rule. This function does
   evaluation, you must enter the names of the columns containing
   concentration and time data as character strings, and there must not be any
   other columns named "CONC" or "TIME" or this will not work properly.
+
+  \strong{Note:} If there are two consecutive time points with the same
+  measured concentration, that results in an undefined value for the log
+  trapezoidal rule. To deal with this, anytime the user has opted for the
+  linear up/log down trapezoidal rule but there are also consecutive time
+  points with the same concentration, those individual trapezoids will be
+  calculated linearly rather than using a log function and all AUCs will be
+  added together at the end.
 }
 \examples{
 
@@ -77,8 +84,8 @@ noncompAUC(IV1, time = "TimeHr")
 noncompAUC(IV1, time = "TimeHr", type = "LULD")
 noncompAUC(IV1, time = "TimeHr", type = "linear")
 noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
-          backExtrap_model = "monoexponential",
-          backExtrap_times = c(0.5, 12))
+           backExtrap_model = "monoexponential",
+           backExtrap_times = c(0.5, 12))
 
 # For supplying your own coefficients to back extrapolate with:
 tmax <- 0.5
@@ -90,7 +97,7 @@ Fit <- nls(Concentration ~ A * exp(-k * (TimeHr - tmax)),
           start = list(A = max(IV1$Concentration), k = 0.01))
 MyCoefs <- summary(Fit)[["coefficients"]]
 noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
-          backExtrap_coefs = list(coefs = MyCoefs,
+           backExtrap_coefs = list(coefs = MyCoefs,
                                  tmax = tmax))
 
 }
