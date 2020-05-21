@@ -88,9 +88,9 @@ tmax <- 0.5
 Fit <- nls(Concentration ~ A * exp(-k * (TimeHr - tmax)),
           data = IV1 \%>\% filter(TimeHr >= tmax),
           start = list(A = max(IV1$Concentration), k = 0.01))
-MyCoeffs <- summary(Fit)[["coefficients"]]
+MyCoefs <- summary(Fit)[["coefficients"]]
 noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
-          backExtrap_coefs = list(coeffs = MyCoeffs,
+          backExtrap_coefs = list(coefs = MyCoefs,
                                  tmax = tmax))
 
 }

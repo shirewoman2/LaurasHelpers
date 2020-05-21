@@ -59,9 +59,9 @@
 #' Fit <- nls(Concentration ~ A * exp(-k * (TimeHr - tmax)),
 #'           data = IV1 %>% filter(TimeHr >= tmax),
 #'           start = list(A = max(IV1$Concentration), k = 0.01))
-#' MyCoeffs <- summary(Fit)[["coefficients"]]
+#' MyCoefs <- summary(Fit)[["coefficients"]]
 #' noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
-#'           backExtrap_coefs = list(coeffs = MyCoeffs,
+#'           backExtrap_coefs = list(coefs = MyCoefs,
 #'                                  tmax = tmax))
 #'
 #' @export
@@ -125,27 +125,28 @@ noncompAUC <- function(DF, concentration = "Concentration",
                   }
             } else {
 
-                  MyCoeffs <- as.data.frame(backExtrap_coefs[["coeffs"]])
+                  MyCoefs <- as.data.frame(backExtrap_coefs[["coefs"]])
+                  tmax <- backExtrap_coefs[["tmax"]]
 
-                  if(nrow(MyCoeffs) == 2){
-                        C0 <- MyCoeffs$Estimate[1] *
-                              exp(-MyCoeffs$Estimate[2] * -tmax)
+                  if(nrow(MyCoefs) == 2){
+                        C0 <- MyCoefs$Estimate[1] *
+                              exp(-MyCoefs$Estimate[2] * -tmax)
                   }
 
-                  if(nrow(MyCoeffs) == 4){
-                        C0 <- MyCoeffs$Estimate[1] *
-                              exp(-MyCoeffs$Estimate[2] * -tmax) +
-                              MyCoeffs$Estimate[3] *
-                              exp(-MyCoeffs$Estimate[4] * -tmax)
+                  if(nrow(MyCoefs) == 4){
+                        C0 <- MyCoefs$Estimate[1] *
+                              exp(-MyCoefs$Estimate[2] * -tmax) +
+                              MyCoefs$Estimate[3] *
+                              exp(-MyCoefs$Estimate[4] * -tmax)
                   }
 
-                  if(nrow(MyCoeffs) == 6){
-                        C0 <- MyCoeffs$Estimate[1] *
-                              exp(-MyCoeffs$Estimate[2] * -tmax) +
-                              MyCoeffs$Estimate[3] *
-                              exp(-MyCoeffs$Estimate[4] * -tmax) +
-                              MyCoeffs$Estimate[5] *
-                              exp(-MyCoeffs$Estimate[6] * -tmax)
+                  if(nrow(MyCoefs) == 6){
+                        C0 <- MyCoefs$Estimate[1] *
+                              exp(-MyCoefs$Estimate[2] * -tmax) +
+                              MyCoefs$Estimate[3] *
+                              exp(-MyCoefs$Estimate[4] * -tmax) +
+                              MyCoefs$Estimate[5] *
+                              exp(-MyCoefs$Estimate[6] * -tmax)
                   }
 
             }
