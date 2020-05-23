@@ -57,9 +57,11 @@
 #'   use for fitting the exponential decay as \code{c(minTime, maxTime)}. If
 #'   this is left as \code{c(NA, NA)}, the full time range will be used.
 #' @param reportC0 TRUE or FALSE for whether to report the back-extrapolated
-#'   concentration at t0. This is useful as a sanity check because the maximum
-#'   concentration at t0 in, e.g., plasma should be no larger than approximately
-#'   the dose / total plasma volume, which is ~3 L in a healthy, 70-kg adult.
+#'   concentration at t0. If TRUE, the output becomes a named list of the AUC
+#'   and the extrapolated C0 value. This is useful as a sanity check because the
+#'   maximum concentration at t0 in, e.g., plasma should be no larger than
+#'   approximately the dose / total plasma volume, which is ~3 L in a healthy,
+#'   70-kg adult.
 #'
 #' @details \strong{A few notes:}\itemize{
 #'
@@ -77,12 +79,19 @@
 #'   rule. For more details, please see
 #'   \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.
 #'
+#'
+#'
+#'
+#'
 #'   \item \strong{Warning:} Because I'm not yet proficient at nonstandard
 #'   evaluation, you must enter the names of the columns containing
 #'   concentration and time data as character strings, and there must not be any
 #'   other columns named "CONC" or "TIME" or this will not work properly. }
 #'
-#' @return Returns a number
+#' @return Returns the calculated AUC as a number or, depending on the options
+#'   selected, a named list of the AUC (\code{AUC[["AUC"]]}), the fraction of
+#'   the curve extrapolated to infinity (\code{AUC[["Fraction extrapolated to
+#'   infinity"]]}), and the back extrapolated C0 (\code{AUC[["C0"]]}).
 #' @examples
 #' data(ConcTime)
 #' IV1 <- ConcTime %>% dplyr::filter(SubjectID == 101 & Drug == "A" &

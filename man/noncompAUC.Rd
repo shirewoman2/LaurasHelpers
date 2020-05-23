@@ -83,12 +83,17 @@ use for fitting the exponential decay as \code{c(minTime, maxTime)}. If
 this is left as \code{c(NA, NA)}, the full time range will be used.}
 
 \item{reportC0}{TRUE or FALSE for whether to report the back-extrapolated
-concentration at t0. This is useful as a sanity check because the maximum
-concentration at t0 in, e.g., plasma should be no larger than approximately
-the dose / total plasma volume, which is ~3 L in a healthy, 70-kg adult.}
+concentration at t0. If TRUE, the output becomes a named list of the AUC
+and the extrapolated C0 value. This is useful as a sanity check because the
+maximum concentration at t0 in, e.g., plasma should be no larger than
+approximately the dose / total plasma volume, which is ~3 L in a healthy,
+70-kg adult.}
 }
 \value{
-Returns a number
+Returns the calculated AUC as a number or, depending on the options
+  selected, a named list of the AUC (\code{AUC[["AUC"]]}), the fraction of
+  the curve extrapolated to infinity (\code{AUC[["Fraction extrapolated to
+  infinity"]]}), and the back extrapolated C0 (\code{AUC[["C0"]]}).
 }
 \description{
 Given a data.frame of concentration-time data, \code{noncompAUC} calculates
@@ -113,6 +118,10 @@ t0.
   concentration-time data and are thus less desireable than the trapezoidal
   rule. For more details, please see
   \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.
+
+
+
+
 
   \item \strong{Warning:} Because I'm not yet proficient at nonstandard
   evaluation, you must enter the names of the columns containing
