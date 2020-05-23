@@ -70,6 +70,14 @@ formatXL_head <- function(DF, file, sheet = NA){
                                NA, Nword[i])
       }
 
+      # Words in the header should NOT be split up, so Nchar_word should
+      # be at least as large as the largest word in the header.
+      Header_nchar <- as.numeric(sapply(names(DF), splitWords))
+      for(i in 1:length(Header_nchar)){
+            Nchar_word[i] <- ifelse(Header_nchar[i] > Nchar_word[i],
+                                    Header_nchar[i], Nchar_word[i])
+      }
+
       # Using 10 pixels for values < 10, 15 for values from 10 to 15, 20 for
       # values up to 30 characters and then 30 pixels for values even larger.
       GoodWidths <- cutNumeric(as.numeric(Nchar_word),
