@@ -20,10 +20,14 @@ countWords <- function(x){
       WordsFound <- str_detect(x, " |-")
       Count <- rep(NA, length(x))
       for(i in 1:length(x)){
-            if(WordsFound[i]){
-                  Count[i] <- sapply(str_split(x[i], " |-"), length)
-            } else {
+            if(is.na(WordsFound[i])){
                   Count[i] <- 1
+            } else {
+                  if(WordsFound[i]){
+                        Count[i] <- sapply(str_split(x[i], " |-"), length)
+                  } else {
+                        Count[i] <- 1
+                  }
             }
       }
 

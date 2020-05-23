@@ -30,7 +30,7 @@ formatXL_head <- function(DF, file, sheet = NA){
             rbind(names(DF))
 
       Nchar <- DFwithHead %>%
-            summarize_all(function(x) max(nchar(as.character(x)))) %>%
+            summarize_all(function(x) max(nchar(as.character(x)), na.rm = TRUE)) %>%
             as.numeric()
 
       # For anything where the max number of characters is > 15, look for spaces
