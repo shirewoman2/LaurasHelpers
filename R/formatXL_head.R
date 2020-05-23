@@ -36,7 +36,7 @@ formatXL_head <- function(DF, file, sheet = NA){
       # For anything where the max number of characters is > 15, look for spaces
       # or hyphens to separate words and then find the max number of characters
       # in a word. If there are a lot of words, we'll want the column to be
-      # wider than if there aren't as many
+      # wider than if there aren't as many.
 
       splitWords <- function(x){
             max(as.numeric(sapply(str_split(x, " |-"), nchar)))
@@ -46,21 +46,45 @@ formatXL_head <- function(DF, file, sheet = NA){
       Nchar_word <- Nchar
       Nword <- c()
       for(i in XWide){
-            Nchar_word[i] <- max(sapply(apply(DFwithHead[i], MARGIN = 1, splitWords),
+            Nchar_word[i] <- mean(sapply(apply(DFwithHead[i], MARGIN = 1, splitWords),
                                         as.vector), na.rm = TRUE)
+
             Nword[i] <- max(apply(DFwithHead[i], MARGIN = 1, countWords),
                             na.rm = TRUE)
+            # If there are at least 3 words, you probably want to see the first
+            # three, so multiplying Nchar_word by 3 to allow for that. If there
+            # are fewer words, just set it to the number of characters.
+            Nchar_word[i] <- ifelse(Nword[i] >= 3,
+                                    Nchar_word[i] * 3, Nchar[i])
+      }
+
+      # Check whether the column class for anything with words was originally
+      # POSIXct or Date b/c those have a lot of hyphens but no actual words.
+      Classes <- sapply(DF, class)
+      for(i in 1:length(Nword)){
+            Nchar_word[i] <- ifelse(Classes[[i]][1] %in%
+                                          c("POSIXct", "POSIXlt", "Date"),
+                                    Nchar[i], Nchar_word[i])
+            Nword[i] <- ifelse(Classes[[i]][1] %in%
+                                     c("POSIXct", "POSIXlt", "Date"),
+                               NA, Nword[i])
       }
 
       # Using 10 pixels for values < 10, 15 for values from 10 to 15, 20 for
       # values up to 30 characters and then 30 pixels for values even larger.
       GoodWidths <- cutNumeric(as.numeric(Nchar_word),
                                breaks = c(0, 10, 15, 20, 30, 100, 1000))
+      GoodWidths[which(GoodWidths > 30)] <- 30
 
-      # However, if there were more than 3 words for that column, set the column
-      # width to 30. If there were more than 20 words in that column, set the
-      # column width to 50.
-      GoodWidths[which(Nword > 3)] <- 30
+      # However, if there were more than 5 words for that column, set the column
+      # width to 25 or the original width it came up with, whichever is wider.
+      # If there were more than 20 words in that column, set the column width to
+      # 50.
+      for(i in 1:length(Nword[which(Nword > 5)])){
+            GoodWidths[which(Nword > 5)][i] <-
+                  ifelse(GoodWidths[which(Nword > 5)][i] > 25,
+                         GoodWidths[which(Nword > 5)][i], 25)
+      }
       GoodWidths[which(Nword > 20)] <- 50
 
       # Setting column widths, applying styles, and saving.
@@ -74,8 +98,5 @@ formatXL_head <- function(DF, file, sheet = NA){
 }
 
 
-#
-# To do:
-# Catch errors in all the possible input formats.
 
 
