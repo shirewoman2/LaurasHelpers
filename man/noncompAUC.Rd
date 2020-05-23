@@ -9,10 +9,15 @@ noncompAUC(
   concentration = "Concentration",
   time = "Time",
   type = "LULD",
-  backExtrap = FALSE,
-  backExtrap_coefs = NULL,
-  backExtrap_model = "monoexponential",
-  backExtrap_times = c(NA, NA)
+  extrap_inf = FALSE,
+  extrap_inf_coefs = NULL,
+  extrap_inf_times = c(NA, NA),
+  reportFractExtrap = FALSE,
+  extrap_t0 = FALSE,
+  extrap_t0_coefs = NULL,
+  extrap_t0_model = "monoexponential",
+  extrap_t0_times = c(NA, NA),
+  reportC0 = FALSE
 )
 }
 \arguments{
@@ -26,31 +31,61 @@ noncompAUC(
 \item{type}{The type of trapezoidal rule to use. Options are "LULD" (default)
 for "linear up, log down" or "linear".}
 
-\item{backExtrap}{Back extrapolate the curve to 0? TRUE or FALSE. This is
-useful when the dose was administered IV and you know you're missing a
-significant portion of the curve from t0 to the first sampling time.}
+\item{extrap_inf}{Extrapolate the curve to infinity? TRUE or FALSE.}
 
-\item{backExtrap_coefs}{If you've already performed a nonlinear regression to
-a monoexponential, biexponential, or triexponential, \code{noncompAUC} will
-use those for back extrapolation to t0. Provide a named list of:
-\describe{\item{\code{coefs}}{the coefficients from a \code{nls}
-regression. Format must be the standard output from
-\code{summary(nls(...))[["coefficients"]]}. It doesn't matter what you name
-the coefficients, but this function assumes that they will be listed with
-the y-intercept for the first term in the first row, the rate constant for
-the first term in the next row, the y intercept for the second term in the
-next row, the rate constant for the second term in the next row after that,
-etc.} \item{\code{tmax}}{The time to start fitting the elimination curve.
-This will be used to determine how far back in time t0 is.} }}
+\item{extrap_inf_coefs}{If you've already performed a nonlinear regression to
+a monoexponential decay equation, \code{noncompAUC} will use that for
+extrapolation to infinity. Provide a data.frame of the coefficients from a
+\code{nls} regression. Format must be the standard output from
+\code{summary(nls(...))[["coefficients"]]} or the coefficients from
+\code{terminalFit(...)}. (See \code{\link{terminalFit}}.) It doesn't matter
+what you name the coefficients, but this function assumes that they will be
+listed with the y-intercept \emph{A0} in the first row and the rate
+constant \emph{k} in the next row.}
 
-\item{backExtrap_model}{If \code{backExtrap} is TRUE and you haven't supplied
-your own fitted coefficients, choose whether to fit a
-\code{monoexponential} or \code{biexponential} decay equation. Inputting
-anything other than "monoexponential" or "biexponential" will result in the
-model being a biexponential.}
+\item{extrap_inf_times}{If \code{extrap_inf} is TRUE but you haven't supplied
+the coefficients from fitting a monoexponential decay to your data, specify
+the time range to use for fitting as \code{c(minTime, maxTime)}. If this is
+left as \code{c(NA, NA)}, the full time range will be used.}
 
-\item{backExtrap_times}{If \code{backExtrap} is TRUE, specify the time range
-to use for fitting the exponential decay as \code{c(minTime, maxTime)}.}
+\item{reportFractExtrap}{TRUE or FALSE for whether to report the fraction of
+the AUC extrapolated to infinity. If TRUE, this changes the output from a
+single number for the AUC to a named list of the AUC as a number and the
+fraction extrapolated as a named item in the list.}
+
+\item{extrap_t0}{TRUE or FALSE for whether to back extrapolate the curve to
+0. This is useful when the dose was administered IV and you know you're
+missing a significant portion of the curve from t0 to the first sampling
+time.}
+
+\item{extrap_t0_coefs}{If you've already performed a nonlinear regression to
+a monoexponential, biexponential, or triexponential decay equation,
+\code{noncompAUC} will use those for back extrapolation to t0. Provide a
+named list of: \describe{\item{\code{coefs}}{the coefficients from a
+\code{nls} regression. Format must be the standard output from
+\code{summary(nls(...))[["coefficients"]]} or the coefficients from
+\code{terminalFit(...)}. (See \code{\link{terminalFit}}.) It doesn't matter
+what you name the coefficients, but this function assumes that they will be
+listed with the y-intercept for the first term in the first row, the rate
+constant for the first term in the next row, the y intercept for the second
+term in the next row, the rate constant for the second term in the next row
+after that, etc.} \item{\code{tmax}}{The time to start fitting the
+elimination curve. This will be used to determine how far back in time t0
+is.} }}
+
+\item{extrap_t0_model}{"monoexponential" or "biexponential". Only used when
+\code{extrap_t0} is TRUE and you haven't supplied your own fitted
+coefficients. This sets which exponential decay model to fit to your data
+and defaults to "monoexponential".}
+
+\item{extrap_t0_times}{If \code{extrap_t0} is TRUE, specify the time range to
+use for fitting the exponential decay as \code{c(minTime, maxTime)}. If
+this is left as \code{c(NA, NA)}, the full time range will be used.}
+
+\item{reportC0}{TRUE or FALSE for whether to report the back-extrapolated
+concentration at t0. This is useful as a sanity check because the maximum
+concentration at t0 in, e.g., plasma should be no larger than approximately
+the dose / total plasma volume, which is ~3 L in a healthy, 70-kg adult.}
 }
 \value{
 Returns a number
@@ -58,46 +93,89 @@ Returns a number
 \description{
 Given a data.frame of concentration-time data, \code{noncompAUC} calculates
 the area-under-the-concentration-time curve for the times included in the
-input data.frame using the linear trapezoidal rule. This function does
-\emph{not} do any extrapolation to infinity.
+input data.frame using either the linear or the linear up/log down
+trapezoidal rule. Optionally extrapolate to infinity or back extapolate to
+t0.
 }
 \details{
-\strong{Warning:} Because I'm not yet proficient at nonstandard
+\strong{A few notes:}\itemize{
+
+  \item If there are two consecutive time points with the same measured
+  concentration, that results in an undefined value for the log trapezoidal
+  rule. To deal with this, anytime the user has opted for the linear up/log
+  down trapezoidal rule but there are also consecutive time points with the
+  same concentration, those individual trapezoids will be calculated linearly
+  rather than using a log function and all AUCs will be added together at the
+  end.
+
+  \item I intentionally omitted the option of using cubic splines for
+  calculating the AUC because they can become unstable with noisy
+  concentration-time data and are thus less desireable than the trapezoidal
+  rule. For more details, please see
+  \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.
+
+  \item \strong{Warning:} Because I'm not yet proficient at nonstandard
   evaluation, you must enter the names of the columns containing
   concentration and time data as character strings, and there must not be any
-  other columns named "CONC" or "TIME" or this will not work properly.
-
-  \strong{Note:} If there are two consecutive time points with the same
-  measured concentration, that results in an undefined value for the log
-  trapezoidal rule. To deal with this, anytime the user has opted for the
-  linear up/log down trapezoidal rule but there are also consecutive time
-  points with the same concentration, those individual trapezoids will be
-  calculated linearly rather than using a log function and all AUCs will be
-  added together at the end.
+  other columns named "CONC" or "TIME" or this will not work properly. }
 }
 \examples{
-
 data(ConcTime)
 IV1 <- ConcTime \%>\% dplyr::filter(SubjectID == 101 & Drug == "A" &
-                                 DoseRoute == "IV")
+                                        DoseRoute == "IV")
 noncompAUC(IV1, time = "TimeHr")
 noncompAUC(IV1, time = "TimeHr", type = "LULD")
 noncompAUC(IV1, time = "TimeHr", type = "linear")
-noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
-           backExtrap_model = "monoexponential",
-           backExtrap_times = c(0.5, 12))
+
+# Extrapolating to infinity
+noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+           extrap_inf_times = c(0.5, NA))
+
+# Extrapolating to infinity and reporting the fraction extrapolated
+noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+           extrap_inf_times = c(0.5, NA),
+           reportFractExtrap = TRUE)
+
+# Back extrapolating to t0
+noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+           extrap_t0_model = "monoexponential",
+           extrap_t0_times = c(0.5, NA))
+
+# Back extrapolating to t0 and reporting extrapolated C0
+noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+           extrap_t0_model = "monoexponential",
+           extrap_t0_times = c(0.5, NA),
+           reportC0 = TRUE)
+
+# Extrapolating to infinity, reporting the fraction extrapolated to infinity,
+# back extrapolating to t0, and reporting extrapolated C0
+noncompAUC(IV1, time = "TimeHr",
+           extrap_inf = TRUE,
+           extrap_inf_times = c(0.5, NA),
+           reportFractExtrap = TRUE,
+           extrap_t0 = TRUE,
+           extrap_t0_model = "monoexponential",
+           extrap_t0_times = c(0.5, NA),
+           reportC0 = TRUE)
+
 
 # For supplying your own coefficients to back extrapolate with:
 tmax <- 0.5
 # The elimination phase begins at t = 0.5 hrs here, so don't start fitting at
 # t0; you'll get bad estimates.
-
 Fit <- nls(Concentration ~ A * exp(-k * (TimeHr - tmax)),
-          data = IV1 \%>\% filter(TimeHr >= tmax),
-          start = list(A = max(IV1$Concentration), k = 0.01))
+           data = IV1 \%>\% filter(TimeHr >= tmax),
+           start = list(A = max(IV1$Concentration), k = 0.01))
 MyCoefs <- summary(Fit)[["coefficients"]]
-noncompAUC(IV1, time = "TimeHr", backExtrap = TRUE,
-           backExtrap_coefs = list(coefs = MyCoefs,
-                                 tmax = tmax))
+
+# Extapolating to infinity with supplied coefficients
+noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+           extrap_inf_times = c(0.5, NA),
+           extrap_inf_coefs = MyCoefs)
+
+# Back extapolating to t0 with supplied coefficients
+noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+           extrap_t0_coefs = list(coefs = MyCoefs,
+                                  tmax = tmax))
 
 }

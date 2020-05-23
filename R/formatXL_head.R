@@ -23,6 +23,11 @@
 #'
 formatXL_head <- function(DF, file, sheet = NA){
 
+      # All the columns must be named for this to work. Checking that.
+      if(any(is.na(names(DF)))){
+            stop("All the columns in your data.frame must be named.")
+      }
+
       # Guessing at appropriate column width based on max number of characters
       # in that column. First, need to include headers as a row so that it will
       # count those.
