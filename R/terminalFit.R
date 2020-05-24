@@ -80,41 +80,42 @@
 #'       select(SubjectID, TimeHr, Concentration)
 #'
 #' # Automatically select the start values
-#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential")
 #'
 #' # Set the start values yourself
-#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
 #'             tmax = 0, startValues = list(A = 30, k = 0.01),
 #'             modelType = "monoexponential")
 #'
 #' # Use the more robuse nls2 function to do the regression by selecting a range of
 #' # values to search.
-#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
 #'             tmax = 0,
 #'             startValues = data.frame(A = c(5, 50), k = c(0.0001, 0.05)),
 #'             modelType = "monoexponential")
 #'
 #' # Weight by 1/y
-#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
 #'             tmax = 0,
 #'             weight = 1/Subj101$Concentration,
 #'             modelType = "monoexponential")
+#' # This one doesn't actually converge.
 #'
 #' # Get the residual sum of squares
-#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", returnRSS = TRUE)
 #'
 #' # Use better names for the columns in the output
-#' terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", useNLS_outnames = FALSE)
 #'
 #'
 #' @export
 
 terminalFit <- function(DF, startValues = NA,
-                        concentration = "Concentration",
-                        time = "Time",
+                        concentration = Concentration,
+                        time = Time,
                         tmax = NA, modelType = "monoexponential",
                         returnDataUsed = FALSE,
                         weights = NULL, returnRSS = FALSE,
@@ -129,8 +130,13 @@ terminalFit <- function(DF, startValues = NA,
 
       # Setting up the input data.frame
       DFinit <- DF
-      names(DF)[names(DF) == concentration] <- "CONC"
-      names(DF)[names(DF) == time] <- "TIME"
+      concentration <- enquo(concentration)
+      time <- enquo(time)
+
+      DF <- DF %>% select(!! concentration, !! time) %>%
+            rename(TIME = !! time,
+                   CONC = !! concentration)
+
       DF <- DF[complete.cases(DF$CONC) & complete.cases(DF$TIME), ]
       DF <- dplyr::arrange(DF, TIME)
 

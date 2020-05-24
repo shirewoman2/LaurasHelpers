@@ -79,15 +79,6 @@
 #'   rule. For more details, please see
 #'   \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.
 #'
-#'
-#'
-#'
-#'
-#'   \item \strong{Warning:} Because I'm not yet proficient at nonstandard
-#'   evaluation, you must enter the names of the columns containing
-#'   concentration and time data as character strings, and there must not be any
-#'   other columns named "CONC" or "TIME" or this will not work properly. }
-#'
 #' @return Returns the calculated AUC as a number or, depending on the options
 #'   selected, a named list of the AUC (\code{AUC[["AUC"]]}), the fraction of
 #'   the curve extrapolated to infinity (\code{AUC[["Fraction extrapolated to
@@ -96,33 +87,33 @@
 #' data(ConcTime)
 #' IV1 <- ConcTime %>% dplyr::filter(SubjectID == 101 & Drug == "A" &
 #'                                         DoseRoute == "IV")
-#' noncompAUC(IV1, time = "TimeHr")
-#' noncompAUC(IV1, time = "TimeHr", type = "LULD")
-#' noncompAUC(IV1, time = "TimeHr", type = "linear")
+#' noncompAUC(IV1, time = TimeHr)
+#' noncompAUC(IV1, time = TimeHr, type = "LULD")
+#' noncompAUC(IV1, time = TimeHr, type = "linear")
 #'
 #' # Extrapolating to infinity
-#' noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+#' noncompAUC(IV1, time = TimeHr, extrap_inf = TRUE,
 #'            extrap_inf_times = c(0.5, NA))
 #'
 #' # Extrapolating to infinity and reporting the fraction extrapolated
-#' noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+#' noncompAUC(IV1, time = TimeHr, extrap_inf = TRUE,
 #'            extrap_inf_times = c(0.5, NA),
 #'            reportFractExtrap = TRUE)
 #'
 #' # Back extrapolating to t0
-#' noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+#' noncompAUC(IV1, time = TimeHr, extrap_t0 = TRUE,
 #'            extrap_t0_model = "monoexponential",
 #'            extrap_t0_times = c(0.5, NA))
 #'
 #' # Back extrapolating to t0 and reporting extrapolated C0
-#' noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+#' noncompAUC(IV1, time = TimeHr, extrap_t0 = TRUE,
 #'            extrap_t0_model = "monoexponential",
 #'            extrap_t0_times = c(0.5, NA),
 #'            reportC0 = TRUE)
 #'
 #' # Extrapolating to infinity, reporting the fraction extrapolated to infinity,
 #' # back extrapolating to t0, and reporting extrapolated C0
-#' noncompAUC(IV1, time = "TimeHr",
+#' noncompAUC(IV1, time = TimeHr,
 #'            extrap_inf = TRUE,
 #'            extrap_inf_times = c(0.5, NA),
 #'            reportFractExtrap = TRUE,
@@ -142,20 +133,21 @@
 #' MyCoefs <- summary(Fit)[["coefficients"]]
 #'
 #' # Extapolating to infinity with supplied coefficients
-#' noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+#' noncompAUC(IV1, time = TimeHr, extrap_inf = TRUE,
 #'            extrap_inf_times = c(0.5, NA),
 #'            extrap_inf_coefs = MyCoefs)
 #'
 #' # Back extapolating to t0 with supplied coefficients
-#' noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+#' noncompAUC(IV1, time = TimeHr, extrap_t0 = TRUE,
 #'            extrap_t0_coefs = list(coefs = MyCoefs,
 #'                                   tmax = tmax))
 #'
 #' @export
 #'
 
-noncompAUC <- function(DF, concentration = "Concentration",
-                       time = "Time", type = "LULD",
+noncompAUC <- function(DF, concentration = Concentration,
+                       time = Time,
+                       type = "LULD",
                        extrap_inf = FALSE,
                        extrap_inf_coefs = NULL,
                        extrap_inf_times = c(NA, NA),
@@ -175,12 +167,16 @@ noncompAUC <- function(DF, concentration = "Concentration",
             stop("The only options for models to automatically extrapolate back to t0 are 'monoexponential' or 'biexponential'. Please select one of those.")
       }
 
-      names(DF)[names(DF) == concentration] <- "CONC"
-      names(DF)[names(DF) == time] <- "TIME"
+      concentration <- enquo(concentration)
+      time <- enquo(time)
+
+      DF <- DF %>% select(!! time, !! concentration) %>%
+            rename(TIME = !! time,
+                   CONC = !! concentration)
 
       DF <- DF %>% filter(complete.cases(TIME))
 
-      DFmean <- DF %>% dplyr::select(TIME, CONC) %>%
+      DFmean <- DF %>%
             dplyr::filter(complete.cases(CONC)) %>%
             dplyr::group_by(TIME) %>%
             dplyr::summarize(CONC = mean(CONC)) %>%
