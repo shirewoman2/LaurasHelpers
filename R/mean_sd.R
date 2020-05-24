@@ -12,20 +12,22 @@
 #' mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
 #' = n).
 #'
-#' \emph{NB:} I have not set this up to deal with mean values in scientific notation.
+#' \emph{NB:} I have not set this up to deal with mean values in scientific
+#' notation.
 #'
 #' \emph{NB:} If sd(x) == 0, output will be unique(x).
 #'
 #' @param x A vector of numbers OR a single mean
-#' @param stdev.x The sd when you want to provide it (leave as NULL if providing a
-#'   vector of numbers)
+#' @param stdev.x The sd when you want to provide it (leave as NULL if providing
+#'   a vector of numbers)
 #' @param calcRange Should the range be reported? (logical) (TRUE or FALSE)
 #' @param numDigRange Number of digits to report for the range
 #' @param calcCV Should the coefficient of variation be reported? (logical)
 #' @param calcMedian Should the median be reported? (logical)
 #' @param calc95CI Should the 95\% confidence interval be reported? (logical) If
 #'   calc95CI is set to TRUE, it will return the 95\% confidence interval as
-#'   calculated as \deqn{mean(x) +/- t~n-1, 1-alpha/2~ * sd(x)/sqrt(n)}
+#'   calculated as \emph{{\out{mean(x) +/- t<sub>n-1, 1-alpha/2</sub> *
+#'   sd(x)/sqrt(n)}}}
 #' @param calcQuantiles Should the quantiles be reported? (logical)
 #' @param reportn Should the number of observations be reported? (logical)
 #' @param ndig Optionally set the number of sig figs to use if you want to set

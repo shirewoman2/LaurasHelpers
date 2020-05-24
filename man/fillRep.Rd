@@ -2,7 +2,7 @@
 % Please edit documentation in R/fillRep.R
 \name{fillRep}
 \alias{fillRep}
-\title{Make a unique data.frame by combining NA values}
+\title{Make a unique data.frame by combining NA and complete cases}
 \usage{
 fillRep(DF, dlplyBy, concatFields = NULL, returnDifs = FALSE)
 }
@@ -38,15 +38,15 @@ Returns a unique data.frame or, if \code{returnDifs} is TRUE, a list
 \description{
 This function takes a data.frame, looks for rows that are replicates that
 differ only because one row has missing values where the other has values,
-fills in all missing values and returns the unique (no replicates) data.frame
-whenever possible. When replicates cannot be removed because there are
-differences, fillRep returns a data.frame of those differences. Whenever the
-function encounters a set of rows that will \emph{not} reduce, it prints the
-problematic fields as a data.frame. Optionally, you can keep this data.frame
-of problems by setting \code{returnDifs} to TRUE.
+fills in all missing values with the complete cases and returns the unique
+(no replicates) data.frame whenever possible. When replicates cannot be
+removed because there are differences, fillRep returns a data.frame of those
+differences. Whenever the function encounters a set of rows that will
+\emph{not} reduce, it prints the problematic fields as a data.frame.
+Optionally, you can keep this data.frame of problems by setting
+\code{returnDifs} to TRUE.
 }
 \examples{
-
 # Concatenating anything that's in the column "SourceFile" if that's the
 # only thing that differs:
 fillRep(MyDF, dlplyby = c("SubjectID", "StudyDay"),

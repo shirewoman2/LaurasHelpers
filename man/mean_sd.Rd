@@ -21,8 +21,8 @@ mean_sd(
 \arguments{
 \item{x}{A vector of numbers OR a single mean}
 
-\item{stdev.x}{The sd when you want to provide it (leave as NULL if providing a
-vector of numbers)}
+\item{stdev.x}{The sd when you want to provide it (leave as NULL if providing
+a vector of numbers)}
 
 \item{calcRange}{Should the range be reported? (logical) (TRUE or FALSE)}
 
@@ -34,7 +34,8 @@ vector of numbers)}
 
 \item{calc95CI}{Should the 95\% confidence interval be reported? (logical) If
 calc95CI is set to TRUE, it will return the 95\% confidence interval as
-calculated as \deqn{mean(x) +/- t~n-1, 1-alpha/2~ * sd(x)/sqrt(n)}}
+calculated as \emph{{\out{mean(x) \pm t<sub>n-1, 1-alpha/2</sub> *
+sd(x)/sqrt(n)}}}}
 
 \item{calcQuantiles}{Should the quantiles be reported? (logical)}
 
@@ -64,7 +65,8 @@ Example of ultimate output with all possible options set to TRUE:
 mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
 = n).
 
-\emph{NB:} I have not set this up to deal with mean values in scientific notation.
+\emph{NB:} I have not set this up to deal with mean values in scientific
+notation.
 
 \emph{NB:} If sd(x) == 0, output will be unique(x).
 }

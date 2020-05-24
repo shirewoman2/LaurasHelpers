@@ -1,13 +1,14 @@
-#' Make a unique data.frame by combining NA values
+#' Make a unique data.frame by combining NA and complete cases
 #'
 #' This function takes a data.frame, looks for rows that are replicates that
 #' differ only because one row has missing values where the other has values,
-#' fills in all missing values and returns the unique (no replicates) data.frame
-#' whenever possible. When replicates cannot be removed because there are
-#' differences, fillRep returns a data.frame of those differences. Whenever the
-#' function encounters a set of rows that will \emph{not} reduce, it prints the
-#' problematic fields as a data.frame. Optionally, you can keep this data.frame
-#' of problems by setting \code{returnDifs} to TRUE.
+#' fills in all missing values with the complete cases and returns the unique
+#' (no replicates) data.frame whenever possible. When replicates cannot be
+#' removed because there are differences, fillRep returns a data.frame of those
+#' differences. Whenever the function encounters a set of rows that will
+#' \emph{not} reduce, it prints the problematic fields as a data.frame.
+#' Optionally, you can keep this data.frame of problems by setting
+#' \code{returnDifs} to TRUE.
 #'
 #' @param DF a data.frame that you want to remove replicates from
 #' @param dlplyBy a character vector of the columns in DF that you want to use
@@ -33,7 +34,6 @@
 #' @return Returns a unique data.frame or, if \code{returnDifs} is TRUE, a list
 #'   of two data.frames.
 #' @examples
-#'
 #' # Concatenating anything that's in the column "SourceFile" if that's the
 #' # only thing that differs:
 #' fillRep(MyDF, dlplyby = c("SubjectID", "StudyDay"),

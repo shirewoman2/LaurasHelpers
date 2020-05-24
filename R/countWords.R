@@ -12,7 +12,7 @@
 #'
 #' countWords("My cats' names are Lightning and Theo.")
 #' countWords(list("My cats' names are Lightning and Theo.",
-#'               "main hindee seekh rahi hoon", 4.5, TRUE))
+#'               "mein hindee seekh rahi hoon", 4.5, TRUE))
 #'
 countWords <- function(x){
 
