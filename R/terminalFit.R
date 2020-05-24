@@ -37,12 +37,10 @@
 #'   select enough decent starting places to come up with regressions that will
 #'   converge. }
 #'
-#' @param concentration A character string of the column name in DF that
-#'   contains concentration data
-#' @param time A character string of the column name in DF that contains time
-#'   data
+#' @param concentration The name of the column that contains concentration data
+#' @param time The name of the column that contains time data
 #' @param tmax The putative tmax, which is used for estimating the terminal
-#'   elimination rate. Time points \emph{before} tmax will be omitted from the
+#'   elimination rate. Time points before tmax will be omitted from the
 #'   fit.
 #' @param modelType The mathematical model to use for fitting the data; options
 #'   are "monoexponential", "biexponential", or "triexponential".

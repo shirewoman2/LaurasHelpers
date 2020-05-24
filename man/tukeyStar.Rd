@@ -5,7 +5,7 @@
 \title{ggplot2 boxplots of ANOVA results}
 \usage{
 tukeyStar(
-  data,
+  DF,
   groupColumn,
   valueColumn,
   barsize = 1.5,
@@ -15,13 +15,11 @@ tukeyStar(
 )
 }
 \arguments{
-\item{data}{The input data.frame on which to perform an ANOVA}
+\item{DF}{The input data.frame on which to perform an ANOVA}
 
-\item{groupColumn}{The name of the column that contains the groups to be
-compared (character).}
+\item{groupColumn}{The column that contains the groups to be compared.}
 
-\item{valueColumn}{The name of the column that contains the values of
-interest (character).}
+\item{valueColumn}{The column that contains the values of interest.}
 
 \item{barsize}{The size of the bars to display in the graph. Default is 1.5.}
 
@@ -32,41 +30,33 @@ graph. Default is 8.}
 group? (TRUE or FALSE)}
 
 \item{returnStats}{Return the overall p value from the ANOVA and the results
-from the Tukey post-hoc test? If TRUE, output will be a list of the plot,
-the overall p value, and the data.frame of the Tukey post-hoc comparisons.}
+from the Tukey post-hoc test? (TRUE or FALSE)}
 }
 \value{
 If returnStats is FALSE, then the output will be the ggplot2 style
-  boxplot. If returnStats is TRUE, then the output will be a list of the
-  ggplot2-style boxplot, the overall p value, and the data.frame of Tukey
-  post-hoc stats.
+  boxplot. If returnStats is TRUE, then the output will be a list of:
+  \describe{ \item{Overall_pvalue}{The p value for the overall ANOVA}
+  \item{Comparisons}{A data.frame of the Tukey post-hoc comparisons}
+  \item{Graph}{The boxplot graph}}
 }
 \description{
-\code{tukeyStar} makes a boxplot of data that could be analyzed by ANOVA and
+\code{tukeyStar} makes a boxplot of DF that could be analyzed by ANOVA and
 draws brackets between comparisons found to be significant by a Tukey
 post-hoc test.
 }
-\details{
-\strong{Warning:} Because I'm not yet proficient at nonstandard
-  evaluation, you must enter the names of the columns to use for grouping and
-  for the values as character strings, and there must not be any other
-  columns named "XXXX" or "YYYY" or this will not work properly. (Yes, I
-  picked "XXXX" and "YYYY" as column names because they seemed unlikely
-  choices for column names, so I'm hoping this won't be a problem.)
-}
 \examples{
-DF <- data.frame(Hen = rep(c("A", "B", "C"), each = 5),
+Chickens <- data.frame(Hen = rep(c("A", "B", "C"), each = 5),
                  ChickWeight = rep(c(rnorm(5, mean = 5, sd = 1),
                                      rnorm(5, mean = 6, sd = 1),
                                      rnorm(5, mean = 4, sd = 1))))
 
-tukeyStar(data = DF, groupColumn = "Hen",
-          valueColumn = "ChickWeight")
+tukeyStar(DF = Chickens, groupColumn = Hen,
+          valueColumn = ChickWeight)
 
-tukeyStar(data = DF, groupColumn = "Hen",
-          valueColumn = "ChickWeight", includeN = TRUE)
+tukeyStar(DF = Chickens, groupColumn = Hen,
+          valueColumn = ChickWeight, includeN = TRUE)
 
-tukeyStar(data = DF, groupColumn = "Hen",
-          valueColumn = "ChickWeight", returnStats = TRUE)
+tukeyStar(DF = Chickens, groupColumn = Hen,
+          valueColumn = ChickWeight, returnStats = TRUE)
 
 }

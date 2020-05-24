@@ -19,7 +19,7 @@ mean_sd(
 )
 }
 \arguments{
-\item{x}{A vector of numbers OR a single mean}
+\item{x}{A vector of numbers \emph{or} a single mean}
 
 \item{stdev.x}{The sd when you want to provide it (leave as NULL if providing
 a vector of numbers)}
@@ -34,15 +34,15 @@ a vector of numbers)}
 
 \item{calc95CI}{Should the 95\% confidence interval be reported? (logical) If
 calc95CI is set to TRUE, it will return the 95\% confidence interval as
-calculated as \emph{{\out{mean(x) \pm t<sub>n-1, 1-alpha/2</sub> *
+calculated as \emph{{\out{mean(x) +/- t<sub>n-1, 1-alpha/2</sub> *
 sd(x)/sqrt(n)}}}}
 
 \item{calcQuantiles}{Should the quantiles be reported? (logical)}
 
 \item{reportn}{Should the number of observations be reported? (logical)}
 
-\item{ndig}{Optionally set the number of sig figs to use if you want to set
-to a specific value}
+\item{ndig}{Optionally set the number of sig figs to use if you don't want
+that calculated automatically}
 
 \item{na.rm}{Should NA values be removed when calculating the mean, standard
 deviation, etc.? (logical) They'll still be included in the count of
@@ -52,7 +52,7 @@ observations if \code{reportn} is TRUE.}
 Returns a character string
 }
 \description{
-\code{mean_sd} takes as input a numeric vector \emph{or} a number for the
+\code{mean_sd} takes as input a numeric vector or a number for the
 mean and a second number for the sd and outputs the mean plus or minus the
 standard deviation of that vector with an appropriate number of sig figs.
 Output is ALWAYS of class character.
@@ -68,7 +68,7 @@ mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
 \emph{NB:} I have not set this up to deal with mean values in scientific
 notation.
 
-\emph{NB:} If sd(x) == 0, output will be unique(x).
+\emph{NB:} If \code{sd(x) == 0}, output will be unique(x).
 }
 \examples{
 mean_sd(rnorm(10, 5, 1))

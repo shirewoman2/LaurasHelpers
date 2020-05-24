@@ -22,7 +22,7 @@
 #'   no weighting scheme will be used. Be careful that you don't have any
 #'   infinite values or this will fail!
 #' @param colorBy What column to color the points by in the standard curve
-#'   graph. If left as NA, points will all be black.
+#'   graph. If not set, all points will be black.
 #'
 #' @return Output is a list of the following named objects:\describe{
 #'
@@ -30,152 +30,176 @@
 #'
 #'   \item{CurvePlot}{A plot of the data and the fitted line}
 #'
-#'   \item{Curve.DF}{A data.frame of the points used for graphing the fitted
+#'   \item{CurveDF}{A data.frame of the points used for graphing the fitted
 #'   line.}
 #'
 #'   \item{Data}{The original data with a column calculating the percent
 #'   difference between the calculated and the nominal concentrations or
 #'   masses}}
 #' @examples
-#'
 #' data(ExStdCurve)
-#' stdCurve(ExStdCurve, rawPeak = MET.area,
-#'          rawIS = d6MET.area,
-#'          nominal = MET.nominalmass, poly = "2nd")
 #'
-#' stdCurve(ExStdCurve, normPeak = MET.peakarearatio,
-#'          nominal = MET.nominalmass, poly = "1st",
+#' # Using a peak ratio that's already been calculated
+#' stdCurve(ExStdCurve,
+#'          normPeak = MET.peakarearatio,
+#'          nominal = MET.nominalmass,
+#'          poly = "2nd")
+#'
+#' # Having 'stdCurve' calculate the peak ratio
+#' stdCurve(ExStdCurve,
+#'          rawPeak = MET.area,
+#'          rawIS = d6MET.area,
+#'          nominal = MET.nominalmass,
+#'          poly = "2nd")
+#'
+#' # Using weights in the nonlinear regression
+#' stdCurve(ExStdCurve,
+#'          normPeak = MET.peakarearatio,
+#'          nominal = MET.nominalmass,
+#'          poly = "1st",
 #'          weights = 1/ExStdCurve$MET.nominalmass)
+#'
+#' # Coloring by some variable
+#' stdCurve(ExStdCurve %>% mutate(Group = c(rep("A", 5), rep("B", 6))),
+#'          normPeak = MET.peakarearatio,
+#'          nominal = MET.nominalmass,
+#'          colorBy = Group,
+#'          poly = "2nd")
 #'
 #' @export
 #'
 
 
-stdCurve <- function(DF, rawPeak, rawIS, normPeak = NA,
+stdCurve <- function(DF, rawPeak, rawIS, normPeak,
                      nominal, poly = "1st", weights = NULL,
-                     colorBy = NA) {
+                     colorBy) {
 
       nominal <- enquo(nominal)
+      rawPeak <- enquo(rawPeak)
+      rawIS <- enquo(rawIS)
+      normPeak <- enquo(normPeak)
+      colorBy <- enquo(colorBy)
 
-      if(is.na(normPeak)){
-            rawPeak <- enquo(rawPeak)
-            rawIS <- enquo(rawIS)
-      } else {
-            normPeak <- enquo(normPeak)
-      }
+      DForig <- DF
 
-      if(complete.cases(colorBy)){
-            colorBy <- enquo(colorBy)
-      }
+      # If normPeak is NOT supplied, calculate it.
+      if(as_label(normPeak) %in% names(DForig) == FALSE){
+            DF <- DF %>% mutate(NormPeak = !!rawPeak / !!rawIS)
 
-      # When normalized peak height or area is not given, only raw, calculate
-      # that.
-      if(is.na(normPeak)){
-
-            # If "colorBy" was provided, we need to retain that column, but we
-            # *can't* included it in the select call if it's not present. Need
-            # to catch that.
-            if(complete.cases(colorBy)){
-                  colorBy <- enquo(colorBy)
-
-                  DF <- DF %>% select(!! rawPeak, !! rawIS, !! nominal,
-                                      !! colorBy) %>%
-                        rename(rawPeak = !! rawPeak,
-                               rawIS = !! rawIS,
-                               nominal = !! nominal,
-                               COLOR = !! colorBy) %>%
-                        mutate(normPeak = rawPeak/rawIS)
-
+            # Now, only keep NormPeak, nominal, and, if present, colorBy. Rename
+            # them to work with more easily later in the function.
+            if(as_label(colorBy) %in% names(DForig)){
+                  DF <- DF %>% select(!!nominal, NormPeak, !!colorBy) %>%
+                        rename(Nominal = !!nominal,
+                               ColorBy = !!colorBy)
             } else {
-                  DF <- DF %>% select(!! rawPeak, !! rawIS, !! nominal) %>%
-                        rename(rawPeak = !! rawPeak,
-                               rawIS = !! rawIS,
-                               nominal = !! nominal) %>%
-                        mutate(normPeak = rawPeak/rawIS)
+                  DF <- DF %>% select(!!nominal, NormPeak) %>%
+                        rename(Nominal = !!nominal)
             }
 
+            # Setting the y label for the graphs based on whether normPeak was
+            # supplied.
+            Ylabel <- paste0(as_label(rawPeak), "/", as_label(rawIS))
+
       } else {
-
-            # If "colorBy" was provided, we need to retain that column, but we
-            # *can't* included it in the select call if it's not present. Need
-            # to catch that.
-            if(complete.cases(colorBy)){
-                  colorBy <- enquo(colorBy)
-
-                  DF <- DF %>% select(!! normPeak, !! nominal, !! colorBy) %>%
-                        rename(normPeak = !! normPeak,
-                               nominal = !! nominal,
-                               COLOR = !! colorBy)
+            # If normPeak *is* supplied, keep that. Check for colorBy. Rename
+            # everything to make life easier farther down in the function.
+            if(as_label(colorBy) %in% names(DForig)){
+                  DF <- DF %>% select(!!nominal, !!normPeak, !!colorBy) %>%
+                        rename(Nominal = !!nominal,
+                               NormPeak = !!normPeak,
+                               ColorBy = !!colorBy)
             } else {
-                  DF <- DF %>% select(!! normPeak, !! nominal) %>%
-                        rename(normPeak = !! normPeak,
-                               nominal = !! nominal)
+                  DF <- DF %>% select(!!nominal, !!normPeak) %>%
+                        rename(Nominal = !!nominal,
+                               NormPeak = !!normPeak)
             }
+
+            # Setting the y label for the graphs based on whether normPeak was
+            # supplied.
+            Ylabel <- as_label(normPeak)
       }
 
-      Maxnominal <- max(DF$nominal, na.rm = TRUE)
+      MaxNominal <- max(DF$Nominal, na.rm = TRUE)
 
       if(poly == "1st"){
-            Fit <- lm(DF$normPeak ~ DF$nominal, weights = weights)
+            Fit <- lm(DF$NormPeak ~ DF$Nominal, weights = weights)
             beta0 <- summary(Fit)$coef["(Intercept)", "Estimate"]
-            beta1 <- summary(Fit)$coef["DF$nominal", "Estimate"]
+            beta1 <- summary(Fit)$coef["DF$Nominal", "Estimate"]
 
-            Curve <- data.frame(nominal = seq(0, Maxnominal, length.out = 1000))
-            Curve$normPeak <- beta1 * Curve$nominal + beta0
+            Curve <- data.frame(Nominal = seq(0, MaxNominal, length.out = 1000))
+            Curve$NormPeak <- beta1 * Curve$Nominal + beta0
       }
 
       if(poly == "2nd"){
-            Fit <- nls(normPeak ~ beta2*nominal^2 + beta1*nominal + beta0,
+            Fit <- nls(NormPeak ~ beta2*Nominal^2 + beta1*Nominal + beta0,
                        data = DF,
                        start = list(beta2 = 0.01,
                                     beta1 = summary(lm(
-                                          DF$normPeak ~ DF$nominal))$coef[
-                                                "DF$nominal", "Estimate"],
+                                          DF$NormPeak ~ DF$Nominal))$coef[
+                                                "DF$Nominal", "Estimate"],
                                     beta0 = 0),
                        weights = weights)
             beta0 <- summary(Fit)$coef["beta0", "Estimate"]
             beta1 <- summary(Fit)$coef["beta1", "Estimate"]
             beta2 <- summary(Fit)$coef["beta2", "Estimate"]
 
-            Curve <- data.frame(nominal = seq(0, Maxnominal, length.out = 1000))
-            Curve$normPeak <- beta2*Curve$nominal^2 + beta1*Curve$nominal + beta0
+            Curve <- data.frame(Nominal = seq(0, MaxNominal, length.out = 1000))
+            Curve$NormPeak <- beta2*Curve$Nominal^2 + beta1*Curve$Nominal + beta0
       }
 
-      if(is.na(colorBy)){
+      if(as_label(colorBy) %in% names(DForig)){
 
-            CurvePlot <- ggplot2::ggplot(DF, aes(x = nominal, y = normPeak)) +
+            CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak,
+                                                 color = ColorBy)) +
                   geom_point() +
-                  geom_line(data = Curve, aes(x = nominal, y = normPeak)) +
-                  xlab(enquo(nominal)) + ylab(enquo(normPeak))
+                  geom_line(data = Curve, aes(x = Nominal, y = NormPeak),
+                            inherit.aes = FALSE) +
+                  labs(color = as_label(colorBy)) +
+                  xlab(as_label(nominal)) + ylab(Ylabel)
 
       } else {
-
-            CurvePlot <- ggplot2::ggplot(DF, aes(x = nominal, y = normPeak,
-                                                 color = COLOR)) +
+            CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak)) +
                   geom_point() +
-                  geom_line(data = Curve, aes(x = nominal, y = normPeak),
-                            inherit.aes = FALSE) +
-                  labs(color = enquo(colorBy)) +
-                  xlab(enquo(nominal)) + ylab(enquo(normPeak))
-
+                  geom_line(data = Curve, aes(x = Nominal, y = NormPeak)) +
+                  xlab(as_label(nominal)) + ylab(Ylabel)
       }
 
       if(poly == "1st"){
-            DF$Calculated <- (DF$normPeak - beta0)/beta1
+            DF$Calculated <- (DF$NormPeak - beta0)/beta1
       }
 
       if(poly == "2nd"){
-            DF$Calculated <- (-beta1 + sqrt(beta1^2 - 4*beta2*(beta0 - DF$normPeak)))/
+            DF$Calculated <- (-beta1 + sqrt(beta1^2 - 4*beta2*(beta0 - DF$NormPeak)))/
                   (2*beta2)
       }
 
-      DF$PercentDifference <- (DF$Calculated - DF$nominal)/DF$nominal
-      DF$PercentDifference[DF$nominal == 0] <- NA
-      DF <- rename(DF, c(Nominal = nominal,
-                         NormPeak = normPeak))
+      DF$PercentDifference <- (DF$Calculated - DF$Nominal)/DF$Nominal
+      DF$PercentDifference[DF$Nominal == 0] <- NA
+
+      if(as_label(normPeak) %in% names(DForig)){
+            names(DF)[names(DF) == "Nominal"] <- as_label(nominal)
+            names(DF)[names(DF) == "NormPeak"] <- as_label(normPeak)
+            names(Curve)[names(Curve) == "Nominal"] <- as_label(nominal)
+            names(Curve)[names(Curve) == "NormPeak"] <- as_label(normPeak)
+
+      } else {
+            names(DF)[names(DF) == "Nominal"] <- as_label(nominal)
+            names(DF)[names(DF) == "NormPeak"] <-
+                  paste0(as_label(rawPeak), "/", as_label(rawIS))
+            names(Curve)[names(Curve) == "Nominal"] <- as_label(nominal)
+            names(Curve)[names(Curve) == "NormPeak"] <-
+                  paste0(as_label(rawPeak), "/", as_label(rawIS))
+
+      }
+
+      if(as_label(colorBy) %in% names(DForig)){
+            names(DF)[names(DF) == "ColorBy"] <- as_label(colorBy)
+            names(Curve)[names(Curve) == "ColorBy"] <- as_label(colorBy)
+      }
 
       CurveResults <- list(Fit, CurvePlot, Curve, DF)
-      names(CurveResults) <- c("Fit", "CurvePlot", "Curve.DF", "Data")
+      names(CurveResults) <- c("Fit", "CurvePlot", "CurveDF", "Data")
 
       return(CurveResults)
 

@@ -8,39 +8,38 @@ stdCurve(
   DF,
   rawPeak,
   rawIS,
-  normPeak = NA,
+  normPeak,
   nominal,
   poly = "1st",
   weights = NULL,
-  colorBy = NA
+  colorBy
 )
 }
 \arguments{
 \item{DF}{The input data.frame with columns containing the nominal analyte
 concentration and the instrument response}
 
-\item{rawPeak}{The unadjusted instrument response column name (character).
-Ignore this if data are already normalized by internal standard.}
-
-\item{rawIS}{The internal standard column name (character). Ok to ignore if
+\item{rawPeak}{The unadjusted instrument response column name. Ignore this if
 data are already normalized by internal standard.}
+
+\item{rawIS}{The internal standard column name. This is optional if
+\code{normPeak} is provided.}
 
 \item{normPeak}{The name of the column containing instrument response
 normalized by internal standard. Use this if the data are peak heights or
 areas already divided by the IS peak height or area.}
 
-\item{nominal}{The column with the nominal concentrations or masses
-(character).}
+\item{nominal}{The column with the nominal concentrations or masses.}
 
 \item{poly}{Should the data be fit to a 1st or 2nd order polynomial? Options:
 "1st" or "2nd".}
 
 \item{weights}{A vector of weights to use for the regression. If left as NA,
 no weighting scheme will be used. Be careful that you don't have any
-infinite values!}
+infinite values or this will fail!}
 
 \item{colorBy}{What column to color the points by in the standard curve
-graph. If left as NA, points will all be black.}
+graph. If not set, all points will be black.}
 }
 \value{
 Output is a list of the following named objects:\describe{
@@ -49,11 +48,12 @@ Output is a list of the following named objects:\describe{
 
   \item{CurvePlot}{A plot of the data and the fitted line}
 
-  \item{Curve.DF}{A data.frame of the points used for graphing the fitted
+  \item{CurveDF}{A data.frame of the points used for graphing the fitted
   line.}
 
   \item{Data}{The original data with a column calculating the percent
-  difference between the calculated and the nominal concentrations or masses}}
+  difference between the calculated and the nominal concentrations or
+  masses}}
 }
 \description{
 \code{stdCurve}, which was designed with mass spectrometry data in mind, fits
@@ -63,15 +63,33 @@ fitted line, and the original data that were used to generate the standard
 curve.
 }
 \examples{
-
 data(ExStdCurve)
-stdCurve(ExStdCurve, rawPeak = "MET.area",
-         rawIS = "d6MET.area",
-         nominal = "MET.nominalmass", poly = "2nd",
+
+# Using a peak ratio that's already been calculated
+stdCurve(ExStdCurve,
+         normPeak = MET.peakarearatio,
+         nominal = MET.nominalmass,
+         poly = "2nd")
+
+# Having 'stdCurve' calculate the peak ratio
+stdCurve(ExStdCurve,
+         rawPeak = MET.area,
+         rawIS = d6MET.area,
+         nominal = MET.nominalmass,
+         poly = "2nd")
+
+# Using weights in the nonlinear regression
+stdCurve(ExStdCurve,
+         normPeak = MET.peakarearatio,
+         nominal = MET.nominalmass,
+         poly = "1st",
          weights = 1/ExStdCurve$MET.nominalmass)
 
-stdCurve(ExStdCurve, normPeak = "MET.peakarearatio",
-         nominal = "MET.nominalmass", poly = "1st",
-         weights = 1/ExStdCurve$MET.nominalmass)
+# Coloring by some variable
+stdCurve(ExStdCurve \%>\% mutate(Group = c(rep("A", 5), rep("B", 6))),
+         normPeak = MET.peakarearatio,
+         nominal = MET.nominalmass,
+         colorBy = Group,
+         poly = "2nd")
 
 }

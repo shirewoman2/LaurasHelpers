@@ -1,23 +1,11 @@
 #' Calculate mean +/- sd or other parameters with appropriate sig figs
 #'
-#' \code{mean_sd} takes as input a numeric vector \emph{or} a number for the
+#' \code{mean_sd} takes as input a numeric vector or a number for the
 #' mean and a second number for the sd and outputs the mean plus or minus the
 #' standard deviation of that vector with an appropriate number of sig figs.
 #' Output is ALWAYS of class character.
 #'
-#' Example of ultimate output with all possible options set to TRUE:
-#'
-#' 5.1 (5) +/- 0.2 (4.7 to 5.3, 3.7\%, 95\%CI: 4.6 to 5.2, n = 18)
-#'
-#' mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
-#' = n).
-#'
-#' \emph{NB:} I have not set this up to deal with mean values in scientific
-#' notation.
-#'
-#' \emph{NB:} If sd(x) == 0, output will be unique(x).
-#'
-#' @param x A vector of numbers OR a single mean
+#' @param x A vector of numbers \emph{or} a single mean
 #' @param stdev.x The sd when you want to provide it (leave as NULL if providing
 #'   a vector of numbers)
 #' @param calcRange Should the range be reported? (logical) (TRUE or FALSE)
@@ -30,11 +18,23 @@
 #'   sd(x)/sqrt(n)}}}
 #' @param calcQuantiles Should the quantiles be reported? (logical)
 #' @param reportn Should the number of observations be reported? (logical)
-#' @param ndig Optionally set the number of sig figs to use if you want to set
-#'   to a specific value
+#' @param ndig Optionally set the number of sig figs to use if you don't want
+#'   that calculated automatically
 #' @param na.rm Should NA values be removed when calculating the mean, standard
 #'   deviation, etc.? (logical) They'll still be included in the count of
 #'   observations if \code{reportn} is TRUE.
+#' @details
+#' Example of ultimate output with all possible options set to TRUE:
+#'
+#' 5.1 (5) +/- 0.2 (4.7 to 5.3, 3.7\%, 95\%CI: 4.6 to 5.2, n = 18)
+#'
+#' mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
+#' = n).
+#'
+#' \emph{NB:} I have not set this up to deal with mean values in scientific
+#' notation.
+#'
+#' \emph{NB:} If \code{sd(x) == 0}, output will be unique(x).
 #'
 #' @return Returns a character string
 #'

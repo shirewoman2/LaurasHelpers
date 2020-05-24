@@ -27,7 +27,7 @@ There are dozens of columns in \code{MyDF}, so finding the column{s} that
 differs would be tedious. This function will do that for you.
 }
 \examples{
-
+data(Pets)
 whichDif(Pets[Pets$Name == "Eddie", ])
 
 

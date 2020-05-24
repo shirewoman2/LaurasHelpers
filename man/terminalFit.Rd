@@ -8,8 +8,8 @@ concentration-time curve}
 terminalFit(
   DF,
   startValues = NA,
-  concentration = "Concentration",
-  time = "Time",
+  concentration = Concentration,
+  time = Time,
   tmax = NA,
   modelType = "monoexponential",
   returnDataUsed = FALSE,
@@ -52,14 +52,12 @@ terminalFit(
   select enough decent starting places to come up with regressions that will
   converge. }}
 
-\item{concentration}{A character string of the column name in DF that
-contains concentration data}
+\item{concentration}{The name of the column that contains concentration data}
 
-\item{time}{A character string of the column name in DF that contains time
-data}
+\item{time}{The name of the column that contains time data}
 
 \item{tmax}{The putative tmax, which is used for estimating the terminal
-elimination rate. Time points \emph{before} tmax will be omitted from the
+elimination rate. Time points before tmax will be omitted from the
 fit.}
 
 \item{modelType}{The mathematical model to use for fitting the data; options
@@ -110,33 +108,34 @@ Subj101 <- ConcTime \%>\% filter(SubjectID == 101 & DoseRoute == "IV" &
       select(SubjectID, TimeHr, Concentration)
 
 # Automatically select the start values
-terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             modelType = "monoexponential")
 
 # Set the start values yourself
-terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             tmax = 0, startValues = list(A = 30, k = 0.01),
             modelType = "monoexponential")
 
 # Use the more robuse nls2 function to do the regression by selecting a range of
 # values to search.
-terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             tmax = 0,
             startValues = data.frame(A = c(5, 50), k = c(0.0001, 0.05)),
             modelType = "monoexponential")
 
 # Weight by 1/y
-terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             tmax = 0,
             weight = 1/Subj101$Concentration,
             modelType = "monoexponential")
+# This one doesn't actually converge.
 
 # Get the residual sum of squares
-terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             modelType = "monoexponential", returnRSS = TRUE)
 
 # Use better names for the columns in the output
-terminalFit(Subj101, concentration = "Concentration", time = "TimeHr",
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             modelType = "monoexponential", useNLS_outnames = FALSE)
 
 

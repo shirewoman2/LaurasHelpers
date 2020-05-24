@@ -6,8 +6,8 @@
 \usage{
 noncompAUC(
   DF,
-  concentration = "Concentration",
-  time = "Time",
+  concentration = Concentration,
+  time = Time,
   type = "LULD",
   extrap_inf = FALSE,
   extrap_inf_coefs = NULL,
@@ -103,62 +103,39 @@ trapezoidal rule. Optionally extrapolate to infinity or back extapolate to
 t0.
 }
 \details{
-\strong{A few notes:}\itemize{
 
-  \item If there are two consecutive time points with the same measured
-  concentration, that results in an undefined value for the log trapezoidal
-  rule. To deal with this, anytime the user has opted for the linear up/log
-  down trapezoidal rule but there are also consecutive time points with the
-  same concentration, those individual trapezoids will be calculated linearly
-  rather than using a log function and all AUCs will be added together at the
-  end.
-
-  \item I intentionally omitted the option of using cubic splines for
-  calculating the AUC because they can become unstable with noisy
-  concentration-time data and are thus less desireable than the trapezoidal
-  rule. For more details, please see
-  \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.
-
-
-
-
-
-  \item \strong{Warning:} Because I'm not yet proficient at nonstandard
-  evaluation, you must enter the names of the columns containing
-  concentration and time data as character strings, and there must not be any
-  other columns named "CONC" or "TIME" or this will not work properly. }
 }
 \examples{
 data(ConcTime)
 IV1 <- ConcTime \%>\% dplyr::filter(SubjectID == 101 & Drug == "A" &
                                         DoseRoute == "IV")
-noncompAUC(IV1, time = "TimeHr")
-noncompAUC(IV1, time = "TimeHr", type = "LULD")
-noncompAUC(IV1, time = "TimeHr", type = "linear")
+noncompAUC(IV1, time = TimeHr)
+noncompAUC(IV1, time = TimeHr, type = "LULD")
+noncompAUC(IV1, time = TimeHr, type = "linear")
 
 # Extrapolating to infinity
-noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+noncompAUC(IV1, time = TimeHr, extrap_inf = TRUE,
            extrap_inf_times = c(0.5, NA))
 
 # Extrapolating to infinity and reporting the fraction extrapolated
-noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+noncompAUC(IV1, time = TimeHr, extrap_inf = TRUE,
            extrap_inf_times = c(0.5, NA),
            reportFractExtrap = TRUE)
 
 # Back extrapolating to t0
-noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+noncompAUC(IV1, time = TimeHr, extrap_t0 = TRUE,
            extrap_t0_model = "monoexponential",
            extrap_t0_times = c(0.5, NA))
 
 # Back extrapolating to t0 and reporting extrapolated C0
-noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+noncompAUC(IV1, time = TimeHr, extrap_t0 = TRUE,
            extrap_t0_model = "monoexponential",
            extrap_t0_times = c(0.5, NA),
            reportC0 = TRUE)
 
 # Extrapolating to infinity, reporting the fraction extrapolated to infinity,
 # back extrapolating to t0, and reporting extrapolated C0
-noncompAUC(IV1, time = "TimeHr",
+noncompAUC(IV1, time = TimeHr,
            extrap_inf = TRUE,
            extrap_inf_times = c(0.5, NA),
            reportFractExtrap = TRUE,
@@ -178,12 +155,12 @@ Fit <- nls(Concentration ~ A * exp(-k * (TimeHr - tmax)),
 MyCoefs <- summary(Fit)[["coefficients"]]
 
 # Extapolating to infinity with supplied coefficients
-noncompAUC(IV1, time = "TimeHr", extrap_inf = TRUE,
+noncompAUC(IV1, time = TimeHr, extrap_inf = TRUE,
            extrap_inf_times = c(0.5, NA),
            extrap_inf_coefs = MyCoefs)
 
 # Back extapolating to t0 with supplied coefficients
-noncompAUC(IV1, time = "TimeHr", extrap_t0 = TRUE,
+noncompAUC(IV1, time = TimeHr, extrap_t0 = TRUE,
            extrap_t0_coefs = list(coefs = MyCoefs,
                                   tmax = tmax))
 

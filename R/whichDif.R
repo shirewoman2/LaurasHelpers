@@ -18,7 +18,7 @@
 #' @export
 #'
 #' @examples
-#'
+#' data(Pets)
 #' whichDif(Pets[Pets$Name == "Eddie", ])
 #'
 #'
