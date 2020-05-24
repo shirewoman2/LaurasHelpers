@@ -8,20 +8,19 @@
 #'
 #' @param DF The input data.frame with columns containing the nominal analyte
 #'   concentration and the instrument response
-#' @param rawPeak The unadjusted instrument response column name (character).
-#'   Ignore this if data are already normalized by internal standard.
-#' @param rawIS The internal standard column name (character). Ok to ignore if
+#' @param rawPeak The unadjusted instrument response column name. Ignore this if
 #'   data are already normalized by internal standard.
+#' @param rawIS The internal standard column name. This is optional if
+#'   \code{normPeak} is provided.
 #' @param normPeak The name of the column containing instrument response
 #'   normalized by internal standard. Use this if the data are peak heights or
 #'   areas already divided by the IS peak height or area.
-#' @param nominal The column with the nominal concentrations or masses
-#'   (character).
+#' @param nominal The column with the nominal concentrations or masses.
 #' @param poly Should the data be fit to a 1st or 2nd order polynomial? Options:
 #'   "1st" or "2nd".
 #' @param weights A vector of weights to use for the regression. If left as NA,
 #'   no weighting scheme will be used. Be careful that you don't have any
-#'   infinite values!
+#'   infinite values or this will fail!
 #' @param colorBy What column to color the points by in the standard curve
 #'   graph. If left as NA, points will all be black.
 #'
@@ -35,17 +34,17 @@
 #'   line.}
 #'
 #'   \item{Data}{The original data with a column calculating the percent
-#'   difference between the calculated and the nominal concentrations or masses}}
+#'   difference between the calculated and the nominal concentrations or
+#'   masses}}
 #' @examples
 #'
 #' data(ExStdCurve)
-#' stdCurve(ExStdCurve, rawPeak = "MET.area",
-#'          rawIS = "d6MET.area",
-#'          nominal = "MET.nominalmass", poly = "2nd",
-#'          weights = 1/ExStdCurve$MET.nominalmass)
+#' stdCurve(ExStdCurve, rawPeak = MET.area,
+#'          rawIS = d6MET.area,
+#'          nominal = MET.nominalmass, poly = "2nd")
 #'
-#' stdCurve(ExStdCurve, normPeak = "MET.peakarearatio",
-#'          nominal = "MET.nominalmass", poly = "1st",
+#' stdCurve(ExStdCurve, normPeak = MET.peakarearatio,
+#'          nominal = MET.nominalmass, poly = "1st",
 #'          weights = 1/ExStdCurve$MET.nominalmass)
 #'
 #' @export
@@ -56,30 +55,63 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak = NA,
                      nominal, poly = "1st", weights = NULL,
                      colorBy = NA) {
 
-      # When normalized peak height or area is not given, only raw, calculate.
-      if(is.na(normPeak)){
-            # First, checking that anything the user inputs for a peak name is a
-            # column in the data.frame.
-            if(any(c(rawPeak, rawIS, nominal) %in% names(DF) == FALSE)){
-                  stop("Your data.frame must include the same columns you input for 'rawPeak', 'rawIS', and 'nominal'.")
-            }
+      nominal <- enquo(nominal)
 
-            names(DF)[names(DF) == rawPeak] <- "rawPeak"
-            names(DF)[names(DF) == rawIS] <- "rawIS"
-            DF$normPeak <- DF$rawPeak/DF$rawIS
+      if(is.na(normPeak)){
+            rawPeak <- enquo(rawPeak)
+            rawIS <- enquo(rawIS)
+      } else {
+            normPeak <- enquo(normPeak)
+      }
+
+      if(complete.cases(colorBy)){
+            colorBy <- enquo(colorBy)
+      }
+
+      # When normalized peak height or area is not given, only raw, calculate
+      # that.
+      if(is.na(normPeak)){
+
+            # If "colorBy" was provided, we need to retain that column, but we
+            # *can't* included it in the select call if it's not present. Need
+            # to catch that.
+            if(complete.cases(colorBy)){
+                  colorBy <- enquo(colorBy)
+
+                  DF <- DF %>% select(!! rawPeak, !! rawIS, !! nominal,
+                                      !! colorBy) %>%
+                        rename(rawPeak = !! rawPeak,
+                               rawIS = !! rawIS,
+                               nominal = !! nominal,
+                               COLOR = !! colorBy) %>%
+                        mutate(normPeak = rawPeak/rawIS)
+
+            } else {
+                  DF <- DF %>% select(!! rawPeak, !! rawIS, !! nominal) %>%
+                        rename(rawPeak = !! rawPeak,
+                               rawIS = !! rawIS,
+                               nominal = !! nominal) %>%
+                        mutate(normPeak = rawPeak/rawIS)
+            }
 
       } else {
 
-            # Checking that anything the user inputs for a peak name is a column
-            # in the data.frame.
-            if(any(c(normPeak, nominal) %in% names(DF) == FALSE)){
-                  stop("Your data.frame must include the same columns you input for 'normPeak' and 'nominal'.")
+            # If "colorBy" was provided, we need to retain that column, but we
+            # *can't* included it in the select call if it's not present. Need
+            # to catch that.
+            if(complete.cases(colorBy)){
+                  colorBy <- enquo(colorBy)
+
+                  DF <- DF %>% select(!! normPeak, !! nominal, !! colorBy) %>%
+                        rename(normPeak = !! normPeak,
+                               nominal = !! nominal,
+                               COLOR = !! colorBy)
+            } else {
+                  DF <- DF %>% select(!! normPeak, !! nominal) %>%
+                        rename(normPeak = !! normPeak,
+                               nominal = !! nominal)
             }
-
-            names(DF)[names(DF) == normPeak] <- "normPeak"
       }
-
-      names(DF)[names(DF) == nominal] <- "nominal"
 
       Maxnominal <- max(DF$nominal, na.rm = TRUE)
 
@@ -114,24 +146,19 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak = NA,
             CurvePlot <- ggplot2::ggplot(DF, aes(x = nominal, y = normPeak)) +
                   geom_point() +
                   geom_line(data = Curve, aes(x = nominal, y = normPeak)) +
-                  xlab(nominal) + ylab(normPeak)
+                  xlab(enquo(nominal)) + ylab(enquo(normPeak))
 
       } else {
 
-            names(DF)[names(DF) == colorBy] <- "COLOR"
-
             CurvePlot <- ggplot2::ggplot(DF, aes(x = nominal, y = normPeak,
-                                        color = COLOR)) +
+                                                 color = COLOR)) +
                   geom_point() +
                   geom_line(data = Curve, aes(x = nominal, y = normPeak),
                             inherit.aes = FALSE) +
-                  labs(color = colorBy) +
-                  xlab(nominal) + ylab(normPeak)
+                  labs(color = enquo(colorBy)) +
+                  xlab(enquo(nominal)) + ylab(enquo(normPeak))
 
       }
-
-      names(Curve)[names(Curve) == "nominal"] <- nominal
-      names(Curve)[names(Curve) == "normPeak"] <- normPeak
 
       if(poly == "1st"){
             DF$Calculated <- (DF$normPeak - beta0)/beta1
@@ -144,8 +171,8 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak = NA,
 
       DF$PercentDifference <- (DF$Calculated - DF$nominal)/DF$nominal
       DF$PercentDifference[DF$nominal == 0] <- NA
-      DF <- plyr::rename(DF, c("nominal" = nominal,
-                               "normPeak" = normPeak))
+      DF <- rename(DF, c(Nominal = nominal,
+                         NormPeak = normPeak))
 
       CurveResults <- list(Fit, CurvePlot, Curve, DF)
       names(CurveResults) <- c("Fit", "CurvePlot", "Curve.DF", "Data")
