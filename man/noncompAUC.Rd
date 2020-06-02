@@ -103,7 +103,21 @@ trapezoidal rule. Optionally extrapolate to infinity or back extapolate to
 t0.
 }
 \details{
+\strong{A few notes:}\itemize{
 
+  \item If there are two consecutive time points with the same measured
+  concentration, that results in an undefined value for the log trapezoidal
+  rule. To deal with this, anytime the user has opted for the linear up/log
+  down trapezoidal rule but there are also consecutive time points with the
+  same concentration, those individual trapezoids will be calculated linearly
+  rather than using a log function and all AUCs will be added together at the
+  end.
+
+  \item I intentionally omitted the option of using cubic splines for
+  calculating the AUC because they can become unstable with noisy
+  concentration-time data and are thus less desireable than the trapezoidal
+  rule. For more details, please see
+  \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.}
 }
 \examples{
 data(ConcTime)

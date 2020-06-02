@@ -77,7 +77,8 @@
 #'   calculating the AUC because they can become unstable with noisy
 #'   concentration-time data and are thus less desireable than the trapezoidal
 #'   rule. For more details, please see
-#'   \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.
+#'   \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.}
+#'
 #'
 #' @return Returns the calculated AUC as a number or, depending on the options
 #'   selected, a named list of the AUC (\code{AUC[["AUC"]]}), the fraction of

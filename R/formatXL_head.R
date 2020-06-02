@@ -49,30 +49,33 @@ formatXL_head <- function(DF, file, sheet = NA){
 
       XWide <- which(Nchar > 15)
       Nchar_word <- Nchar
-      Nword <- c()
+
+      # If the column is not included in XWide (the extra-wide columns), then
+      # set NumWord to 1.
+      NumWord <- rep(1, length(names(DF)))
       for(i in XWide){
             Nchar_word[i] <- mean(sapply(apply(DFwithHead[i], MARGIN = 1, splitWords),
                                         as.vector), na.rm = TRUE)
 
-            Nword[i] <- max(apply(DFwithHead[i], MARGIN = 1, countWords),
+            NumWord[i] <- max(apply(DFwithHead[i], MARGIN = 1, countWords),
                             na.rm = TRUE)
             # If there are at least 3 words, you probably want to see the first
             # three, so multiplying Nchar_word by 3 to allow for that. If there
             # are fewer words, just set it to the number of characters.
-            Nchar_word[i] <- ifelse(Nword[i] >= 3,
+            Nchar_word[i] <- ifelse(NumWord[i] >= 3,
                                     Nchar_word[i] * 3, Nchar[i])
       }
 
       # Check whether the column class for anything with words was originally
       # POSIXct or Date b/c those have a lot of hyphens but no actual words.
       Classes <- sapply(DF, class)
-      for(i in 1:length(Nword)){
+      for(i in 1:length(NumWord)){
             Nchar_word[i] <- ifelse(Classes[[i]][1] %in%
                                           c("POSIXct", "POSIXlt", "Date"),
                                     Nchar[i], Nchar_word[i])
-            Nword[i] <- ifelse(Classes[[i]][1] %in%
+            NumWord[i] <- ifelse(Classes[[i]][1] %in%
                                      c("POSIXct", "POSIXlt", "Date"),
-                               NA, Nword[i])
+                               NA, NumWord[i])
       }
 
       # Words in the header should NOT be split up, so Nchar_word should
@@ -93,12 +96,12 @@ formatXL_head <- function(DF, file, sheet = NA){
       # width to 25 or the original width it came up with, whichever is wider.
       # If there were more than 20 words in that column, set the column width to
       # 50.
-      for(i in 1:length(Nword[which(Nword > 5)])){
-            GoodWidths[which(Nword > 5)][i] <-
-                  ifelse(GoodWidths[which(Nword > 5)][i] > 25,
-                         GoodWidths[which(Nword > 5)][i], 25)
+      for(i in 1:length(NumWord[which(NumWord > 5)])){
+            GoodWidths[which(NumWord > 5)][i] <-
+                  ifelse(GoodWidths[which(NumWord > 5)][i] > 25,
+                         GoodWidths[which(NumWord > 5)][i], 25)
       }
-      GoodWidths[which(Nword > 20)] <- 50
+      GoodWidths[which(NumWord > 20)] <- 50
 
       # Setting column widths, applying styles, and saving.
       formatXL(DF, file = file, sheet = sheet,
