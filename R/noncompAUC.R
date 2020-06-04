@@ -168,6 +168,11 @@ noncompAUC <- function(DF, concentration = Concentration,
             stop("The only options for models to automatically extrapolate back to t0 are 'monoexponential' or 'biexponential'. Please select one of those.")
       }
 
+      if(is.null(extrap_t0_coefs) == FALSE &
+         all(c("coefs", "tmax") %in% names(extrap_t0_coefs)) == FALSE){
+            stop("If you supply coefficients and tmax in a list for back-extrapolating to t0, the names of those items must be 'coefs' and 'tmax'. Please check the names of the items in your supplied list.")
+      }
+
       concentration <- enquo(concentration)
       time <- enquo(time)
 
