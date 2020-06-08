@@ -88,7 +88,7 @@ mean_sd <- function(x, stdev.x = NULL,
       # a vector containing Inf would be and issue warning message. Not truly
       # meaningful to calculate sd, 95% CI, etc., when x contains infinity, and
       # this function really just isn't designed for this purpose.
-      if(any(is.finite(x) == FALSE)){
+      if(any(is.infinite(x))){
             message("The vector supplied contains infinite values. This function was not designed to accommodate this scenario, so 'Inf' is all that will be returned.")
             return(Inf)
       }
