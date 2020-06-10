@@ -299,7 +299,14 @@ noncompAUC <- function(DF, concentration = Concentration,
 
             }
 
-            DFmean$CONC[DFmean$TIME == 0] <- C0
+            if(any(DFmean$TIME == 0)){
+                  DFmean$CONC[DFmean$TIME == 0] <- C0
+            } else {
+                  DFmean <- bind_rows(DFmean,
+                                      tibble(CONC = C0, TIME = 0)) %>%
+                        arrange(TIME) %>% unique()
+            }
+
       }
 
       # function for linear trapezoidal rule
