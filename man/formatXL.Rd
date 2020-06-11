@@ -23,25 +23,28 @@ data.frame if no other name is supplied.}
 
 \item{colWidth}{A named list of \code{colNum} or \code{colName} and
 \code{width} in pixels. Examples: \itemize{ \item \code{colWidth =
-list(colNum = c(1, 5, 6), width = 25)} \item \code{colWidth =
-list(colName = c("ColA", "ColG"), width = c(10, 30))}} If colNum is set to
-NA, all columns will be set to the width listed. If column width is left as
-NULL, column widths are the normal Excel default column width.}
+list(colNum = c(1, 5, 6), width = 25)} \item \code{colWidth = list(colName
+= c("ColA", "ColG"), width = c(10, 30))}} If colNum and colName are set to
+NULL, all columns will be set to the width listed. For any columns not
+specifically set or if width is set to NULL, reasonable guesses for column
+widths will be used.}
 
 \item{styles}{A list of lists (one list for every set of cells that you want
   to format) that contains the following named objects: \describe{
+
   \item{\code{rows}}{A vector of the row indices for the cells whose
-  formatting we're setting. Setting \code{rows = NA} applies the formatting
-  to all cells in the sheet. \strong{Important note:} For consistency with
-  row naming elsewhere in R, row 1 refers to the 1st row \emph{of data} in
-  the data.frame, NOT the header. If you would like to apply the formatting
-  to the header, set the row to 0. Examples: \itemize{\item \code{rows = 1:5}
-  \item \code{rows = c(5, 23, 60)}}}
+  formatting we're setting. Leaving \code{rows} unspecified applies the
+  formatting to all rows in the sheet. \strong{Important note:} For
+  consistency with row naming elsewhere in R, row 1 refers to the 1st row
+  \emph{of data} in the data.frame, NOT the header. If you would like to
+  apply the formatting to the header, set the row to 0. Examples:
+  \itemize{\item \code{rows = 1:5} \item \code{rows = c(5, 23, 60)}}}
 
   \item{\code{columns}}{A vector of the column indices or names for all the
-  cells whose formatting we're setting. Setting \code{columns = NA} applies
-  the formatting to all columns. Examples: \itemize{ \item \code{columns =
-  c(1, 2, 8)} \item \code{columns = c("ColB", "ColH", "ColQ")}}}
+  cells whose formatting we're setting. Leaving \code{columns} unspecified
+  applies the formatting to all columns. Examples: \itemize{ \item
+  \code{columns = c(1, 2, 8)} \item \code{columns = c("ColB", "ColH",
+  "ColQ")}}}
 
   \item{\code{numberFormat}}{The format for displaying any numbers in the
   cells. Options are "date", "general" (doesn't format anything), or
@@ -96,14 +99,17 @@ NULL, column widths are the normal Excel default column width.}
   possible named colors available in R.}}}
 }
 \value{
-This does not return any R objects; instead, it saves an Excel file.
+This does not return any R objects; it saves an Excel file.
 
 
 }
 \description{
 This function takes a data.frame you want to save to an Excel file using the
 package \code{xlsx} and applies the formatting you want for the Excel file.
-\strong{Warning: I'm still developing this so it's glitchier than I wish!}
+\strong{Warning:} The arguments for this function are a lot of lists, and it
+can be tricky to get the syntax exactly right, but I haven't yet come up with
+a better way of doing things. If this isn't working, check that your lists
+are laid out correctly and named correctly.
 }
 \details{
 If this will create a new Excel file or if your current Excel file
@@ -121,7 +127,7 @@ If this will create a new Excel file or if your current Excel file
   For example, say you select row 1 and make it blue and bold, and then you
   add a border on the left side of all cells in column 4. The cell in row 1,
   column 4 will be the default Excel style of text plus having a border on
-  the left side -- not blue, bold, \emph{and} border on left.
+  the left side - not blue, bold, \emph{and} border on left.
 }
 \examples{
 data(iris)

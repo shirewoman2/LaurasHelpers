@@ -23,7 +23,7 @@
 #'
 formatXL_head <- function(DF, file, sheet = NA){
 
-      # All the columns must be named for this to work. Checking that.
+      # All the columns must be named for this to work well. Checking that.
       if(any(is.na(names(DF)))){
             stop("All the columns in your data.frame must be named.")
       }
@@ -105,8 +105,8 @@ formatXL_head <- function(DF, file, sheet = NA){
 
       # Setting column widths, applying styles, and saving.
       formatXL(DF, file = file, sheet = sheet,
-               colWidth = list(colNum = NA, width = GoodWidths),
-               styles = list(list(rows = 0, columns = NA,
+               colWidth = list(colNum = NULL, width = GoodWidths),
+               styles = list(list(rows = 0,
                                   font = list(bold = TRUE),
                                   textposition = list(alignment = "middle",
                                                       wrapping = TRUE))))
