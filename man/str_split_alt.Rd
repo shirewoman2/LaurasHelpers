@@ -3,19 +3,20 @@
 \name{str_split_alt}
 \alias{str_split_alt}
 \title{Split a string of text by a specified pattern and return a vector of the
-split text. Optionally, return only a specified index of that split.}
+split text}
 \usage{
-str_split_alt(string, pattern, n = Inf, retainPattern = FALSE)
+str_split_alt(string, pattern, n = NA, retainPattern = FALSE)
 }
 \arguments{
 \item{string}{The string of text to be split into pieces}
 
 \item{pattern}{The pattern to use for splitting the text. The pattern will
-not be retained in the output unless /code{retainPattern = TRUE}.}
+not be retained in the output unless \code{retainPattern = TRUE}.}
 
-\item{n}{The index of the output vector to be returned. If left at
-/code{Inf}, this will return all pieces of the vector. If set to a specific
-number n, it will return only the nth piece of that vector.}
+\item{n}{The index of the output vector to be returned. If left as \code{NA},
+this will return all pieces of the vector. If set to a specific number n,
+it will return only the nth piece of that vector. If set to "last", it will
+return only the last piece of the vector.}
 
 \item{retainPattern}{TRUE or FALSE for whether to retain the pattern that was
 used to separate the input text in the output vector. Warning: This was set
@@ -39,6 +40,7 @@ into a column of a data.frame or tibble.
 MyString <- c("First filename.xlsx Second filename.xlsx")
 str_split_alt(MyString, ".xlsx")
 str_split_alt(MyString, ".xlsx", 1)
+str_split_alt(MyString, ".xlsx", "last")
 str_split_alt(MyString, ".xlsx", retainPattern = TRUE)
 
 
