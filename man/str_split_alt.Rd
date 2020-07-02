@@ -49,11 +49,15 @@ MyDF <- data.frame(ColA = paste("Item", 1:4),
                    ColB = c("This is a string to be split.",
                             "This one, too",
                             "Also split this",
-                            "Last, split this one."))
+                            "Last, split this one."),
+                  ColC = c(str_c(paste0("MyFile", 1:3, ".xlsx"), collapse = " "),
+                            str_c(paste0("MyFile", 1:5, ".xlsx"), collapse = " "),
+                            str_c(paste0("MyFile", 1:10, ".xlsx"), collapse = " "),
+                            str_c(paste0("MyFile", 1:2, ".xlsx"), collapse = " ")))
 
-MyDF$ColC <- str_split_alt(MyDF$ColB, " ", "last")
-MyDF$ColD <- str_split_alt(MyDF$ColB, " ", 1)
-MyDF$ColE <- str_split_alt(MyDF$ColB, " ", 1, retainPattern = TRUE)
+MyDF$ColD <- str_split_alt(MyDF$ColB, " ", "last")
+MyDF$ColE <- str_split_alt(MyDF$ColB, " ", 1)
+MyDF$ColF <- str_split_alt(MyDF$ColC, " ", 4, retainPattern = TRUE)
 
 
 }
