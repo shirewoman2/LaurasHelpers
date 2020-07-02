@@ -105,12 +105,4 @@ str_split_alt <- function(string,
 }
 
 
-MyDF <- data.frame(ColA = paste("Item", 1:4),
-                   ColB = c("This is a string to be split.",
-                            "This one, too",
-                            "Also split this",
-                            "Last, split this one."))
 
-MyDF$ColC <- str_split_alt(MyDF$ColB, " ", "last")
-MyDF$ColD <- str_split_alt(MyDF$ColB, " ", 1)
-MyDF$ColE <- str_split_alt(MyDF$ColB, " ", 1, retainPattern = TRUE)
