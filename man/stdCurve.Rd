@@ -19,23 +19,23 @@ stdCurve(
 \item{DF}{The input data.frame with columns containing the nominal analyte
 concentration and the instrument response}
 
-\item{rawPeak}{The unadjusted instrument response column name. Ignore this if
+\item{rawPeak}{The unadjusted instrument response column. Ignore this if
 data are already normalized by internal standard.}
 
-\item{rawIS}{The internal standard column name. This is optional if
+\item{rawIS}{The internal standard column name. This is ignored if
 \code{normPeak} is provided.}
 
-\item{normPeak}{The name of the column containing instrument response
-normalized by internal standard. Use this if the data are peak heights or
-areas already divided by the IS peak height or area.}
+\item{normPeak}{The column containing instrument response normalized by
+internal standard. Use this if the data are peak heights or areas already
+divided by the IS peak height or area.}
 
 \item{nominal}{The column with the nominal concentrations or masses.}
 
 \item{poly}{Should the data be fit to a 1st or 2nd order polynomial? Options:
 "1st" or "2nd".}
 
-\item{weights}{A vector of weights to use for the regression. If left as NA,
-no weighting scheme will be used. Be careful that you don't have any
+\item{weights}{A vector of weights to use for the regression. If left as
+NULL, no weighting scheme will be used. Be careful that you don't have any
 infinite values or this will fail!}
 
 \item{colorBy}{What column to color the points by in the standard curve
