@@ -8,18 +8,18 @@
 #'
 #' @param DF The input data.frame with columns containing the nominal analyte
 #'   concentration and the instrument response
-#' @param rawPeak The unadjusted instrument response column name. Ignore this if
+#' @param rawPeak The unadjusted instrument response column. Ignore this if
 #'   data are already normalized by internal standard.
-#' @param rawIS The internal standard column name. This is optional if
+#' @param rawIS The internal standard column name. This is ignored if
 #'   \code{normPeak} is provided.
-#' @param normPeak The name of the column containing instrument response
-#'   normalized by internal standard. Use this if the data are peak heights or
-#'   areas already divided by the IS peak height or area.
+#' @param normPeak The column containing instrument response normalized by
+#'   internal standard. Use this if the data are peak heights or areas already
+#'   divided by the IS peak height or area.
 #' @param nominal The column with the nominal concentrations or masses.
 #' @param poly Should the data be fit to a 1st or 2nd order polynomial? Options:
 #'   "1st" or "2nd".
-#' @param weights A vector of weights to use for the regression. If left as NA,
-#'   no weighting scheme will be used. Be careful that you don't have any
+#' @param weights A vector of weights to use for the regression. If left as
+#'   NULL, no weighting scheme will be used. Be careful that you don't have any
 #'   infinite values or this will fail!
 #' @param colorBy What column to color the points by in the standard curve
 #'   graph. If not set, all points will be black.
@@ -174,8 +174,14 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak,
                   (2*beta2)
       }
 
-      DF$PercentDifference <- (DF$Calculated - DF$Nominal)/DF$Nominal
-      DF$PercentDifference[DF$Nominal == 0] <- NA
+      DF <- DF %>%
+            mutate(PercentDifference = (Calculated - Nominal)/Nominal,
+                   PercentDifference = ifelse(Nominal == 0,
+                                              NA, PercentDifference),
+                   Nominal = signif(Nominal, 3),
+                   NormPeak = signif(NormPeak, 3),
+                   Calculated = round(Calculated, 2),
+                   PercentDifference = round(PercentDifference, 2))
 
       if(as_label(normPeak) %in% names(DForig)){
             names(DF)[names(DF) == "Nominal"] <- as_label(nominal)
