@@ -12,6 +12,7 @@ stdCurve(
   nominal,
   poly = "1st",
   weights = NULL,
+  IDcol = NA,
   colorBy
 )
 }
@@ -37,6 +38,8 @@ divided by the IS peak height or area.}
 \item{weights}{A vector of weights to use for the regression. If left as
 NULL, no weighting scheme will be used. Be careful that you don't have any
 infinite values or this will fail!}
+
+\item{IDcol}{Optional column with sample IDs}
 
 \item{colorBy}{What column to color the points by in the standard curve
 graph. If not set, all points will be black.}
@@ -76,7 +79,8 @@ stdCurve(ExStdCurve,
          rawPeak = MET.area,
          rawIS = d6MET.area,
          nominal = MET.nominalmass,
-         poly = "2nd")
+         poly = "2nd",
+         IDcol = SampleID)
 
 # Using weights in the nonlinear regression
 stdCurve(ExStdCurve,

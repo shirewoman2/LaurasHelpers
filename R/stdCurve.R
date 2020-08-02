@@ -21,6 +21,7 @@
 #' @param weights A vector of weights to use for the regression. If left as
 #'   NULL, no weighting scheme will be used. Be careful that you don't have any
 #'   infinite values or this will fail!
+#' @param IDcol Optional column with sample IDs
 #' @param colorBy What column to color the points by in the standard curve
 #'   graph. If not set, all points will be black.
 #'
@@ -50,7 +51,8 @@
 #'          rawPeak = MET.area,
 #'          rawIS = d6MET.area,
 #'          nominal = MET.nominalmass,
-#'          poly = "2nd")
+#'          poly = "2nd",
+#'          IDcol = SampleID)
 #'
 #' # Using weights in the nonlinear regression
 #' stdCurve(ExStdCurve,
@@ -70,14 +72,21 @@
 #'
 
 
-stdCurve <- function(DF, rawPeak, rawIS, normPeak,
-                     nominal, poly = "1st", weights = NULL,
+stdCurve <- function(DF,
+                     rawPeak,
+                     rawIS,
+                     normPeak,
+                     nominal,
+                     poly = "1st",
+                     weights = NULL,
+                     IDcol = NA,
                      colorBy) {
 
       nominal <- enquo(nominal)
       rawPeak <- enquo(rawPeak)
       rawIS <- enquo(rawIS)
       normPeak <- enquo(normPeak)
+      IDcol <- enquo(IDcol)
       colorBy <- enquo(colorBy)
 
       DForig <- DF
@@ -86,14 +95,17 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak,
       if(as_label(normPeak) %in% names(DForig) == FALSE){
             DF <- DF %>% mutate(NormPeak = !!rawPeak / !!rawIS)
 
-            # Now, only keep NormPeak, nominal, and, if present, colorBy. Rename
-            # them to work with more easily later in the function.
+            # Now, only keep NormPeak, nominal, and, if present, colorBy and
+            # IDcol. Rename them to work with more easily later in the function.
             if(as_label(colorBy) %in% names(DForig)){
-                  DF <- DF %>% select(!!nominal, NormPeak, !!colorBy) %>%
+                  DF <- DF %>% select(any_of(c(as_label(nominal), "NormPeak",
+                                               as_label(colorBy),
+                                               as_label(IDcol)))) %>%
                         rename(Nominal = !!nominal,
                                ColorBy = !!colorBy)
             } else {
-                  DF <- DF %>% select(!!nominal, NormPeak) %>%
+                  DF <- DF %>%
+                        select(any_of(c(as_label(nominal), "NormPeak"))) %>%
                         rename(Nominal = !!nominal)
             }
 
@@ -105,12 +117,17 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak,
             # If normPeak *is* supplied, keep that. Check for colorBy. Rename
             # everything to make life easier farther down in the function.
             if(as_label(colorBy) %in% names(DForig)){
-                  DF <- DF %>% select(!!nominal, !!normPeak, !!colorBy) %>%
+                  DF <- DF %>% select(any_of(c(as_label(nominal),
+                                               as_label(normPeak),
+                                               as_label(colorBy),
+                                               as_label(IDcol)))) %>%
                         rename(Nominal = !!nominal,
                                NormPeak = !!normPeak,
                                ColorBy = !!colorBy)
             } else {
-                  DF <- DF %>% select(!!nominal, !!normPeak) %>%
+                  DF <- DF %>% select(any_of(c(as_label(nominal),
+                                               as_label(normPeak),
+                                               as_label(IDcol)))) %>%
                         rename(Nominal = !!nominal,
                                NormPeak = !!normPeak)
             }
@@ -181,7 +198,9 @@ stdCurve <- function(DF, rawPeak, rawIS, normPeak,
                    Nominal = signif(Nominal, 3),
                    NormPeak = signif(NormPeak, 3),
                    Calculated = round(Calculated, 2),
-                   PercentDifference = round(PercentDifference, 2))
+                   PercentDifference = round(PercentDifference, 2)) %>%
+            select(any_of(c(as_label(IDcol), "ColorBy", "Nominal", "NormPeak",
+                            "Calculated", "PercentDifference")))
 
       if(as_label(normPeak) %in% names(DForig)){
             names(DF)[names(DF) == "Nominal"] <- as_label(nominal)
