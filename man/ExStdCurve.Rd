@@ -5,15 +5,13 @@
 \alias{ExStdCurve}
 \title{Example data for using stdCurve function}
 \format{
-A data.frame with 37 rows and 6 variables:
-\describe{
-  \item{SampleID}{Sample ID}
-  \item{MET.nominalmass}{Nominal mass of metformin in the sample (ng)}
-  \item{MET.area}{Metformin peak area (counts)}
+A data.frame with 37 rows and 6 variables: \describe{
+  \item{SampleID}{Sample ID} \item{MET.nominalmass}{Nominal mass of metformin
+  in the sample (ng)} \item{MET.area}{Metformin peak area (counts)}
   \item{d6MET.area}{d6-metformin peak area (counts)}
   \item{MET.peakarearatios}{Peak area ratio of MET/d6-MET}
-  \item{Weight.1overx}{Weights to use for a 1-over-x weighting scheme (1/MET nominal mass)}
-}
+  \item{Weight.1overx}{Weights to use for a 1-over-x weighting scheme (1/MET
+  nominal mass)} }
 }
 \usage{
 ExStdCurve

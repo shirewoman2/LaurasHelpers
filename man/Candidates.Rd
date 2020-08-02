@@ -3,28 +3,25 @@
 \docType{data}
 \name{Candidates}
 \alias{Candidates}
-\title{King County contributions to candidates and political committees in 2018}
+\title{Contributions to King County, WA, 2020 political candidates}
 \format{
-A data.frame with 39192 rows and 37 variables:
-\describe{
-  \item{filer_name}{Name of the candidate}
-  \item{office}{The office they're running for}
-  \item{legislative_district}{The legislative district of that office}
-  \item{party}{The political party with which they're affiliated}
+A data.frame with 37 variables: \describe{
+  \item{filer_name}{Name of the candidate} \item{office}{The office they're
+  running for} \item{legislative_district}{The legislative district of that
+  office} \item{party}{The political party with which they're affiliated}
   \item{amount}{The dollar amount of the contribution}
-  \item{contributor_name}{The name of the person who made the donation}
-  ...
-}
+  \item{contributor_name}{The name of the person who made the donation} ... }
 }
 \source{
-\url{http://www.pdc.wa.gov}
+\url{https://data.wa.gov/Politics/Contributions-to-Candidates-and-Political-Committe/kv7h-kjye/data}. Accessed on Aug. 1, 2020.
 }
 \usage{
 Candidates
 }
 \description{
-A dataset containing the amount of money donated to candidates for political
-office in King County, WA in 2018. For a complete list of all variables,
-please see the data source.
+A dataset containing the amounts of money donated to candidates for political
+offices in King County, Washington, as of August 1, 2020. For a complete list of all
+variables and their descriptions, please see
+\url{https://www.pdc.wa.gov/browse/open-data/contributions-candidates-and-political-committees}.
 }
 \keyword{datasets}
