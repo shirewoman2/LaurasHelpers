@@ -11,8 +11,13 @@
 #'
 #' @param x A numeric string
 #' @param breaks the desired breaks in that string set by what the middle value
-#'   should be
+#'   should be. Any value of \code{x} exactly in the middle of two breaks will
+#'   be assigned to the larger break, i.e., the function rounds up. Values
+#'   outside the range of \code{breaks} will be NA.
 #' @examples
+#' x <- c(48, 39, 28, 24, 5, 64, 133, 51, 59, 92, NA, 39)
+#' centerBin(x, breaks = seq(0, 340, 5))
+#' centerBin(x, breaks = seq(0, 340, 10))
 #'
 #' # Let's look at an example where the times in a PK study weren't perfect.
 #' data(ConcTime)
@@ -25,7 +30,7 @@
 #'                                Drug == "A") %>%
 #'          select(SubjectID, TimeHr, Concentration)
 #' Subj101$ActualTimeHr <- Subj101$TimeHr *
-#'           rnorm(nrow(Subj101), 1, 0.1))
+#'           rnorm(nrow(Subj101), 1, 0.1)
 #'
 #' # Now that we've got some simulated imperfect draw times, use centerBin to
 #' # get (close to) the ideal draw times. This way, you can bin the real data
@@ -43,17 +48,28 @@
 
 centerBin <- function(x, breaks){
 
+      breaks <- sort(unique(breaks))
+
       CenterBins <- data.frame(LfBin = c(NA, breaks),
                                RtBin = c(breaks, NA),
                                stringsAsFactors = FALSE)
       CenterBins$LfBin[1] <- breaks[1]
       CenterBins$RtBin[length(breaks) + 1] <- breaks[length(breaks)]
-      CenterBins$Mid <- (CenterBins$RtBin - CenterBins$LfBin)/2 +
+      CenterBins$Lower <- (CenterBins$RtBin - CenterBins$LfBin)/2 +
             CenterBins$LfBin
+      CenterBins$Upper <- c(CenterBins$Lower[-1], NA)
+      CenterBins$Upper[nrow(CenterBins)] <-
+            max(c(max(x, na.rm = TRUE), max(breaks, na.rm = TRUE)))
+      CenterBins <- dplyr::arrange(CenterBins, Lower)
 
       Outbin <- x
       for(i in seq_along(x)){
-            Outbin[i] <- CenterBins$RtBin[which.min(abs(CenterBins$Mid - x[i]))][1]
+            Assignment <- CenterBins$RtBin[which(x[i] >= CenterBins$Lower &
+                                                      x[i] <= CenterBins$Upper)]
+            Assignment <- ifelse(length(Assignment) > 1,
+                                 Assignment[2], Assignment[1])
+            Outbin[i] <- Assignment
+            rm(Assignment)
       }
       return(Outbin)
 }

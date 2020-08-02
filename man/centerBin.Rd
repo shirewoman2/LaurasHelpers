@@ -10,7 +10,9 @@ centerBin(x, breaks)
 \item{x}{A numeric string}
 
 \item{breaks}{the desired breaks in that string set by what the middle value
-should be}
+should be. Any value of \code{x} exactly in the middle of two breaks will
+be assigned to the larger break, i.e., the function rounds up. Values
+outside the range of \code{breaks} will be NA.}
 }
 \value{
 Returns a vector of numeric data
@@ -26,6 +28,9 @@ been drawn. For a similar option, see \code{\link{cutNumeric}} or see the
 base R function \code{\link[base]{cut}}.
 }
 \examples{
+x <- c(48, 39, 28, 24, 5, 64, 133, 51, 59, 92, NA, 39)
+centerBin(x, breaks = seq(0, 340, 5))
+centerBin(x, breaks = seq(0, 340, 10))
 
 # Let's look at an example where the times in a PK study weren't perfect.
 data(ConcTime)
@@ -38,7 +43,7 @@ Subj101 <- ConcTime \%>\% filter(SubjectID == 101 & DoseRoute == "IV" &
                                Drug == "A") \%>\%
          select(SubjectID, TimeHr, Concentration)
 Subj101$ActualTimeHr <- Subj101$TimeHr *
-          rnorm(nrow(Subj101), 1, 0.1))
+          rnorm(nrow(Subj101), 1, 0.1)
 
 # Now that we've got some simulated imperfect draw times, use centerBin to
 # get (close to) the ideal draw times. This way, you can bin the real data
