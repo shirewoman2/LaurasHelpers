@@ -13,15 +13,16 @@ stdCurve(
   poly = "1st",
   weights = NULL,
   IDcol = NA,
-  colorBy
+  colorBy,
+  useNLS_outnames = TRUE
 )
 }
 \arguments{
 \item{DF}{The input data.frame with columns containing the nominal analyte
 concentration and the instrument response}
 
-\item{rawPeak}{The unadjusted instrument response column. Ignore this if
-data are already normalized by internal standard.}
+\item{rawPeak}{The unadjusted instrument response column. Ignore this if data
+are already normalized by internal standard.}
 
 \item{rawIS}{The internal standard column name. This is ignored if
 \code{normPeak} is provided.}
@@ -43,11 +44,16 @@ infinite values or this will fail!}
 
 \item{colorBy}{What column to color the points by in the standard curve
 graph. If not set, all points will be black.}
+
+\item{useNLS_outnames}{TRUE or FALSE for whether the object "Fit" should be
+the standard, list output from \code{nls} or \code{nls2}. If set to FALSE,
+the output will be a data.frame of the coefficients with column names
+"Beta", "Estimate", "SE", "tvalue" and "pvalue".}
 }
 \value{
 Output is a list of the following named objects:\describe{
 
-  \item{Fit}{A list of the fitted parameters}
+  \item{Fit}{The fitted parameters}
 
   \item{CurvePlot}{A plot of the data and the fitted line}
 
@@ -74,13 +80,15 @@ stdCurve(ExStdCurve,
          nominal = MET.nominalmass,
          poly = "2nd")
 
-# Having 'stdCurve' calculate the peak ratio
+# Having 'stdCurve' calculate the peak ratio and making the fitted
+# coefficients a data.frame rather than a list
 stdCurve(ExStdCurve,
          rawPeak = MET.area,
          rawIS = d6MET.area,
          nominal = MET.nominalmass,
          poly = "2nd",
-         IDcol = SampleID)
+         IDcol = SampleID,
+         useNLS_outnames = FALSE)
 
 # Using weights in the nonlinear regression
 stdCurve(ExStdCurve,

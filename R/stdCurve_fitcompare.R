@@ -66,15 +66,34 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
       OrigNames1 <- names(stdCurve1$Data)
       OrigNames2 <- names(stdCurve1$Data)
 
-      if(any(OrigNames1 != OrigNames2)){
-            stop("The names of the data columns don't match. The data must be the same for this function to work appropriately.")
+      if(any(OrigNames1 != OrigNames2) |
+         ncol(stdCurve1$Data) != ncol(stdCurve2$Data)){
+            stop("The names of the data columns don't match. The columns must be the same for this function to work appropriately.")
       }
 
-      names(stdCurve1$Data) <- c("Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
-      names(stdCurve2$Data) <- c("Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+      # If they didn't include IDcol or colorBy, then there should be 4 columns.
+      if(ncol(stdCurve1$Data) == 4){
+            names(stdCurve1$Data) <- c("Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
+            names(stdCurve2$Data) <- c("Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+      }
+
+      # If they included IDcol but not colorBy OR if they included colorBy but
+      # not IDcol, then these should be the names:
+      if(ncol(stdCurve1$Data) == 5){
+            names(stdCurve1$Data) <- c("IDcol", "Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
+            names(stdCurve2$Data) <- c("IDcol", "Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+      }
+
+      # If they included both IDcol AND colorBy, then these should be the names:
+      if(ncol(stdCurve1$Data) == 6){
+            names(stdCurve1$Data) <- c("IDcol", "colorBy", "Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
+            names(stdCurve2$Data) <- c("IDcol", "colorBy", "Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+      }
+
       OutData <- stdCurve1$Data %>% full_join(stdCurve2$Data) %>%
-            select(Nominal, Calculated_A, Calculated_B,
-                   PercDiff_A, PercDiff_B) %>%
+            select(any_of(c("IDcol", "colorBy", "Nominal",
+                            "Calculated_A", "Calculated_B",
+                            "PercDiff_A", "PercDiff_B"))) %>%
             arrange(Nominal)
 
       # Making graph

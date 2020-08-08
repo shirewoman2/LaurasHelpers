@@ -8,8 +8,8 @@
 #'
 #' @param DF The input data.frame with columns containing the nominal analyte
 #'   concentration and the instrument response
-#' @param rawPeak The unadjusted instrument response column. Ignore this if
-#'   data are already normalized by internal standard.
+#' @param rawPeak The unadjusted instrument response column. Ignore this if data
+#'   are already normalized by internal standard.
 #' @param rawIS The internal standard column name. This is ignored if
 #'   \code{normPeak} is provided.
 #' @param normPeak The column containing instrument response normalized by
@@ -24,10 +24,14 @@
 #' @param IDcol Optional column with sample IDs
 #' @param colorBy What column to color the points by in the standard curve
 #'   graph. If not set, all points will be black.
+#' @param useNLS_outnames TRUE or FALSE for whether the object "Fit" should be
+#'   the standard, list output from \code{nls} or \code{nls2}. If set to FALSE,
+#'   the output will be a data.frame of the coefficients with column names
+#'   "Beta", "Estimate", "SE", "tvalue" and "pvalue".
 #'
 #' @return Output is a list of the following named objects:\describe{
 #'
-#'   \item{Fit}{A list of the fitted parameters}
+#'   \item{Fit}{The fitted parameters}
 #'
 #'   \item{CurvePlot}{A plot of the data and the fitted line}
 #'
@@ -46,13 +50,15 @@
 #'          nominal = MET.nominalmass,
 #'          poly = "2nd")
 #'
-#' # Having 'stdCurve' calculate the peak ratio
+#' # Having 'stdCurve' calculate the peak ratio and making the fitted
+#' # coefficients a data.frame rather than a list
 #' stdCurve(ExStdCurve,
 #'          rawPeak = MET.area,
 #'          rawIS = d6MET.area,
 #'          nominal = MET.nominalmass,
 #'          poly = "2nd",
-#'          IDcol = SampleID)
+#'          IDcol = SampleID,
+#'          useNLS_outnames = FALSE)
 #'
 #' # Using weights in the nonlinear regression
 #' stdCurve(ExStdCurve,
@@ -80,14 +86,15 @@ stdCurve <- function(DF,
                      poly = "1st",
                      weights = NULL,
                      IDcol = NA,
-                     colorBy) {
+                     colorBy,
+                     useNLS_outnames = TRUE) {
 
-      nominal <- enquo(nominal)
-      rawPeak <- enquo(rawPeak)
-      rawIS <- enquo(rawIS)
-      normPeak <- enquo(normPeak)
-      IDcol <- enquo(IDcol)
-      colorBy <- enquo(colorBy)
+      nominal <- dplyr::enquo(nominal)
+      rawPeak <- dplyr::enquo(rawPeak)
+      rawIS <- dplyr::enquo(rawIS)
+      normPeak <- dplyr::enquo(normPeak)
+      IDcol <- dplyr::enquo(IDcol)
+      colorBy <- dplyr::enquo(colorBy)
 
       DForig <- DF
 
@@ -165,21 +172,34 @@ stdCurve <- function(DF,
             Curve$NormPeak <- beta2*Curve$Nominal^2 + beta1*Curve$Nominal + beta0
       }
 
+      # If the user wants to use better names for the output data.frame, setting
+      # those here.
+      if(useNLS_outnames == FALSE & class(Fit) == "nls"){
+            Fit <- as.data.frame(summary(Fit)[["coefficients"]])
+            names(Fit) <- c("Estimate", "SE", "tvalue", "pvalue")
+            Fit$Beta <- row.names(Fit)
+            Fit <- Fit %>% select(Beta, Estimate, SE, tvalue, pvalue) %>%
+                  arrange(desc(Beta))
+      }
+
       if(as_label(colorBy) %in% names(DForig)){
 
-            CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak,
+            CurvePlot <- ggplot2::ggplot(DF,
+                                         ggplot2::aes(x = Nominal, y = NormPeak,
                                                  color = ColorBy)) +
-                  geom_point() +
-                  geom_line(data = Curve, aes(x = Nominal, y = NormPeak),
+                  ggplot2::geom_point() +
+                  ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
                             inherit.aes = FALSE) +
-                  labs(color = as_label(colorBy)) +
-                  xlab(as_label(nominal)) + ylab(Ylabel)
+                  ggplot2::labs(color = as_label(colorBy)) +
+                  ggplot2::xlab(as_label(nominal)) +
+                  ggplot2::ylab(Ylabel)
 
       } else {
-            CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak)) +
-                  geom_point() +
-                  geom_line(data = Curve, aes(x = Nominal, y = NormPeak)) +
-                  xlab(as_label(nominal)) + ylab(Ylabel)
+            CurvePlot <- ggplot2::ggplot(DF, ggplot2::aes(x = Nominal, y = NormPeak)) +
+                  ggplot2::geom_point() +
+                  ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak)) +
+                  ggplot2::xlab(as_label(nominal)) +
+                  ggplot2::ylab(Ylabel)
       }
 
       if(poly == "1st"){
