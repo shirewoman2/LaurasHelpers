@@ -21,6 +21,10 @@
 #' @param weights A vector of weights to use for the regression. If left as
 #'   NULL, no weighting scheme will be used. Be careful that you don't have any
 #'   infinite values or this will fail!
+#' @param omit An index of which, if any, samples to omit from the curve. These
+#'   samples will be depicted as red open circles in the graph but will not be
+#'   included in the regression. The red color for omitted points overrides any
+#'   other choices for \code{colorBy}.
 #' @param IDcol Optional column with sample IDs
 #' @param colorBy What column to color the points by in the standard curve
 #'   graph. If not set, all points will be black.
@@ -67,6 +71,15 @@
 #'          poly = "1st",
 #'          weights = 1/ExStdCurve$MET.nominalmass)
 #'
+#' # Omitting certain points from the regression but showing them on the graph
+#' stdCurve(ExStdCurve,
+#'          normPeak = MET.peakarearatio,
+#'          nominal = MET.nominalmass,
+#'          poly = "2nd",
+#'          omit = which(ExStdCurve$MET.nominalmass > 10 &
+#'                             ExStdCurve$MET.nominalmass < 20),
+#'          useNLS_outnames = FALSE)
+#'
 #' # Coloring by some variable
 #' stdCurve(ExStdCurve %>% mutate(Group = c(rep("A", 5), rep("B", 6))),
 #'          normPeak = MET.peakarearatio,
@@ -85,6 +98,7 @@ stdCurve <- function(DF,
                      nominal,
                      poly = "1st",
                      weights = NULL,
+                     omit = NA,
                      IDcol = NA,
                      colorBy,
                      useNLS_outnames = TRUE) {
@@ -97,6 +111,13 @@ stdCurve <- function(DF,
       colorBy <- dplyr::enquo(colorBy)
 
       DForig <- DF
+
+      # If the user supplied a value for "omit" but that value doesn't fall
+      # within DF, issue a warning but keep going.
+      if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF) == FALSE) |
+         length(omit) == 0){
+            message("One or more of the values supplied for 'omit' do not fall within the range of the data.frame supplied. All of the points supplied were included in the regression.")
+      }
 
       # If normPeak is NOT supplied, calculate it.
       if(as_label(normPeak) %in% names(DForig) == FALSE){
@@ -114,6 +135,12 @@ stdCurve <- function(DF,
                   DF <- DF %>%
                         select(any_of(c(as_label(nominal), "NormPeak"))) %>%
                         rename(Nominal = !!nominal)
+            }
+
+            # Removing any rows the user requests
+            if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
+                  DFomit <- DF %>% slice(omit)
+                  DF <- DF %>% slice(-omit)
             }
 
             # Setting the y label for the graphs based on whether normPeak was
@@ -137,6 +164,12 @@ stdCurve <- function(DF,
                                                as_label(IDcol)))) %>%
                         rename(Nominal = !!nominal,
                                NormPeak = !!normPeak)
+            }
+
+            # Removing any rows the user requests
+            if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
+                  DFomit <- DF %>% slice(omit)
+                  DF <- DF %>% slice(-omit)
             }
 
             # Setting the y label for the graphs based on whether normPeak was
@@ -200,6 +233,12 @@ stdCurve <- function(DF,
                   ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak)) +
                   ggplot2::xlab(as_label(nominal)) +
                   ggplot2::ylab(Ylabel)
+      }
+
+      if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
+            CurvePlot <- CurvePlot +
+                  geom_point(data = DFomit, color = "red", shape = "O", size = 2)
+
       }
 
       if(poly == "1st"){

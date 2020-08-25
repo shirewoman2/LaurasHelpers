@@ -12,6 +12,7 @@ stdCurve(
   nominal,
   poly = "1st",
   weights = NULL,
+  omit = NA,
   IDcol = NA,
   colorBy,
   useNLS_outnames = TRUE
@@ -39,6 +40,11 @@ divided by the IS peak height or area.}
 \item{weights}{A vector of weights to use for the regression. If left as
 NULL, no weighting scheme will be used. Be careful that you don't have any
 infinite values or this will fail!}
+
+\item{omit}{An index of which, if any, samples to omit from the curve. These
+samples will be depicted as red open circles in the graph but will not be
+included in the regression. The red color for omitted points overrides any
+other choices for \code{colorBy}.}
 
 \item{IDcol}{Optional column with sample IDs}
 
@@ -96,6 +102,15 @@ stdCurve(ExStdCurve,
          nominal = MET.nominalmass,
          poly = "1st",
          weights = 1/ExStdCurve$MET.nominalmass)
+
+# Omitting certain points from the regression but showing them on the graph
+stdCurve(ExStdCurve,
+         normPeak = MET.peakarearatio,
+         nominal = MET.nominalmass,
+         poly = "2nd",
+         omit = which(ExStdCurve$MET.nominalmass > 10 &
+                            ExStdCurve$MET.nominalmass < 20),
+         useNLS_outnames = FALSE)
 
 # Coloring by some variable
 stdCurve(ExStdCurve \%>\% mutate(Group = c(rep("A", 5), rep("B", 6))),
