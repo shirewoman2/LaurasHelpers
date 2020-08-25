@@ -37,9 +37,10 @@ divided by the IS peak height or area.}
 \item{poly}{Should the data be fit to a 1st or 2nd order polynomial? Options:
 "1st" or "2nd".}
 
-\item{weights}{A vector of weights to use for the regression. If left as
-NULL, no weighting scheme will be used. Be careful that you don't have any
-infinite values or this will fail!}
+\item{weights}{Weighting scheme to use for the regression. User may supply a
+numeric vector of weights to use or choose from "1/x", "1/x^2", "1/y" or
+"1/y^2". If left as NULL, no weighting scheme will be used. Be careful that
+you don't have any infinite values or this will fail!}
 
 \item{omit}{An index of which, if any, samples to omit from the curve. These
 samples will be depicted as red open circles in the graph but will not be
@@ -101,7 +102,7 @@ stdCurve(ExStdCurve,
          normPeak = MET.peakarearatio,
          nominal = MET.nominalmass,
          poly = "1st",
-         weights = 1/ExStdCurve$MET.nominalmass)
+         weights = "1/x")
 
 # Omitting certain points from the regression but showing them on the graph
 stdCurve(ExStdCurve,

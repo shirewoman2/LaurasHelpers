@@ -18,9 +18,10 @@
 #' @param nominal The column with the nominal concentrations or masses.
 #' @param poly Should the data be fit to a 1st or 2nd order polynomial? Options:
 #'   "1st" or "2nd".
-#' @param weights A vector of weights to use for the regression. If left as
-#'   NULL, no weighting scheme will be used. Be careful that you don't have any
-#'   infinite values or this will fail!
+#' @param weights Weighting scheme to use for the regression. User may supply a
+#'   numeric vector of weights to use or choose from "1/x", "1/x^2", "1/y" or
+#'   "1/y^2". If left as NULL, no weighting scheme will be used. Be careful that
+#'   you don't have any infinite values or this will fail!
 #' @param omit An index of which, if any, samples to omit from the curve. These
 #'   samples will be depicted as red open circles in the graph but will not be
 #'   included in the regression. The red color for omitted points overrides any
@@ -69,7 +70,7 @@
 #'          normPeak = MET.peakarearatio,
 #'          nominal = MET.nominalmass,
 #'          poly = "1st",
-#'          weights = 1/ExStdCurve$MET.nominalmass)
+#'          weights = "1/x")
 #'
 #' # Omitting certain points from the regression but showing them on the graph
 #' stdCurve(ExStdCurve,
@@ -179,6 +180,28 @@ stdCurve <- function(DF,
 
       MaxNominal <- max(DF$Nominal, na.rm = TRUE)
 
+      # Setting up the weights to use
+      if(class(weights) == "character"){
+
+            WeightOptions <- DF %>%
+                  select(Nominal, NormPeak) %>%
+                  mutate(One_x = 1/Nominal,
+                         One_x2 = 1/Nominal^2,
+                         One_y = 1/NormPeak,
+                         One_y2 = 1/NormPeak^2)
+
+            weights <- tolower(weights)
+
+            MyWeights <- c("1/x" = "One_x", "1/x^2" = "One_x2",
+                           "1/y" = "One_y", "1/y^2" = "One_y2")
+
+            weights <- WeightOptions %>% pull(MyWeights[weights])
+      }
+
+      if(any(is.infinite(weights))){
+            stop("The weights used for the regression cannot include infinite numbers. Please change the weighting scheme to avoid this.")
+      }
+
       if(poly == "1st"){
             Fit <- lm(DF$NormPeak ~ DF$Nominal, weights = weights)
             beta0 <- summary(Fit)$coef["(Intercept)", "Estimate"]
@@ -219,10 +242,10 @@ stdCurve <- function(DF,
 
             CurvePlot <- ggplot2::ggplot(DF,
                                          ggplot2::aes(x = Nominal, y = NormPeak,
-                                                 color = ColorBy)) +
+                                                      color = ColorBy)) +
                   ggplot2::geom_point() +
                   ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
-                            inherit.aes = FALSE) +
+                                     inherit.aes = FALSE) +
                   ggplot2::labs(color = as_label(colorBy)) +
                   ggplot2::xlab(as_label(nominal)) +
                   ggplot2::ylab(Ylabel)
