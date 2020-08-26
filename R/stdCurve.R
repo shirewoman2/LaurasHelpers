@@ -229,11 +229,19 @@ stdCurve <- function(DF,
       }
 
       # If the user wants to use better names for the output data.frame, setting
-      # those here.
+      # those here for 2nd order polynomials...
       if(useNLS_outnames == FALSE & class(Fit) == "nls"){
             Fit <- as.data.frame(summary(Fit)[["coefficients"]])
             names(Fit) <- c("Estimate", "SE", "tvalue", "pvalue")
             Fit$Beta <- row.names(Fit)
+            Fit <- Fit %>% select(Beta, Estimate, SE, tvalue, pvalue) %>%
+                  arrange(desc(Beta))
+      }
+      # ... and for 1st order polynomials.
+      if(useNLS_outnames == FALSE & class(Fit) == "lm"){
+            Fit <- as.data.frame(summary(Fit)[["coefficients"]])
+            names(Fit) <- c("Estimate", "SE", "tvalue", "pvalue")
+            Fit$Beta <- c("beta0", "beta1")
             Fit <- Fit %>% select(Beta, Estimate, SE, tvalue, pvalue) %>%
                   arrange(desc(Beta))
       }
