@@ -75,6 +75,8 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
       if(ncol(stdCurve1$Data) == 4){
             names(stdCurve1$Data) <- c("Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
             names(stdCurve2$Data) <- c("Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+            Xlab <- OrigNames1[1]
+            Ylab <- OrigNames1[2]
       }
 
       # If they included IDcol but not colorBy OR if they included colorBy but
@@ -82,12 +84,17 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
       if(ncol(stdCurve1$Data) == 5){
             names(stdCurve1$Data) <- c("IDcol", "Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
             names(stdCurve2$Data) <- c("IDcol", "Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+            Xlab <- OrigNames1[2]
+            Ylab <- OrigNames1[3]
       }
 
       # If they included both IDcol AND colorBy, then these should be the names:
       if(ncol(stdCurve1$Data) == 6){
             names(stdCurve1$Data) <- c("IDcol", "colorBy", "Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
             names(stdCurve2$Data) <- c("IDcol", "colorBy", "Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+            Xlab <- OrigNames1[3]
+            Ylab <- OrigNames1[4]
+
       }
 
       OutData <- stdCurve1$Data %>% full_join(stdCurve2$Data) %>%
@@ -125,7 +132,7 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
             geom_point() +
             geom_line(data = CurveData, aes(x = Nominal, y = NormPeak,
                                             color = Fit, linetype = Fit)) +
-            xlab(OrigNames1[1]) + ylab(OrigNames1[2])
+            xlab(Xlab) + ylab(Ylab)
 
       names(OutData)[1] <- OrigNames1[1]
 
