@@ -301,7 +301,8 @@ stdCurve <- function(DF,
                    Calculated = round(Calculated, 2),
                    PercentDifference = round(PercentDifference, 2)) %>%
             select(any_of(c(as_label(IDcol), "ColorBy", "Nominal", "NormPeak",
-                            "Calculated", "PercentDifference")))
+                            "Calculated", "PercentDifference"))) %>%
+            arrange(Nominal)
 
       if(as_label(normPeak) %in% names(DForig)){
             names(DF)[names(DF) == "Nominal"] <- as_label(nominal)

@@ -119,7 +119,7 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
       # Removing any replicates and arranging out data.
       if("IDcol" %in% names(OutData)){
             if(anyDuplicated(OutData$IDcol)){
-                  OutData <- OutData %>%
+                  OutData <- OutData %>% ungroup() %>%
                         group_by(IDcol, Nominal) %>%
                         summarize(Nominal = mean(Nominal, na.rm = T),
                                   Calculated_A = mean(Calculated_A, na.rm = T),
