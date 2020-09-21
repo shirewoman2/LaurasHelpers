@@ -100,7 +100,8 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
 
       }
 
-      OutData <- stdCurve1$Data %>% full_join(stdCurve2$Data) %>%
+      OutData <- dplyr::full_join(stdCurve1$Data %>% ungroup(),
+                                  stdCurve2$Data %>% ungroup()) %>%
             select(any_of(c("IDcol", "colorBy", "Nominal",
                             "Calculated_A", "Calculated_B",
                             "PercDiff_A", "PercDiff_B"))) %>%
@@ -119,14 +120,13 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
       # Removing any replicates and arranging out data.
       if("IDcol" %in% names(OutData)){
             if(anyDuplicated(OutData$IDcol)){
-                  OutData <- OutData %>% ungroup() %>%
+                  OutData <- OutData %>%
                         group_by(IDcol, Nominal) %>%
-                        summarize(Nominal = mean(Nominal, na.rm = T),
-                                  Calculated_A = mean(Calculated_A, na.rm = T),
+                        summarize(Calculated_A = mean(Calculated_A, na.rm = T),
                                   Calculated_B = mean(Calculated_B, na.rm = T),
                                   PercDiff_A = mean(PercDiff_A, na.rm = T),
-                                  PercDiff_B = mean(PercDiff_B, na.rm = T))
-                  ungroup()
+                                  PercDiff_B = mean(PercDiff_B, na.rm = T)) %>%
+                        ungroup()
             }
       }
 
@@ -141,9 +141,9 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
                                       "Fit_B" = fitNames[2]))
 
             names(OutData) <- sub("_A", paste0("_", fitNames[1]),
-                                       names(OutData))
+                                  names(OutData))
             names(OutData) <- sub("_B", paste0("_", fitNames[2]),
-                                       names(OutData))
+                                  names(OutData))
       }
 
       CurvePlot <- ggplot2::ggplot(PlotData, aes(x = Nominal, y = NormPeak,
