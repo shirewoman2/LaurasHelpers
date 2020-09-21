@@ -5,7 +5,7 @@
 \title{Split a string of text by a specified pattern and return a vector of the
 split text}
 \usage{
-str_split_alt(string, pattern, n = NA, retainPattern = FALSE)
+str_split_alt(string, pattern, i = NA, retainPattern = FALSE)
 }
 \arguments{
 \item{string}{The string of text to be split into pieces}
@@ -13,10 +13,10 @@ str_split_alt(string, pattern, n = NA, retainPattern = FALSE)
 \item{pattern}{The pattern to use for splitting the text. The pattern will
 not be retained in the output unless \code{retainPattern = TRUE}.}
 
-\item{n}{The index of the output vector to be returned. If left as \code{NA},
-this will return all items in the vector. If set to a specific number n, it
-will return only the nth item of that vector. If set to "last", it will
-return only the last item of the vector.}
+\item{i}{The index of the output vector to be returned. If left as \code{NA},
+this will return all items in the vector. If set to a specific number
+\emph{i}, it will return only the \emph{i}th item of that vector. If set to
+"last", it will return only the last item of the vector.}
 
 \item{retainPattern}{TRUE or FALSE for whether to retain the pattern that was
 used to separate the input text in the output vector. Warning: This was set
@@ -40,8 +40,8 @@ column of a data.frame or tibble.
 # Applied to a vector of length 1:
 MyString <- c("First filename.xlsx Second filename.xlsx")
 str_split_alt(MyString, ".xlsx")
-str_split_alt(MyString, ".xlsx", 1)
-str_split_alt(MyString, ".xlsx", "last")
+str_split_alt(MyString, ".xlsx", i = 1)
+str_split_alt(MyString, ".xlsx", i = "last")
 str_split_alt(MyString, ".xlsx", retainPattern = TRUE)
 
 # Applied to a longer vector, e.g., a column in a data.frame:
@@ -56,8 +56,8 @@ MyDF <- data.frame(ColA = paste("Item", 1:4),
                             str_c(paste0("MyFile", 1:2, ".xlsx"), collapse = " ")))
 
 MyDF$ColD <- str_split_alt(MyDF$ColB, " ", "last")
-MyDF$ColE <- str_split_alt(MyDF$ColB, " ", 1)
-MyDF$ColF <- str_split_alt(MyDF$ColC, " ", 4, retainPattern = TRUE)
+MyDF$ColE <- str_split_alt(MyDF$ColB, " ", i = 1)
+MyDF$ColF <- str_split_alt(MyDF$ColC, " ", i = 4, retainPattern = TRUE)
 
 
 }
