@@ -199,7 +199,7 @@ stdCurve <- function(DF,
       }
 
       if(any(is.infinite(weights))){
-            stop("The weights used for the regression cannot include infinite numbers. Please change the weighting scheme to avoid this.")
+            stop("The weights used for the regression cannot include infinite numbers. Please change the weighting scheme to avoid this. If the problem is that you've included a point with a nominal mass or concentration of 0, that shouldn't be part or your curve anyway since it is below the LLOQ; remove it.")
       }
 
       if(poly == "1st"){
@@ -248,15 +248,23 @@ stdCurve <- function(DF,
 
       if(as_label(colorBy) %in% names(DForig)){
 
-            CurvePlot <- ggplot2::ggplot(DF,
-                                         ggplot2::aes(x = Nominal, y = NormPeak,
-                                                      color = ColorBy)) +
-                  ggplot2::geom_point() +
-                  ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
+            if(theme_get()$panel.background$fill == "grey92"){
+                  ColorsToUse <- c("dodgerblue3",  "green")
+            } else {
+                  ColorsToUse <- c("dodgerblue3", "#3E8853")
+            }
+
+            CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak,
+                                                 color = ColorBy, shape = ColorBy)) +
+                  geom_point(size = 2) +
+                  geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
                                      inherit.aes = FALSE) +
-                  ggplot2::labs(color = as_label(colorBy)) +
-                  ggplot2::xlab(as_label(nominal)) +
-                  ggplot2::ylab(Ylabel)
+                  labs(color = as_label(colorBy),
+                       shape = as_label(colorBy)) +
+                  xlab(as_label(nominal)) +
+                  ylab(Ylabel) +
+                  scale_color_manual(values = ColorsToUse) +
+                  scale_shape_manual(values = c(16, 17))
 
       } else {
             CurvePlot <- ggplot2::ggplot(DF, ggplot2::aes(x = Nominal, y = NormPeak)) +

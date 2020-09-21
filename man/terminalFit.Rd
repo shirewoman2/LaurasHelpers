@@ -2,63 +2,65 @@
 % Please edit documentation in R/terminalFit.R
 \name{terminalFit}
 \alias{terminalFit}
-\title{Calculate the elimination rate of the terminal portion of a
-concentration-time curve}
+\title{Calculate the elimination rate of the terminal portion of a concentration-time
+curve}
 \usage{
 terminalFit(
   DF,
   startValues = NA,
   concentration = Concentration,
   time = Time,
+  omit = NA,
   tmax = NA,
   modelType = "monoexponential",
   returnDataUsed = FALSE,
   weights = NULL,
   returnRSS = FALSE,
   useNLS_outnames = TRUE,
-  maxiter = 50
+  maxiter = 50,
+  graph = FALSE
 )
 }
 \arguments{
 \item{DF}{The data.frame with the concentration-time data}
 
-\item{startValues}{list of starting values for A and k, NA if the start
-  values should be determined automatically. \itemize{
-
-  \item Coefficients for the monoexponential fit that will need values: A, k.
-
-  \item Coefficients for the biexponential fit: A, alpha, B, and beta.
-
-  \item For the triexponential: A, alpha, B, beta, G, gamma.
-
-  \item \emph{An alternative approach:} After having a lot of trouble with
-  finding decent starting values for triexponential decays using \code{nls}
-  behind the scenes here, I've now changed this function to optionally use
-  the function \code{\link[nls2]{nls2}}, which does a more rigorous search
-  for starting values than \code{\link[stats]{nls}}. (For more information,
-  see the documentation on \code{\link[nls2]{nls2}} and the algorithm
-  "\code{random-search}".) For triexponential fits, if you submit a list of
-  starting values like usual, this function will use the regular \code{nls}
-  function. However, to use \code{nls2} instead, set \code{startValues} to a
-  two row data.frame with columns for each coefficient in which the first row
-  is the minimum possible value to start using and the 2nd row is the maximum
-  value to start using for that coefficient. \strong{A warning:} Because nls2
-  searches more possible starting values, it can be appreciably slower.
-
-  \item \strong{A piece of advice:} Regardless of whether you choose to use
-  \code{nls} or \code{nls2}, you really will benefit by supplying reasonable
-  start values. Even if you're supplying a data.frame for \code{nls2} to
-  search, those values should still be reasonable or you just won't randomly
-  select enough decent starting places to come up with regressions that will
-  converge. }}
+\item{startValues}{The starting values to be used in the fit. Options:
+\describe{\item{NA}{If left as \code{NA}, the starting values will be
+determined automatically.} \item{a list}{A list of starting values for the
+fit. Use the same values that you'd supply for \code{\link[stats]{nls}}. For
+a monoexponential fit, this will be a list of A and k. For a biexponential
+fit: A, alpha, B, beta. And for a triexponential fit: A, alpha, B, beta, G,
+gamma.} \item{a data.frame}{Sometimes, especially with sparsely sampled time
+points,  the \code{nls} algorithm can fail to converge if you don't have
+perfect estimates for the starting values. When that is the case, set
+\code{startValues} to a two row data.frame with columns for each
+coefficient. The first row should contain the minimum of the range to
+search, and the second row should contain the maximum of the range to search
+for that coefficient. This option uses \code{\link[nls2]{nls2}}, which does
+a more rigorous search for starting values than \code{\link[stats]{nls}}, to
+perform the regression. (For more information, see the documentation on
+\code{\link[nls2]{nls2}} and the algorithm "\code{random-search}".)
+\strong{A warning:} Because \code{nls2} searches more possible starting
+values, it can be appreciably slower than \code{nls}.} \strong{A piece of
+advice:} Regardless of whether you choose to use \code{nls} (supply no
+starting values or supply a list) or \code{nls2} (supply a data.frame), you
+truly will benefit by supplying reasonable start values. Even if you're
+supplying a data.frame for \code{nls2} to search, those values should still
+be reasonable or you just won't randomly select enough decent starting
+places to come up with regressions that will converge.}}
 
 \item{concentration}{The name of the column that contains concentration data}
 
 \item{time}{The name of the column that contains time data}
 
+\item{omit}{An index of which, if any, samples to omit from the regression.
+These samples will be depicted as red open circles in the graph, if you
+choose to make one, but will not be included in the regression. Note that
+only points after tmax are used in the regression anyway, so there's no need
+to omit, e.g., t0.}
+
 \item{tmax}{The putative tmax, which is used for estimating the terminal
-elimination rate. Time points before tmax will be omitted from the
-fit.}
+elimination rate. Time points before tmax will be omitted from the fit.}
 
 \item{modelType}{The mathematical model to use for fitting the data; options
 are "monoexponential", "biexponential", or "triexponential".}
@@ -68,13 +70,16 @@ initially for bootstrapping, where it can be useful to see what data were
 used as input. For that reason, I'm including the option of returning the
 data that were used.}
 
-\item{weights}{Any weighting to be used for the nonlinear regression}
+\item{weights}{Weighting scheme to use for the regression. User may supply a
+numeric vector of weights to use or choose from "1/x", "1/x^2", "1/y" or
+"1/y^2". If left as NULL, no weighting scheme will be used. Be careful that
+you don't have any infinite values or this will fail!}
 
 \item{returnRSS}{TRUE or FALSE for whether to resturn the residual sum of
 squares. If set to TRUE, this will be the last column of the output
 data.frame where all rows = the residual sum of squares. (I wanted the
-output to still be a data.frame, so that's the place I could think of to
-put it.)}
+output to still be a data.frame, so that's the place I could think of to put
+it.)}
 
 \item{useNLS_outnames}{TRUE or FALSE for whether to use the standard output
 coeffecient names that come with the nls or nls2 functions, e.g.,
@@ -84,21 +89,26 @@ column-naming practices (they contain spaces and symbols). If set to FALSE,
 the names of the output coefficient data.frame will be "Estimate", "SE",
 "tvalue" and "pvalue".}
 
-\item{maxiter}{Maximum number of iterations of start values to use; default
-is 50, just like \code{\link[stats]{nls}}. (See also
+\item{maxiter}{Maximum number of iterations of start values to use; default is
+50, just like \code{\link[stats]{nls}}. (See also
 \code{\link[stats]{nls.control}}.) Using more iterations means more random
 sampling of starting values and thus a higher likelihood of the fit
 converging. However, it also means more processing time.}
+
+\item{graph}{TRUE or FALSE for whether to create a graph of the data}
 }
 \value{
-Returns a data.frame of the coefficients or a list containing a
-  data.frame of the input data and a data.frame of the estimated coefficients
+Returns a data.frame of the coefficients or returns a list containing
+ whatever combination the user has specified of: \describe{\item{DataUsed}{A data.frame
+ of the input data} \item{Estimates}{A data.frame of the estimated coefficients}
+ \item{Graph}{A ggplot2 graph of the input data with a line showing the fit to
+ the terminal phase data}}
 }
 \description{
-\code{terminalFit} fits an exponential equation to concentration-time data.
-The equation should be of the form \eqn{f(t) = concentration = A * exp(-kt)}
-where A is ~Cmax, k is the terminal elimination rate constant, and t is time,
-and the model can be monoexponential, biexponential, or triexponential decay.
+\code{terminalFit} fits an exponential decay equation to concentration-time
+data. The equation, which is of the form \eqn{f(t) = concentration = A *
+exp(-kt)} where A is ~Cmax, k is the terminal elimination rate constant, and t
+is time, can be monoexponential, biexponential, or triexponential.
 }
 \examples{
 # Example data to work with:
@@ -111,24 +121,36 @@ Subj101 <- ConcTime \%>\% filter(SubjectID == 101 & DoseRoute == "IV" &
 terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             modelType = "monoexponential")
 
-# Set the start values yourself
+# Set the start values yourself using a list (algorithm uses nls
+# to fit the data).
 terminalFit(Subj101, concentration = Concentration, time = TimeHr,
-            tmax = 0, startValues = list(A = 30, k = 0.01),
+            startValues = list(A = 30, k = 0.01),
             modelType = "monoexponential")
 
-# Use the more robuse nls2 function to do the regression by selecting a range of
-# values to search.
+# Set the start values yourself but use the more robust nls2
+# function to do the regression. Provide a range of values to search.
 terminalFit(Subj101, concentration = Concentration, time = TimeHr,
-            tmax = 0,
             startValues = data.frame(A = c(5, 50), k = c(0.0001, 0.05)),
             modelType = "monoexponential")
 
-# Weight by 1/y
+# Omit a point. In this case, omit the point at t = 8.
 terminalFit(Subj101, concentration = Concentration, time = TimeHr,
-            tmax = 0,
+            modelType = "monoexponential",
+            omit = which(Subj101$TimeHr == 8))
+
+# Don't start fitting until a later time than tmax, e.g., t = 4.
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+            modelType = "monoexponential", tmax = 4))
+
+# Weight by 1/y.
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             weight = 1/Subj101$Concentration,
             modelType = "monoexponential")
-# This one doesn't actually converge.
+
+# Another way to weight by 1/y
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+            weight = "1/y",
+            modelType = "monoexponential")
 
 # Get the residual sum of squares
 terminalFit(Subj101, concentration = Concentration, time = TimeHr,
@@ -137,6 +159,10 @@ terminalFit(Subj101, concentration = Concentration, time = TimeHr,
 # Use better names for the columns in the output
 terminalFit(Subj101, concentration = Concentration, time = TimeHr,
             modelType = "monoexponential", useNLS_outnames = FALSE)
+
+# Graph the data; good for visually inspecting the fit.
+terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+            modelType = "monoexponential", tmax = 4, graph = TRUE)
 
 
 }
