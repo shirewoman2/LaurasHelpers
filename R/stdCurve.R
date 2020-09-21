@@ -249,34 +249,40 @@ stdCurve <- function(DF,
       if(as_label(colorBy) %in% names(DForig)){
 
             if(theme_get()$panel.background$fill == "grey92"){
-                  ColorsToUse <- c("dodgerblue3",  "green")
+                  ColorsToUse <- c("black",  "green")
             } else {
-                  ColorsToUse <- c("dodgerblue3", "#3E8853")
+                  ColorsToUse <- c("black", "#5ECCF3")
             }
 
             CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak,
-                                                 color = ColorBy, shape = ColorBy)) +
-                  geom_point(size = 2) +
+                                                 fill = ColorBy, color = ColorBy,
+                                                 shape = ColorBy)) +
+                  geom_point(size = 2, shape = 21) +
                   geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
-                                     inherit.aes = FALSE) +
-                  labs(color = as_label(colorBy),
+                                     inherit.aes = FALSE, color = "gray60") +
+                  labs(color = as_label(colorBy), fill = as_label(colorBy),
                        shape = as_label(colorBy)) +
                   xlab(as_label(nominal)) +
                   ylab(Ylabel) +
-                  scale_color_manual(values = ColorsToUse) +
+                  scale_fill_manual(values = ColorsToUse) +
+                  scale_color_manual(values = c("black", muted("#5ECCF3"))) +
                   scale_shape_manual(values = c(16, 17))
 
       } else {
-            CurvePlot <- ggplot2::ggplot(DF, ggplot2::aes(x = Nominal, y = NormPeak)) +
-                  ggplot2::geom_point() +
-                  ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak)) +
-                  ggplot2::xlab(as_label(nominal)) +
-                  ggplot2::ylab(Ylabel)
+            CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak)) +
+                  geom_point() +
+                  geom_line(data = Curve, aes(x = Nominal, y = NormPeak),
+                            color = "gray60") +
+                  xlab(as_label(nominal)) +
+                  ylab(Ylabel)
       }
 
       if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
             CurvePlot <- CurvePlot +
-                  geom_point(data = DFomit, color = "red", shape = "O", size = 2)
+                  geom_point(x = DFomit$Nominal, y = DFomit$NormPeak,
+                             color = "red", shape = "O", size = 2,
+                             inherit.aes = FALSE)
+
 
       }
 
