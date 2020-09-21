@@ -265,7 +265,7 @@ stdCurve <- function(DF,
                   xlab(as_label(nominal)) +
                   ylab(Ylabel) +
                   scale_fill_manual(values = ColorsToUse) +
-                  scale_color_manual(values = c("black", muted("#5ECCF3"))) +
+                  scale_color_manual(values = c("black", "#005883")) +
                   scale_shape_manual(values = c(16, 17))
 
       } else {
