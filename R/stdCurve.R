@@ -259,7 +259,7 @@ stdCurve <- function(DF,
                                                  shape = ColorBy)) +
                   geom_point(size = 2, shape = 21) +
                   geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
-                                     inherit.aes = FALSE, color = "gray60") +
+                            inherit.aes = FALSE, color = "gray60") +
                   labs(color = as_label(colorBy), fill = as_label(colorBy),
                        shape = as_label(colorBy)) +
                   xlab(as_label(nominal)) +
@@ -279,11 +279,8 @@ stdCurve <- function(DF,
 
       if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
             CurvePlot <- CurvePlot +
-                  geom_point(x = DFomit$Nominal, y = DFomit$NormPeak,
-                             color = "red", shape = "O", size = 2,
-                             inherit.aes = FALSE)
-
-
+                  geom_point(data = DFomit, aes(x = Nominal, y = NormPeak),
+                             color = "red", inherit.aes = FALSE, shape = "o", size = 2)
       }
 
       if(poly == "1st"){
