@@ -264,9 +264,13 @@ stdCurve <- function(DF,
                        shape = as_label(colorBy)) +
                   xlab(as_label(nominal)) +
                   ylab(Ylabel) +
-                  scale_fill_manual(values = ColorsToUse) +
-                  scale_color_manual(values = c("black", "#005883")) +
                   scale_shape_manual(values = c(16, 17))
+
+            if(length(unique(DF$ColorBy)) == 2){
+                  CurvePlot <- CurvePlot +
+                        scale_fill_manual(values = ColorsToUse) +
+                        scale_color_manual(values = c("black", "#005883"))
+            }
 
       } else {
             CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak)) +
