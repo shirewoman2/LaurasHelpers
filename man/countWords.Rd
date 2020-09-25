@@ -20,6 +20,7 @@ words are separated by either a space or a hyphen.
 
 countWords("My cats' names are Lightning and Theo.")
 countWords(list("My cats' names are Lightning and Theo.",
-              "mein hindee seekh rahi hoon", 4.5, TRUE))
+              "mein hindee seekh rahi hoon", 4.5, TRUE,
+              "Pharmacogenetic variation in drug-metabolizing enzymes"))
 
 }

@@ -146,7 +146,7 @@ formatXL(DF = iris \%>\%
                        list(rows = NA, columns = 7,
                             numberFormat = "currency")))
 
-formatXL(DF = iris, file = "test.xlsx", sheet = "iris1",
+formatXL(DF = iris, file = "test.xlsx", sheet = "iris2",
          colWidth = list(colNum = c(1, 5, 6), width = c(25, 10, 30)),
          styles = list(list(rows = 4, columns = NA,
                             font = list(color = "blue", bold = TRUE)),

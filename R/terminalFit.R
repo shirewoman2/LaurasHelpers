@@ -79,55 +79,55 @@
 #' @examples
 #' # Example data to work with:
 #' data(ConcTime)
-#' Subj101 <- ConcTime %>% filter(SubjectID == 101 & DoseRoute == "IV" &
+#' IV1 <- ConcTime %>% filter(SubjectID == 101 & DoseRoute == "IV" &
 #'                                      Drug == "A") %>%
 #'       select(SubjectID, TimeHr, Concentration)
 #'
 #' # Automatically select the start values
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential")
 #'
 #' # Set the start values yourself using a list (algorithm uses nls
 #' # to fit the data).
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             startValues = list(A = 30, k = 0.01),
 #'             modelType = "monoexponential")
 #'
 #' # Set the start values yourself but use the more robust nls2
 #' # function to do the regression. Provide a range of values to search.
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             startValues = data.frame(A = c(5, 50), k = c(0.0001, 0.05)),
 #'             modelType = "monoexponential")
 #'
 #' # Omit a point. In this case, omit the point at t = 8.
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential",
-#'             omit = which(Subj101$TimeHr == 8))
+#'             omit = which(IV1$TimeHr == 8))
 #'
 #' # Don't start fitting until a later time than tmax, e.g., t = 4.
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", tmax = 4))
 #'
 #' # Weight by 1/y.
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
-#'             weight = 1/Subj101$Concentration,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#'             weight = 1/IV1$Concentration,
 #'             modelType = "monoexponential")
 #'
 #' # Another way to weight by 1/y
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             weight = "1/y",
 #'             modelType = "monoexponential")
 #'
 #' # Get the residual sum of squares
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", returnRSS = TRUE)
 #'
 #' # Use better names for the columns in the output
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", useNLS_outnames = FALSE)
 #'
 #' # Graph the data; good for visually inspecting the fit.
-#' terminalFit(Subj101, concentration = Concentration, time = TimeHr,
+#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", tmax = 4, graph = TRUE)
 #'
 #'

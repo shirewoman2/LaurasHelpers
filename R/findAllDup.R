@@ -1,8 +1,8 @@
 #' Find locations of all duplicates, not just the first
 #'
-#' Using \code{duplicated}() will find the 2nd instance of a duplicate but not
-#' all instances of a duplicate. \code{anyDup} returns the locations of all
-#' duplicates.
+#' Using the base-R function \code{duplicated} will find the 2nd, 3rd, etc.
+#' instance of a duplicate but not \emph{all} instances of a duplicate.
+#' \code{findAllDup} returns the locations of all duplicates.
 #'
 #' @examples
 #' findAllDup(c("Lightning", "Theo", "Kiki", "Lightning"))

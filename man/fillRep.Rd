@@ -40,11 +40,13 @@ This function takes a data.frame, looks for rows that are replicates that
 differ only because one row has missing values where the other has values,
 fills in all missing values with the complete cases and returns the unique
 (no replicates) data.frame whenever possible. When replicates cannot be
-removed because there are differences, fillRep returns a data.frame of those
-differences. Whenever the function encounters a set of rows that will
+removed because there are differences, \code{fillRep} returns a data.frame of
+those differences. Whenever the function encounters a set of rows that will
 \emph{not} reduce, it prints the problematic fields as a data.frame.
 Optionally, you can keep this data.frame of problems by setting
-\code{returnDifs} to TRUE.
+\code{returnDifs} to TRUE. \strong{NOTE:} The package \code{dplyr} now has a
+function \code{\link[dplyr]{fill}} that is likely faster than this homemade
+one and would be worth looking into.
 }
 \examples{
 # Concatenating anything that's in the column "SourceFile" if that's the
