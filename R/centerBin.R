@@ -12,34 +12,17 @@
 #' @param x A numeric string
 #' @param breaks the desired breaks in that string set by what the middle value
 #'   should be. Any value of \code{x} exactly in the middle of two breaks will
-#'   be assigned to the larger break, i.e., the function rounds up. Values
-#'   outside the range of \code{breaks} will be NA.
+#'   be assigned to the larger break, i.e., the function rounds up.
 #' @examples
 #' x <- c(48, 39, 28, 24, 5, 64, 133, 51, 59, 92, NA, 39)
 #' centerBin(x, breaks = seq(0, 340, 5))
 #' centerBin(x, breaks = seq(0, 340, 10))
 #'
 #' # Let's look at an example where the times in a PK study weren't perfect.
-#' data(ConcTime)
-#' IdealTimes <- unique(ConcTime$TimeHr)
+#' ActualTime <- c(-5, 17, 32, 65, 118)
+#' NominalTime <- c(0, 15, 30, 60, 120)
+#' centerBin(ActualTime, breaks = NominalTime)
 #'
-#' # Say the actual draw times didn't perfectly match the nominal times laid out
-#' # in the study, which often happens. To simulate that scenario, let's add a
-#' # little bit of noise to the times for one example subject.
-#' Subj101 <- ConcTime %>% filter(SubjectID == 101 & DoseRoute == "IV" &
-#'                                Drug == "A") %>%
-#'          select(SubjectID, TimeHr, Concentration)
-#' Subj101$ActualTimeHr <- Subj101$TimeHr *
-#'           rnorm(nrow(Subj101), 1, 0.1)
-#'
-#' # Now that we've got some simulated imperfect draw times, use centerBin to
-#' # get (close to) the ideal draw times. This way, you can bin the real data
-#' # reasonably such that you can then calculate mean concentrations at each
-#' # nominal sampling time.
-#' Subj101$TimeHr_ideal <- centerBin(Subj101$ActualTimeHr,
-#'                                   breaks = IdealTimes)
-#' # (This is obviously not perfect, but play with the bins you set and you
-#' # can do ok here.)
 #'
 #' @return Returns a vector of numeric data
 #' @export
@@ -68,8 +51,19 @@ centerBin <- function(x, breaks){
                                                       x[i] <= CenterBins$Upper)]
             Assignment <- ifelse(length(Assignment) > 1,
                                  Assignment[2], Assignment[1])
+
+            if(x[i] < min(breaks, na.rm = TRUE)){
+                  Assignment <- min(breaks, na.rm = TRUE)
+            }
+
+            if(x[i] > max(breaks, na.rm = TRUE)){
+                  Assignment <- max(breaks, na.rm = TRUE)
+            }
+
             Outbin[i] <- Assignment
+
             rm(Assignment)
       }
+
       return(Outbin)
 }
