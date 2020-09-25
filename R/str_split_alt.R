@@ -92,18 +92,20 @@ str_split_alt <- function(string,
 
                   for(j in 1:length(S)){
                         S[[j]] <- S[[j]][IndexToRetain[j]]
+                        if(complete.cases(S[[j]]) & S[[j]] == ""){S[[j]] <- NA}
                   }
 
                   S <- as.character(S)
+                  S[which(S == "NA")] <- NA
 
             }
 
             if(retainPattern == TRUE){
-                  myPaste <- function(x) paste0(x, pattern)
+                  myPaste <- function(x) paste0(x, sub("\\\\", "", pattern))
                   S <- sapply(S, myPaste)
                   # Values that were NA are now just the pattern, though, so
                   # setting those back to NA.
-                  S[which(S == pattern)] <- NA
+                  S[which(S == myPaste(NA))] <- NA
             }
       }
 
