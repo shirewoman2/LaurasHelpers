@@ -34,8 +34,10 @@
 #'
 #'@param concentration The name of the column that contains concentration data
 #'@param time The name of the column that contains time data
-#'@param tmax The putative tmax, which is used for estimating the terminal
-#'  elimination rate. Time points before tmax will be omitted from the fit.
+#'@param tmax The putative time at which the maximum concentration is observed,
+#'  the time at which the elimination phase begins. (If you have more than one
+#'  phase, this may not be the actual tmax, so set this to the time you want to
+#'  start fitting.) Time points before tmax will be omitted from the fit.
 #'@param omit An index of which, if any, samples to omit from the regression.
 #'  These samples will be depicted as red open circles in the graph, if you
 #'  choose to make one, but will not be included in the regression. Note that
@@ -71,10 +73,10 @@
 #'@param graph TRUE or FALSE for whether to create a graph of the data
 #'
 #'@return Returns a data.frame of the coefficients or returns a list containing
-#'  whatever combination the user has specified of: \describe{\item{DataUsed}{A data.frame
-#'  of the input data} \item{Estimates}{A data.frame of the estimated coefficients}
-#'  \item{Graph}{A ggplot2 graph of the input data with a line showing the fit to
-#'  the terminal phase data}}
+#'  whatever combination the user has specified of: \describe{\item{DataUsed}{A
+#'  data.frame of the input data} \item{Estimates}{A data.frame of the estimated
+#'  coefficients} \item{Graph}{A ggplot2 graph of the input data with a line
+#'  showing the fit to the terminal phase data}}
 #'
 #' @examples
 #' # Example data to work with:
