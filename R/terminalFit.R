@@ -408,7 +408,7 @@ terminalFit <- function(DF, startValues = NA,
                                beta = Result$Estimates[row.names(Result$Estimates) == "beta", "Estimate"],
                                G = Result$Estimates[row.names(Result$Estimates) == "G", "Estimate"],
                                gamma = Result$Estimates[row.names(Result$Estimates) == "gamma", "Estimate"],
-                               CONC = A * exp(-k * Time.offset) +
+                               CONC = A * exp(-alpha * Time.offset) +
                                      B * exp(-beta * Time.offset) +
                                      G * exp(-gamma * Time.offset))
             }

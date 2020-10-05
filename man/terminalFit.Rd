@@ -59,8 +59,10 @@ choose to make one, but will not be included in the regression. Note that
 only points after tmax are used in the regression anyway, so there's no need
 to omit, e.g., t0.}
 
-\item{tmax}{The putative tmax, which is used for estimating the terminal
-elimination rate. Time points before tmax will be omitted from the fit.}
+\item{tmax}{The putative time at which the maximum concentration is observed,
+the time at which the elimination phase begins. (If you have more than one
+phase, this may not be the actual tmax, so set this to the time you want to
+start fitting.) Time points before tmax will be omitted from the fit.}
 
 \item{modelType}{The mathematical model to use for fitting the data; options
 are "monoexponential", "biexponential", or "triexponential".}
@@ -99,10 +101,10 @@ converging. However, it also means more processing time.}
 }
 \value{
 Returns a data.frame of the coefficients or returns a list containing
- whatever combination the user has specified of: \describe{\item{DataUsed}{A data.frame
- of the input data} \item{Estimates}{A data.frame of the estimated coefficients}
- \item{Graph}{A ggplot2 graph of the input data with a line showing the fit to
- the terminal phase data}}
+ whatever combination the user has specified of: \describe{\item{DataUsed}{A
+ data.frame of the input data} \item{Estimates}{A data.frame of the estimated
+ coefficients} \item{Graph}{A ggplot2 graph of the input data with a line
+ showing the fit to the terminal phase data}}
 }
 \description{
 \code{terminalFit} fits an exponential decay equation to concentration-time
