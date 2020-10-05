@@ -366,22 +366,42 @@ terminalFit <- function(DF, startValues = NA,
             }
       }
 
+      # Setting up the data to graph
+      CurveData <- tibble(Time.offset = seq(min(DF$Time.offset, na.rm = T),
+                                            max(DF$Time.offset, na.rm = T),
+                                            length.out = 100))
+
       # Checking whether the fit worked at all
-      if(!is.null(Fit)){
-            # If it did work, setting the output appropriately for whether the
-            # fit converged.
-            if(class(Fit) == "character"){
-                  Result <- list(DataUsed = DFinit,
-                                 Estimates = Fit)
-            } else{
-                  Result <- list(DataUsed = DFinit,
-                                 Estimates = as.data.frame(
-                                       summary(Fit)[["coefficients"]]))
+      if(class(Fit) == "character"){
+            # This is for when the fit did NOT work. Returning a data.frame of
+            # NA values.
+            DataUsed <- DFinit
+            Estimates <- data.frame(Estimate = NA, SE = NA, tvalue = NA,
+                                    pvalue = NA)
+            names(Estimates) <- c("Estimate", "Std. Error", "t value",
+                                  "Pr(>|t|)")
+
+            Estimates$Message <- "Cannot fit to model"
+
+            Graph <- ggplot2::ggplot(DFinit2, aes(x = TIME, y = CONC)) +
+                  geom_point() +
+                  scale_y_log10() +
+                  xlab(as_label(time)) + ylab(as_label(concentration))
+
+            if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DFinit))){
+                  Graph <- Graph +
+                        geom_point(data = DFomit, color = "red", shape = "O", size = 2)
+
             }
 
-            CurveData <- tibble(Time.offset = seq(min(DF$Time.offset, na.rm = T),
-                                                  max(DF$Time.offset, na.rm = T),
-                                                  length.out = 100))
+            Result <- list(DataUsed = DataUsed, Estimates = Estimates)
+
+      } else {
+
+            # This is for when the fit did work fine.
+            Result <- list(DataUsed = DFinit,
+                           Estimates = as.data.frame(
+                                 summary(Fit)[["coefficients"]]))
 
             if(modelType == "monoexponential"){
                   CurveData <- CurveData %>%
@@ -427,30 +447,9 @@ terminalFit <- function(DF, startValues = NA,
                         geom_point(data = DFomit, color = "red", shape = "O", size = 2)
 
             }
-
-      } else{
-            # If it did not work at all, returning a data.frame of NA values.
-            DataUsed <- DF
-            Estimates <- data.frame(Estimate = NA, SE = NA, tvalue = NA,
-                                    pvalue = NA)
-            names(Estimates) <- c("Estimate", "Std. Error", "t value",
-                                  "Pr(>|t|)")
-
-            Graph <- ggplot2::ggplot(DFinit2, aes(x = TIME, y = CONC)) +
-                  geom_point() +
-                  scale_y_log10() +
-                  xlab(as_label(time)) + ylab(as_label(concentration))
-
-            if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DFinit))){
-                  Graph <- Graph +
-                        geom_point(data = DFomit, color = "red", shape = "O", size = 2)
-
-            }
-
       }
 
       Result[["Graph"]] <- Graph
-
 
       # Here's what to do if the fit didn't work at all. I can't remember what
       # caused this to happen, but I know I needed to catch this.
@@ -459,6 +458,8 @@ terminalFit <- function(DF, startValues = NA,
                                     pvalue = NA)
             names(Estimates) <- c("Estimate", "Std. Error", "t value",
                                   "Pr(>|t|)")
+            Estimates$Message <- "Cannot fit to model"
+
             Result <- list(DataUsed = DFinit,
                            Estimates = Estimates,
                            Graph)
