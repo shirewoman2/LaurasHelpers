@@ -38,7 +38,7 @@ a monoexponential decay equation, \code{noncompAUC} will use that for
 extrapolation to infinity. Provide a data.frame of the coefficients from a
 \code{nls} regression. Format must be the standard output from
 \code{summary(nls(...))[["coefficients"]]} or the coefficients from
-\code{terminalFit(...)}. (See \code{\link{terminalFit}}.) It doesn't matter
+\code{elimFit(...)}. (See \code{\link{elimFit}}.) It doesn't matter
 what you name the coefficients, but this function assumes that they will be
 listed with the y-intercept \emph{A0} in the first row and the rate
 constant \emph{k} in the next row.}
@@ -64,7 +64,7 @@ a monoexponential, biexponential, or triexponential decay equation,
 named list of: \describe{\item{\code{coefs}}{the coefficients from a
 \code{nls} regression. Format must be the standard output from
 \code{summary(nls(...))[["coefficients"]]} or the coefficients from
-\code{terminalFit(...)}. (See \code{\link{terminalFit}}.) It doesn't matter
+\code{elimFit(...)}. (See \code{\link{elimFit}}.) It doesn't matter
 what you name the coefficients, but this function assumes that they will be
 listed with the y-intercept for the first term in the first row, the rate
 constant for the first term in the next row, the y intercept for the second
