@@ -185,9 +185,9 @@ formatXL <- function(DF, file, sheet = NA,
             WB <- xlsx::createWorkbook(type = "xlsx")
       } else {
             if(file %in% AllFiles){
-                  WB <- loadWorkbook(file)
+                  WB <- xlsx::loadWorkbook(file)
             } else {
-                  WB <- createWorkbook(type = "xlsx")
+                  WB <- xlsx::createWorkbook(type = "xlsx")
             }
       }
 

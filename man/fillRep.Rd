@@ -45,16 +45,22 @@ those differences. Whenever the function encounters a set of rows that will
 \emph{not} reduce, it prints the problematic fields as a data.frame.
 Optionally, you can keep this data.frame of problems by setting
 \code{returnDifs} to TRUE. \strong{NOTE:} The package \code{dplyr} now has a
-function \code{\link[dplyr]{fill}} that is likely faster than this homemade
+function \code{\link[tidyr]{fill}} that is likely faster than this homemade
 one and would be worth looking into.
 }
 \examples{
 # Concatenating anything that's in the column "SourceFile" if that's the
 # only thing that differs:
-fillRep(MyDF, dlplyby = c("SubjectID", "StudyDay"),
+MyDF <- data.frame(SubjectID = rep(LETTERS[1:10], each = 2),
+                   Count = rep(1:10, each = 2),
+                   SourceFile = paste0("MyFile", rep(1:10, each = 2), ".xlsx"))
+MyDF$Count[c(1, 3, 9, 18)] <- NA
+MyDF$SourceFile[c(1, 7, 16)] <- "MyOtherFile.xlsx"
+
+fillRep(MyDF, dlplyBy = c("SubjectID", "Count"),
         concatFields = "SourceFile", returnDifs = TRUE)
 
 # Not concatenating any fields; any non-unique values will result in
 # multiple rows in the output data.frame:
-fillRep(MyDF, dlplyby = "SubjectID")
+fillRep(MyDF, dlplyBy = "SubjectID")
 }
