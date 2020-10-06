@@ -1,82 +1,84 @@
-#'Calculate the elimination rate of the terminal portion of a concentration-time
-#'curve
+#' Calculate the elimination rate(s) for a concentration-time curve
 #'
-#'\code{terminalFit} fits an exponential decay equation to concentration-time
-#'data. The equation, which is of the form \eqn{f(t) = concentration = A *
-#'exp(-kt)} where A is ~Cmax, k is the terminal elimination rate constant, and t
-#'is time, can be monoexponential, biexponential, or triexponential.
+#' \code{elimFit} fits an exponential decay equation to concentration-time data.
+#' The equation, which is of the form \eqn{f(t) = concentration = A * exp(-kt)}
+#' where A is ~Cmax, k is the elimination rate constant, and t is time. The
+#' equation can be monoexponential, biexponential, or triexponential.
 #'
-#'@param DF The data.frame with the concentration-time data
-#'@param startValues The starting values to be used in the fit. Options:
-#'  \describe{\item{NA}{If left as \code{NA}, the starting values will be
-#'  determined automatically.} \item{a list}{A list of starting values for the
-#'  fit. Use the same values that you'd supply for \code{\link[stats]{nls}}. For
-#'  a monoexponential fit, this will be a list of A and k. For a biexponential
-#'  fit: A, alpha, B, beta. And for a triexponential fit: A, alpha, B, beta, G,
-#'  gamma.} \item{a data.frame}{Sometimes, especially with sparsely sampled time
-#'  points,  the \code{nls} algorithm can fail to converge if you don't have
-#'  perfect estimates for the starting values. When that is the case, set
-#'  \code{startValues} to a two row data.frame with columns for each
-#'  coefficient. The first row should contain the minimum of the range to
-#'  search, and the second row should contain the maximum of the range to search
-#'  for that coefficient. This option uses \code{\link[nls2]{nls2}}, which does
-#'  a more rigorous search for starting values than \code{\link[stats]{nls}}, to
-#'  perform the regression. (For more information, see the documentation on
-#'  \code{\link[nls2]{nls2}} and the algorithm "\code{random-search}".)
-#'  \strong{A warning:} Because \code{nls2} searches more possible starting
-#'  values, it can be appreciably slower than \code{nls}.} \strong{A piece of
-#'  advice:} Regardless of whether you choose to use \code{nls} (supply no
-#'  starting values or supply a list) or \code{nls2} (supply a data.frame), you
-#'  truly will benefit by supplying reasonable start values. Even if you're
-#'  supplying a data.frame for \code{nls2} to search, those values should still
-#'  be reasonable or you just won't randomly select enough decent starting
-#'  places to come up with regressions that will converge.}
+#' @param DF The data.frame with the concentration-time data
+#' @param startValues The starting values to be used in the fit. Options:
+#'   \describe{\item{NA}{If left as \code{NA}, the starting values will be
+#'   determined automatically.} \item{a list}{A list of starting values for the
+#'   fit. Use the same values that you'd supply for \code{\link[stats]{nls}}.
+#'   For a monoexponential fit, this will be a list of A and k. For a
+#'   biexponential fit: A, alpha, B, beta. And for a triexponential fit: A,
+#'   alpha, B, beta, G, gamma.} \item{a data.frame}{Sometimes, especially with
+#'   sparsely sampled time points,  the \code{nls} algorithm can fail to
+#'   converge if you don't have perfect estimates for the starting values. When
+#'   that is the case, set \code{startValues} to a two row data.frame with
+#'   columns for each coefficient. The first row should contain the minimum of
+#'   the range to search, and the second row should contain the maximum of the
+#'   range to search for that coefficient. This option uses
+#'   \code{\link[nls2]{nls2}}, which does a more rigorous search for starting
+#'   values than \code{\link[stats]{nls}}, to perform the regression. (For more
+#'   information, see the documentation on \code{\link[nls2]{nls2}} and the
+#'   algorithm "\code{random-search}".) \strong{A warning:} Because \code{nls2}
+#'   searches more possible starting values, it can be appreciably slower than
+#'   \code{nls}.} \strong{A piece of advice:} Regardless of whether you choose
+#'   to use \code{nls} (supply no starting values or supply a list) or
+#'   \code{nls2} (supply a data.frame), you truly will benefit by supplying
+#'   reasonable start values. Even if you're supplying a data.frame for
+#'   \code{nls2} to search, those values should still be reasonable or you just
+#'   won't randomly select enough decent starting places to come up with
+#'   regressions that will converge.}
 #'
-#'@param concentration The name of the column that contains concentration data
-#'@param time The name of the column that contains time data
-#'@param tmax The putative time at which the maximum concentration is observed,
-#'  the time at which the elimination phase begins. (If you have more than one
-#'  phase, this may not be the actual tmax, so set this to the time you want to
-#'  start fitting.) Time points before tmax will be omitted from the fit.
-#'@param omit An index of which, if any, samples to omit from the regression.
-#'  These samples will be depicted as red open circles in the graph, if you
-#'  choose to make one, but will not be included in the regression. Note that
-#'  only points after tmax are used in the regression anyway, so there's no need
-#'  to omit, e.g., t0.
-#'@param modelType The mathematical model to use for fitting the data; options
-#'  are "monoexponential", "biexponential", or "triexponential".
-#'@param returnDataUsed Should the data used be returned? I wrote this script
-#'  initially for bootstrapping, where it can be useful to see what data were
-#'  used as input. For that reason, I'm including the option of returning the
-#'  data that were used.
-#'@param weights Weighting scheme to use for the regression. User may supply a
-#'  numeric vector of weights to use or choose from "1/x", "1/x^2", "1/y" or
-#'  "1/y^2". If left as NULL, no weighting scheme will be used. Be careful that
-#'  you don't have any infinite values or this will fail!
-#'@param returnRSS TRUE or FALSE for whether to resturn the residual sum of
-#'  squares. If set to TRUE, this will be the last column of the output
-#'  data.frame where all rows = the residual sum of squares. (I wanted the
-#'  output to still be a data.frame, so that's the place I could think of to put
-#'  it.)
-#'@param useNLS_outnames TRUE or FALSE for whether to use the standard output
-#'  coeffecient names that come with the nls or nls2 functions, e.g.,
-#'  "Estimate", "Std. Error", "t value", and "Pr(>|t|)". These names are
-#'  annoying to work with for output data.frames b/c they don't follow standard
-#'  column-naming practices (they contain spaces and symbols). If set to FALSE,
-#'  the names of the output coefficient data.frame will be "Estimate", "SE",
-#'  "tvalue" and "pvalue".
-#'@param maxiter Maximum number of iterations of start values to use; default is
-#'  50, just like \code{\link[stats]{nls}}. (See also
-#'  \code{\link[stats]{nls.control}}.) Using more iterations means more random
-#'  sampling of starting values and thus a higher likelihood of the fit
-#'  converging. However, it also means more processing time.
-#'@param graph TRUE or FALSE for whether to create a graph of the data
+#' @param concentration The name of the column that contains concentration data
+#' @param time The name of the column that contains time data
+#' @param tmax The putative time at which the maximum concentration is observed,
+#'   the time at which drug elimination becomes the dominant process. If left as
+#'   NA, this will be whatever time is tmax. If you only want to fit a subset of
+#'   times that don't necessarily include the actual tmax, set this to the time
+#'   you want to start fitting. Time points before tmax will be omitted from the
+#'   fit.
+#' @param omit An index of which, if any, samples to omit from the regression.
+#'   These samples will be depicted as red open circles in the graph, if you
+#'   choose to make one, but will not be included in the regression. Note that
+#'   only points after tmax are used in the regression anyway, so there's no
+#'   need to omit, e.g., t0.
+#' @param modelType The mathematical model to use for fitting the data; options
+#'   are "monoexponential", "biexponential", or "triexponential".
+#' @param returnDataUsed Should the data used be returned? I wrote this script
+#'   initially for bootstrapping, where it can be useful to see what data were
+#'   used as input. For that reason, I'm including the option of returning the
+#'   data that were used.
+#' @param weights Weighting scheme to use for the regression. User may supply a
+#'   numeric vector of weights to use or choose from "1/x", "1/x^2", "1/y" or
+#'   "1/y^2". If left as NULL, no weighting scheme will be used. Be careful that
+#'   you don't have any infinite values or this will fail!
+#' @param returnRSS TRUE or FALSE for whether to resturn the residual sum of
+#'   squares. If set to TRUE, this will be the last column of the output
+#'   data.frame where all rows = the residual sum of squares. (I wanted the
+#'   output to still be a data.frame, so that's the place I could think of to
+#'   put it.)
+#' @param useNLS_outnames TRUE or FALSE for whether to use the standard output
+#'   coeffecient names that come with the nls or nls2 functions, e.g.,
+#'   "Estimate", "Std. Error", "t value", and "Pr(>|t|)". These names are
+#'   annoying to work with for output data.frames b/c they don't follow standard
+#'   column-naming practices (they contain spaces and symbols). If set to FALSE,
+#'   the names of the output coefficient data.frame will be "Estimate", "SE",
+#'   "tvalue" and "pvalue".
+#' @param maxiter Maximum number of iterations of start values to use; default
+#'   is 50, just like \code{\link[stats]{nls}}. (See also
+#'   \code{\link[stats]{nls.control}}.) Using more iterations means more random
+#'   sampling of starting values and thus a higher likelihood of the fit
+#'   converging. However, it also means more processing time.
+#' @param graph TRUE or FALSE for whether to create a graph of the data
 #'
-#'@return Returns a data.frame of the coefficients or returns a list containing
-#'  whatever combination the user has specified of: \describe{\item{DataUsed}{A
-#'  data.frame of the input data} \item{Estimates}{A data.frame of the estimated
-#'  coefficients} \item{Graph}{A ggplot2 graph of the input data with a line
-#'  showing the fit to the terminal phase data}}
+#' @return Returns a data.frame of the coefficients or returns a list containing
+#'   whatever combination the user has specified of: \describe{\item{DataUsed}{A
+#'   data.frame of the input data} \item{Estimates}{A data.frame of the
+#'   estimated coefficients} \item{Graph}{A ggplot2 graph of the input data with
+#'   a line showing the fit to the terminal phase data}}
 #'
 #' @examples
 #' # Example data to work with:
@@ -85,57 +87,77 @@
 #'                                      Drug == "A") %>%
 #'       select(SubjectID, TimeHr, Concentration)
 #'
-#' # Automatically select the start values
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' # Automatically select the start values for the regression and start
+#' # fitting at whatever time is tmax
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential")
 #'
 #' # Set the start values yourself using a list (algorithm uses nls
 #' # to fit the data).
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             startValues = list(A = 30, k = 0.01),
 #'             modelType = "monoexponential")
 #'
 #' # Set the start values yourself but use the more robust nls2
 #' # function to do the regression. Provide a range of values to search.
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             startValues = data.frame(A = c(5, 50), k = c(0.0001, 0.05)),
 #'             modelType = "monoexponential")
 #'
 #' # Omit a point. In this case, omit the point at t = 8.
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential",
 #'             omit = which(IV1$TimeHr == 8))
 #'
 #' # Don't start fitting until a later time than tmax, e.g., t = 4.
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", tmax = 4))
 #'
 #' # Weight by 1/y.
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             weight = 1/IV1$Concentration,
 #'             modelType = "monoexponential")
 #'
 #' # Another way to weight by 1/y
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             weight = "1/y",
 #'             modelType = "monoexponential")
 #'
 #' # Get the residual sum of squares
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", returnRSS = TRUE)
 #'
 #' # Use better names for the columns in the output
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", useNLS_outnames = FALSE)
 #'
 #' # Graph the data; good for visually inspecting the fit.
-#' terminalFit(IV1, concentration = Concentration, time = TimeHr,
+#' elimFit(IV1, concentration = Concentration, time = TimeHr,
 #'             modelType = "monoexponential", tmax = 4, graph = TRUE)
 #'
+#' # Some data for using the triexponential fit
+#' TriExpDF <- data.frame(Time_min = c(0, 18, 33, 48, 63, 95, 123, 153, 183,
+#'                                     213, 243, 303, 483),
+#'                        Concentration = c(0, 420, 228, 143, 90, 48, 28,
+#'                                          18, 13, 10, 7, 4, 2))
 #'
-#'@export
+#' # Some starting values to use for the triexponential fit
+#' Start_tri <- data.frame(A = c(100, 500),
+#'                         alpha = c(0.01, 0.5),
+#'                         B = c(50, 200),
+#'                         beta = c(0.001, 0.05),
+#'                         G = c(1, 100),
+#'                         gamma = c(1e-04, 0.01))
+#'
+#' elimFit(TriExpDF, startValues = Start_tri, concentration = Concentration,
+#'         time = Time_min, tmax = 33, modelType = "triexponential",
+#'         graph = TRUE)
+#'
+#'
+#' @export
+#'
 
-terminalFit <- function(DF, startValues = NA,
+elimFit <- function(DF, startValues = NA,
                         concentration = Concentration,
                         time = Time,
                         omit = NA,
@@ -378,8 +400,11 @@ terminalFit <- function(DF, startValues = NA,
             DataUsed <- DFinit
             Estimates <- data.frame(Estimate = NA, SE = NA, tvalue = NA,
                                     pvalue = NA)
-            names(Estimates) <- c("Estimate", "Std. Error", "t value",
-                                  "Pr(>|t|)")
+
+            if(useNLS_outnames){
+                  names(Estimates) <- c("Estimate", "Std. Error", "t value",
+                                        "Pr(>|t|)")
+            }
 
             Estimates$Message <- "Cannot fit to model"
 
@@ -396,41 +421,86 @@ terminalFit <- function(DF, startValues = NA,
 
             Result <- list(DataUsed = DataUsed, Estimates = Estimates)
 
-      } else {
+      } else { # This is for when the fit did work fine.
 
-            # This is for when the fit did work fine.
-            Result <- list(DataUsed = DFinit,
-                           Estimates = as.data.frame(
-                                 summary(Fit)[["coefficients"]]))
+            Estimates <- as.data.frame(summary(Fit)[["coefficients"]])
 
             if(modelType == "monoexponential"){
                   CurveData <- CurveData %>%
-                        mutate(A = Result$Estimates[row.names(Result$Estimates) == "A", "Estimate"],
-                               k = Result$Estimates[row.names(Result$Estimates) == "k", "Estimate"],
+                        mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
+                               k = Estimates[row.names(Estimates) == "k", "Estimate"],
                                CONC = A * exp(-k * Time.offset))
+
+                  Estimates$Beta <- row.names(Estimates)
             }
 
             if(modelType == "biexponential"){
                   CurveData <- CurveData %>%
-                        mutate(A = Result$Estimates[row.names(Result$Estimates) == "A", "Estimate"],
-                               alpha = Result$Estimates[row.names(Result$Estimates) == "alpha", "Estimate"],
-                               B = Result$Estimates[row.names(Result$Estimates) == "B", "Estimate"],
-                               beta = Result$Estimates[row.names(Result$Estimates) == "beta", "Estimate"],
+                        mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
+                               alpha = Estimates[row.names(Estimates) == "alpha", "Estimate"],
+                               B = Estimates[row.names(Estimates) == "B", "Estimate"],
+                               beta = Estimates[row.names(Estimates) == "beta", "Estimate"],
                                CONC = A * exp(-alpha * Time.offset) +
                                      B * exp(-beta * Time.offset))
+
+                  # Figuring out which beta is which and making it consistent
+                  Betas <- Estimates %>%
+                        mutate(ParamSet = c("Set1", "Set1", "Set2", "Set2"),
+                               ParamType = rep(c("A0", "rate"), 2)) %>%
+                        select(Estimate, ParamSet, ParamType) %>%
+                        spread(key = ParamType, value = Estimate) %>%
+                        arrange(-A0) %>%
+                        mutate(ParamSet = c("A", "B"))
+
+                  A <- Betas$A0[Betas$ParamSet == "A"]
+                  alpha <- Betas$rate[Betas$ParamSet == "A"]
+                  B <- Betas$A0[Betas$ParamSet == "B"]
+                  beta <- Betas$rate[Betas$ParamSet == "B"]
+
+                  Betas <- tibble(Beta = c("A", "alpha", "B", "beta"),
+                                  Estimate = c(A, alpha, B, beta)) %>%
+                        mutate(Beta = factor(Beta, levels = Beta))
+
+                  Estimates <- Estimates %>% left_join(Betas) %>%
+                        arrange(Beta)
             }
 
             if(modelType == "triexponential"){
                   CurveData <- CurveData %>%
-                        mutate(A = Result$Estimates[row.names(Result$Estimates) == "A", "Estimate"],
-                               alpha = Result$Estimates[row.names(Result$Estimates) == "alpha", "Estimate"],
-                               B = Result$Estimates[row.names(Result$Estimates) == "B", "Estimate"],
-                               beta = Result$Estimates[row.names(Result$Estimates) == "beta", "Estimate"],
-                               G = Result$Estimates[row.names(Result$Estimates) == "G", "Estimate"],
-                               gamma = Result$Estimates[row.names(Result$Estimates) == "gamma", "Estimate"],
+                        mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
+                               alpha = Estimates[row.names(Estimates) == "alpha", "Estimate"],
+                               B = Estimates[row.names(Estimates) == "B", "Estimate"],
+                               beta = Estimates[row.names(Estimates) == "beta", "Estimate"],
+                               G = Estimates[row.names(Estimates) == "G", "Estimate"],
+                               gamma = Estimates[row.names(Estimates) == "gamma", "Estimate"],
                                CONC = A * exp(-alpha * Time.offset) +
                                      B * exp(-beta * Time.offset) +
                                      G * exp(-gamma * Time.offset))
+
+                  # Figuring out which beta is which and making it consistent
+                  Betas <- Estimates %>%
+                        mutate(ParamSet = c("Set1", "Set1", "Set2", "Set2",
+                                            "Set3", "Set3"),
+                               ParamType = rep(c("A0", "rate"), 3)) %>%
+                        select(Estimate, ParamSet, ParamType) %>%
+                        spread(key = ParamType, value = Estimate) %>%
+                        arrange(-A0) %>%
+                        mutate(ParamSet = c("A", "B", "G"))
+
+                  A <- Betas$A0[Betas$ParamSet == "A"]
+                  alpha <- Betas$rate[Betas$ParamSet == "A"]
+                  B <- Betas$A0[Betas$ParamSet == "B"]
+                  beta <- Betas$rate[Betas$ParamSet == "B"]
+                  G <- Betas$A0[Betas$ParamSet == "G"]
+                  gamma <- Betas$rate[Betas$ParamSet == "G"]
+
+                  Betas <- tibble(Beta = c("A", "alpha", "B", "beta",
+                                           "G", "gamma"),
+                                  Estimate = c(A, alpha, B, beta, G, gamma)) %>%
+                        mutate(Beta = factor(Beta, levels = Beta))
+
+                  Estimates <- Estimates %>% left_join(Betas) %>%
+                        arrange(Beta)
             }
 
             CurveData <- CurveData %>%
@@ -449,7 +519,9 @@ terminalFit <- function(DF, startValues = NA,
             }
       }
 
-      Result[["Graph"]] <- Graph
+      Result <- list(DataUsed = DFinit,
+                     Estimates = Estimates,
+                     Graph = Graph)
 
       # Here's what to do if the fit didn't work at all. I can't remember what
       # caused this to happen, but I know I needed to catch this.
