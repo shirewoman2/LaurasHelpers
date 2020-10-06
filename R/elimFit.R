@@ -398,11 +398,11 @@ elimFit <- function(DF, startValues = NA,
             # This is for when the fit did NOT work. Returning a data.frame of
             # NA values.
             DataUsed <- DFinit
-            Estimates <- data.frame(Estimate = NA, SE = NA, tvalue = NA,
-                                    pvalue = NA)
+            Estimates <- data.frame(Beta = NA, Estimate = NA, SE = NA,
+                                    tvalue = NA, pvalue = NA)
 
             if(useNLS_outnames){
-                  names(Estimates) <- c("Estimate", "Std. Error", "t value",
+                  names(Estimates) <- c("Beta", "Estimate", "Std. Error", "t value",
                                         "Pr(>|t|)")
             }
 
@@ -462,7 +462,8 @@ elimFit <- function(DF, startValues = NA,
                         mutate(Beta = factor(Beta, levels = Beta))
 
                   Estimates <- Estimates %>% left_join(Betas) %>%
-                        arrange(Beta)
+                        arrange(Beta) %>%
+                        select(Beta, everything())
             }
 
             if(modelType == "triexponential"){
@@ -500,7 +501,8 @@ elimFit <- function(DF, startValues = NA,
                         mutate(Beta = factor(Beta, levels = Beta))
 
                   Estimates <- Estimates %>% left_join(Betas) %>%
-                        arrange(Beta)
+                        arrange(Beta) %>%
+                        select(Beta, everything())
             }
 
             CurveData <- CurveData %>%
@@ -526,9 +528,9 @@ elimFit <- function(DF, startValues = NA,
       # Here's what to do if the fit didn't work at all. I can't remember what
       # caused this to happen, but I know I needed to catch this.
       if(is.null(Fit)){
-            Estimates <- data.frame(Estimate = NA, SE = NA, tvalue = NA,
-                                    pvalue = NA)
-            names(Estimates) <- c("Estimate", "Std. Error", "t value",
+            Estimates <- data.frame(Beta = NA, Estimate = NA, SE = NA,
+                                    tvalue = NA, pvalue = NA)
+            names(Estimates) <- c("Beta", "Estimate", "Std. Error", "t value",
                                   "Pr(>|t|)")
             Estimates$Message <- "Cannot fit to model"
 
@@ -540,8 +542,8 @@ elimFit <- function(DF, startValues = NA,
       # If the user wants to use better names for the output data.frame, setting
       # those here.
       if(useNLS_outnames == FALSE & class(Fit) == "nls"){
-            names(Result[["Estimates"]]) <- c("Estimate", "SE", "tvalue",
-                                              "pvalue")
+            names(Result[["Estimates"]]) <-
+                  c("Beta", "Estimate", "SE", "tvalue", "pvalue")
       }
 
       # If the user wanted to have an estimate of the residual sum of squares,
