@@ -431,7 +431,10 @@ elimFit <- function(DF, startValues = NA,
                                k = Estimates[row.names(Estimates) == "k", "Estimate"],
                                CONC = A * exp(-k * Time.offset))
 
-                  Estimates$Beta <- row.names(Estimates)
+                  Estimates <- Estimates %>%
+                        mutate(Beta = row.names(Estimates)) %>%
+                        select(Beta, everything())
+
             }
 
             if(modelType == "biexponential"){
