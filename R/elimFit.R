@@ -464,7 +464,7 @@ elimFit <- function(DF, startValues = NA,
                                   Estimate = c(A, alpha, B, beta)) %>%
                         mutate(Beta = factor(Beta, levels = Beta))
 
-                  Estimates <- Estimates %>% left_join(Betas) %>%
+                  Estimates <- Estimates %>% left_join(Betas, by = "Estimate") %>%
                         arrange(Beta) %>%
                         select(Beta, everything())
             }
@@ -503,7 +503,7 @@ elimFit <- function(DF, startValues = NA,
                                   Estimate = c(A, alpha, B, beta, G, gamma)) %>%
                         mutate(Beta = factor(Beta, levels = Beta))
 
-                  Estimates <- Estimates %>% left_join(Betas) %>%
+                  Estimates <- Estimates %>% left_join(Betas, by = "Estimate") %>%
                         arrange(Beta) %>%
                         select(Beta, everything())
             }
