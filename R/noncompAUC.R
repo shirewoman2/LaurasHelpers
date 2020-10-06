@@ -1,15 +1,14 @@
 #' Calculate the AUC using the trapezoidal rule
 #'
 #' Given a data.frame of concentration-time data, \code{noncompAUC} calculates
-#' the area-under-the-concentration-time curve for the times included in the
+#' the area under the concentration-time curve for the times included in the
 #' input data.frame using either the linear or the linear up/log down
-#' trapezoidal rule. Optionally extrapolate to infinity or back extapolate to
+#' trapezoidal rule. Optionally extrapolate to infinity or back extrapolate to
 #' t0.
 #'
 #' @param DF Input data.frame with concentration-time data.
 #' @param concentration The name of the column containing drug concentrations
-#'   (character).
-#' @param time The name of the column containing time data (character).
+#' @param time The name of the column containing time data
 #' @param type The type of trapezoidal rule to use. Options are "LULD" (default)
 #'   for "linear up, log down" or "linear".
 #' @param extrap_inf Extrapolate the curve to infinity? TRUE or FALSE.
@@ -18,18 +17,20 @@
 #'   extrapolation to infinity. Provide a data.frame of the coefficients from a
 #'   \code{nls} regression. Format must be the standard output from
 #'   \code{summary(nls(...))[["coefficients"]]} or the coefficients from
-#'   \code{elimFit(...)}. (See \code{\link{elimFit}}.) It doesn't matter
-#'   what you name the coefficients, but this function assumes that they will be
-#'   listed with the y-intercept \emph{A0} in the first row and the rate
-#'   constant \emph{k} in the next row.
+#'   \code{\link{elimFit}}. It doesn't matter what you name the coefficients,
+#'   but this function assumes that they will be listed with the y-intercept
+#'   \emph{A0} in the first row and the rate constant \emph{k} in the next row.
+#'   Note that this is for a \emph{mono}exponential decay. If you've fit a bi-
+#'   or triexponential decay model to your data, only supply the rate constant
+#'   and y intercept for the \emph{terminal} portion of the data.
 #' @param extrap_inf_times If \code{extrap_inf} is TRUE but you haven't supplied
 #'   the coefficients from fitting a monoexponential decay to your data, specify
 #'   the time range to use for fitting as \code{c(minTime, maxTime)}. If this is
-#'   left as \code{c(NA, NA)}, the full time range will be used.
+#'   left as \code{c(NA, NA)}, the time range from tmax to tlast will be used.
 #' @param reportFractExtrap TRUE or FALSE for whether to report the fraction of
 #'   the AUC extrapolated to infinity. If TRUE, this changes the output from a
-#'   single number for the AUC to a named list of the AUC as a number and the
-#'   fraction extrapolated as a named item in the list.
+#'   to a named list that includes the AUC as a number and the fraction
+#'   extrapolated as a named item in the list.
 #'
 #' @param extrap_t0 TRUE or FALSE for whether to back extrapolate the curve to
 #'   0. This is useful when the dose was administered IV and you know you're
@@ -41,27 +42,27 @@
 #'   named list of: \describe{\item{\code{coefs}}{the coefficients from a
 #'   \code{nls} regression. Format must be the standard output from
 #'   \code{summary(nls(...))[["coefficients"]]} or the coefficients from
-#'   \code{elimFit(...)}. (See \code{\link{elimFit}}.) It doesn't matter
-#'   what you name the coefficients, but this function assumes that they will be
-#'   listed with the y-intercept for the first term in the first row, the rate
-#'   constant for the first term in the next row, the y intercept for the second
-#'   term in the next row, the rate constant for the second term in the next row
-#'   after that, etc.} \item{\code{tmax}}{The time to start fitting the
-#'   elimination curve. This will be used to determine how far back in time t0
-#'   is.} }
+#'   \code{\link{elimFit}}. It doesn't matter what you name the coefficients,
+#'   but this function assumes that they will be listed with the y-intercept for
+#'   the first term in the first row, the rate constant for the first term in
+#'   the next row, the y intercept for the second term in the next row, the rate
+#'   constant for the second term in the next row after that, etc.}
+#'   \item{\code{tmax}}{The time to start fitting the elimination curve. This
+#'   will be used to determine how far back in time t0 is.} }
 #' @param extrap_t0_model "monoexponential" or "biexponential". Only used when
 #'   \code{extrap_t0} is TRUE and you haven't supplied your own fitted
 #'   coefficients. This sets which exponential decay model to fit to your data
 #'   and defaults to "monoexponential".
 #' @param extrap_t0_times If \code{extrap_t0} is TRUE, specify the time range to
 #'   use for fitting the exponential decay as \code{c(minTime, maxTime)}. If
-#'   this is left as \code{c(NA, NA)}, the full time range will be used.
+#'   this is left as \code{c(NA, NA)}, the full time range from tmax to tlast
+#'   will be used.
 #' @param reportC0 TRUE or FALSE for whether to report the back-extrapolated
-#'   concentration at t0. If TRUE, the output becomes a named list of the AUC
-#'   and the extrapolated C0 value. This is useful as a sanity check because the
-#'   maximum concentration at t0 in, e.g., plasma should be no larger than
-#'   approximately the dose / total plasma volume, which is ~3 L in a healthy,
-#'   70-kg adult.
+#'   concentration at t0. If TRUE, the output becomes a named list that includes
+#'   the AUC and the extrapolated C0 value. This is useful as a sanity check
+#'   because the maximum concentration at t0 in, e.g., plasma should be no
+#'   larger than approximately the dose / total plasma volume, which is ~3 L in
+#'   a healthy, 70-kg adult.
 #'
 #' @details \strong{A few notes:}\itemize{
 #'
@@ -84,6 +85,7 @@
 #'   selected, a named list of the AUC (\code{AUC[["AUC"]]}), the fraction of
 #'   the curve extrapolated to infinity (\code{AUC[["Fraction extrapolated to
 #'   infinity"]]}), and the back extrapolated C0 (\code{AUC[["C0"]]}).
+#'
 #' @examples
 #' data(ConcTime)
 #' IV1 <- ConcTime %>% dplyr::filter(SubjectID == 101 & Drug == "A" &
@@ -185,10 +187,12 @@ noncompAUC <- function(DF, concentration = Concentration,
       DFmean <- DF %>%
             dplyr::filter(complete.cases(CONC)) %>%
             dplyr::group_by(TIME) %>%
-            dplyr::summarize(CONC = mean(CONC)) %>%
+            dplyr::summarize(CONC = mean(CONC), .groups = "drop_last") %>%
             dplyr::arrange(TIME)
 
       if(extrap_inf){
+
+            Tmax <- extrap_inf_times[1]
 
             if(is.na(extrap_inf_times[1])){
                   extrap_inf_times[1] <- min(DFmean$TIME, na.rm = TRUE)
@@ -204,36 +208,41 @@ noncompAUC <- function(DF, concentration = Concentration,
                   EndTime <- DFmean %>% filter(TIME <= extrap_inf_times[2]) %>%
                         pull(TIME) %>% max
 
-                  Tmax <- ifelse(is.na(extrap_inf_times[1]),
-                                 NA, StartTime)
-
-                  Fit <- elimFit(DFmean %>% filter(TIME >= StartTime &
+                  Fit_inf <- elimFit(DFmean %>% filter(TIME >= StartTime &
                                                              TIME <= EndTime),
                                      concentration = CONC,
                                      time = TIME,
                                      tmax = Tmax,
                                      modelType = "monoexponential")
 
-                  if(Fit[[1]][1] == "Cannot fit to model"){
+                  if(Fit_inf[[1]][1] == "Cannot fit to model"){
                         stop("Attempts to fit a monoexponential decay equation to the data failed to converge. Try a different time range.")
                   }
+
+                  rm(StartTime, EndTime)
+
             } else {
 
-                  Fit <- extrap_inf_coefs
-                  row.names(Fit) <- c("A", "k")
+                  Fit_inf <- as.data.frame(extrap_inf_coefs)
+                  Fit_inf$Beta <- c("A", "k")
 
             }
 
             Clast <- DFmean %>% filter(complete.cases(CONC)) %>%
-                  summarize(Clast = CONC[which.max(TIME)]) %>% pull(Clast)
+                  summarize(Clast = CONC[which.max(TIME)],
+                            .groups = "drop_last") %>% pull(Clast)
 
-            AUClast_inf <- Clast / Fit["k", "Estimate"]
+            AUClast_inf <- Clast / Fit_inf$Estimate[Fit_inf$Beta == "k"]
+
+            rm(Tmax)
 
       } else {
             AUClast_inf <- 0
       }
 
       if(extrap_t0){
+
+            Tmax <- extrap_t0_times[1]
 
             if(is.na(extrap_t0_times[1])){
                   extrap_t0_times[1] <- min(DFmean$TIME, na.rm = TRUE)
@@ -249,28 +258,34 @@ noncompAUC <- function(DF, concentration = Concentration,
                   EndTime <- DFmean %>% filter(TIME <= extrap_t0_times[2]) %>%
                         pull(TIME) %>% max
 
-                  Tmax <- ifelse(is.na(extrap_t0_times[1]),
-                                 NA, StartTime)
-
-                  Fit <- elimFit(DFmean %>% filter(TIME >= StartTime &
+                  Fit_t0 <- elimFit(DFmean %>% filter(TIME >= StartTime &
                                                              TIME <= EndTime),
                                      concentration = CONC,
                                      time = TIME,
                                      tmax = Tmax,
                                      modelType = extrap_t0_model)
 
-                  if(Fit[[1]][1] == "Cannot fit to model"){
+                  Tmax <- ifelse(complete.cases(Tmax), Tmax,
+                                 DFmean$TIME[which.max(DFmean$CONC)])
+
+                  if(Fit_t0[[1]][1] == "Cannot fit to model"){
                         stop(paste("Attempts to fit a",
                                    extrap_t0_model,
                                    "decay equation to the data failed to converge. Try a different model."))
                   }
 
                   if(extrap_t0_model == "monoexponential"){
-                        C0 <- Fit["A", "Estimate"] * exp(-Fit["k", "Estimate"] * -Tmax)
+                        C0 <- Fit_t0$Estimate[Fit_t0$Beta == "A"] *
+                              exp(-Fit_t0$Estimate[Fit_t0$Beta == "k"] * -Tmax)
                   } else {
-                        C0 <- Fit["A", "Estimate"] * exp(-Fit["alpha", "Estimate"] * -Tmax) +
-                              Fit["B", "Estimate"] * exp(-Fit["beta", "Estimate"] * -Tmax)
+                        C0 <- Fit_t0$Estimate[Fit_t0$Beta == "A"] *
+                              exp(-Fit_t0$Estimate[Fit_t0$Beta == "alpha"] * -Tmax) +
+                              Fit_t0$Estimate[Fit_t0$Beta == "B"] *
+                              exp(-Fit_t0$Estimate[Fit_t0$Beta == "beta"] * -Tmax)
                   }
+
+                  rm(StartTime, EndTime)
+
             } else {
 
                   MyCoefs <- as.data.frame(extrap_t0_coefs[["coefs"]])
@@ -307,6 +322,7 @@ noncompAUC <- function(DF, concentration = Concentration,
                         arrange(TIME) %>% unique()
             }
 
+            rm(Tmax)
       }
 
       # function for linear trapezoidal rule

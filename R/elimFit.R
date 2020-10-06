@@ -157,18 +157,18 @@
 #' @export
 #'
 
-elimFit <- function(DF, startValues = NA,
-                        concentration = Concentration,
-                        time = Time,
-                        omit = NA,
-                        tmax = NA,
-                        modelType = "monoexponential",
-                        returnDataUsed = FALSE,
-                        weights = NULL,
-                        returnRSS = FALSE,
-                        useNLS_outnames = TRUE,
-                        maxiter = 50,
-                        graph = FALSE){
+elimFit <- function(DF, concentration = Concentration,
+                    time = Time,
+                    startValues = NA,
+                    omit = NA,
+                    tmax = NA,
+                    modelType = "monoexponential",
+                    returnDataUsed = FALSE,
+                    weights = NULL,
+                    returnRSS = FALSE,
+                    useNLS_outnames = TRUE,
+                    maxiter = 50,
+                    graph = FALSE){
 
       # Catching inappropriate model input
       if(modelType %in% c("monoexponential", "biexponential",

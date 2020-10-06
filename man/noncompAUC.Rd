@@ -23,10 +23,9 @@ noncompAUC(
 \arguments{
 \item{DF}{Input data.frame with concentration-time data.}
 
-\item{concentration}{The name of the column containing drug concentrations
-(character).}
+\item{concentration}{The name of the column containing drug concentrations}
 
-\item{time}{The name of the column containing time data (character).}
+\item{time}{The name of the column containing time data}
 
 \item{type}{The type of trapezoidal rule to use. Options are "LULD" (default)
 for "linear up, log down" or "linear".}
@@ -38,20 +37,22 @@ a monoexponential decay equation, \code{noncompAUC} will use that for
 extrapolation to infinity. Provide a data.frame of the coefficients from a
 \code{nls} regression. Format must be the standard output from
 \code{summary(nls(...))[["coefficients"]]} or the coefficients from
-\code{elimFit(...)}. (See \code{\link{elimFit}}.) It doesn't matter
-what you name the coefficients, but this function assumes that they will be
-listed with the y-intercept \emph{A0} in the first row and the rate
-constant \emph{k} in the next row.}
+\code{\link{elimFit}}. It doesn't matter what you name the coefficients,
+but this function assumes that they will be listed with the y-intercept
+\emph{A0} in the first row and the rate constant \emph{k} in the next row.
+Note that this is for a \emph{mono}exponential decay. If you've fit a bi-
+or triexponential decay model to your data, only supply the rate constant
+and y intercept for the \emph{terminal} portion of the data.}
 
 \item{extrap_inf_times}{If \code{extrap_inf} is TRUE but you haven't supplied
 the coefficients from fitting a monoexponential decay to your data, specify
 the time range to use for fitting as \code{c(minTime, maxTime)}. If this is
-left as \code{c(NA, NA)}, the full time range will be used.}
+left as \code{c(NA, NA)}, the time range from tmax to tlast will be used.}
 
 \item{reportFractExtrap}{TRUE or FALSE for whether to report the fraction of
 the AUC extrapolated to infinity. If TRUE, this changes the output from a
-single number for the AUC to a named list of the AUC as a number and the
-fraction extrapolated as a named item in the list.}
+to a named list that includes the AUC as a number and the fraction
+extrapolated as a named item in the list.}
 
 \item{extrap_t0}{TRUE or FALSE for whether to back extrapolate the curve to
 0. This is useful when the dose was administered IV and you know you're
@@ -64,14 +65,13 @@ a monoexponential, biexponential, or triexponential decay equation,
 named list of: \describe{\item{\code{coefs}}{the coefficients from a
 \code{nls} regression. Format must be the standard output from
 \code{summary(nls(...))[["coefficients"]]} or the coefficients from
-\code{elimFit(...)}. (See \code{\link{elimFit}}.) It doesn't matter
-what you name the coefficients, but this function assumes that they will be
-listed with the y-intercept for the first term in the first row, the rate
-constant for the first term in the next row, the y intercept for the second
-term in the next row, the rate constant for the second term in the next row
-after that, etc.} \item{\code{tmax}}{The time to start fitting the
-elimination curve. This will be used to determine how far back in time t0
-is.} }}
+\code{\link{elimFit}}. It doesn't matter what you name the coefficients,
+but this function assumes that they will be listed with the y-intercept for
+the first term in the first row, the rate constant for the first term in
+the next row, the y intercept for the second term in the next row, the rate
+constant for the second term in the next row after that, etc.}
+\item{\code{tmax}}{The time to start fitting the elimination curve. This
+will be used to determine how far back in time t0 is.} }}
 
 \item{extrap_t0_model}{"monoexponential" or "biexponential". Only used when
 \code{extrap_t0} is TRUE and you haven't supplied your own fitted
@@ -80,14 +80,15 @@ and defaults to "monoexponential".}
 
 \item{extrap_t0_times}{If \code{extrap_t0} is TRUE, specify the time range to
 use for fitting the exponential decay as \code{c(minTime, maxTime)}. If
-this is left as \code{c(NA, NA)}, the full time range will be used.}
+this is left as \code{c(NA, NA)}, the full time range from tmax to tlast
+will be used.}
 
 \item{reportC0}{TRUE or FALSE for whether to report the back-extrapolated
-concentration at t0. If TRUE, the output becomes a named list of the AUC
-and the extrapolated C0 value. This is useful as a sanity check because the
-maximum concentration at t0 in, e.g., plasma should be no larger than
-approximately the dose / total plasma volume, which is ~3 L in a healthy,
-70-kg adult.}
+concentration at t0. If TRUE, the output becomes a named list that includes
+the AUC and the extrapolated C0 value. This is useful as a sanity check
+because the maximum concentration at t0 in, e.g., plasma should be no
+larger than approximately the dose / total plasma volume, which is ~3 L in
+a healthy, 70-kg adult.}
 }
 \value{
 Returns the calculated AUC as a number or, depending on the options
@@ -97,9 +98,9 @@ Returns the calculated AUC as a number or, depending on the options
 }
 \description{
 Given a data.frame of concentration-time data, \code{noncompAUC} calculates
-the area-under-the-concentration-time curve for the times included in the
+the area under the concentration-time curve for the times included in the
 input data.frame using either the linear or the linear up/log down
-trapezoidal rule. Optionally extrapolate to infinity or back extapolate to
+trapezoidal rule. Optionally extrapolate to infinity or back extrapolate to
 t0.
 }
 \details{

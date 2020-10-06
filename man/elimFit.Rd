@@ -6,9 +6,9 @@
 \usage{
 elimFit(
   DF,
-  startValues = NA,
   concentration = Concentration,
   time = Time,
+  startValues = NA,
   omit = NA,
   tmax = NA,
   modelType = "monoexponential",
@@ -22,6 +22,10 @@ elimFit(
 }
 \arguments{
 \item{DF}{The data.frame with the concentration-time data}
+
+\item{concentration}{The name of the column that contains concentration data}
+
+\item{time}{The name of the column that contains time data}
 
 \item{startValues}{The starting values to be used in the fit. Options:
 \describe{\item{NA}{If left as \code{NA}, the starting values will be
@@ -48,10 +52,6 @@ reasonable start values. Even if you're supplying a data.frame for
 \code{nls2} to search, those values should still be reasonable or you just
 won't randomly select enough decent starting places to come up with
 regressions that will converge.}}
-
-\item{concentration}{The name of the column that contains concentration data}
-
-\item{time}{The name of the column that contains time data}
 
 \item{omit}{An index of which, if any, samples to omit from the regression.
 These samples will be depicted as red open circles in the graph, if you
