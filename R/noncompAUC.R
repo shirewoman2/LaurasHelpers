@@ -397,7 +397,8 @@ noncompAUC <- function(DF, concentration = Concentration,
             AUClast <- sum(AUCup, AUCdown, na.rm = TRUE)
       }
 
-      # Total AUC will be AUClast + AUClast_inf.
+      # Total AUC will be AUClast + AUClast_inf. Note that if extrap_inf ==
+      # FALSE, then AUClast_inf is 0.
       AUC <- AUClast + AUClast_inf
 
       if(reportFractExtrap | reportC0){
@@ -408,7 +409,8 @@ noncompAUC <- function(DF, concentration = Concentration,
             }
 
             if(reportFractExtrap & extrap_inf){
-                  AUC[["Fraction extrapolated to infinity"]] <- AUClast / AUC[["AUC"]]
+                  AUC[["Fraction extrapolated to infinity"]] <-
+                        AUClast_inf / AUC[["AUC"]]
             }
       }
 
