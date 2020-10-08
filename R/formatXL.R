@@ -107,9 +107,6 @@
 #'   column 4 will be the default Excel style of text plus having a border on
 #'   the left side - not blue, bold, \emph{and} border on left.
 #'
-#' @import dplyr
-#' @import tidyr
-#' @import xlsx
 #' @return This does not return any R objects; it saves an Excel file.
 #' @examples
 #' data(iris)
