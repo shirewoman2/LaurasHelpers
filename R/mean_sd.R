@@ -85,7 +85,7 @@ mean_sd <- function(x, stdev.x = NULL,
       }
 
       # If there are any infinite values, return Inf, which is what the mean of
-      # a vector containing Inf would be and issue warning message. Not truly
+      # a vector containing Inf would be, and issue warning message. Not truly
       # meaningful to calculate sd, 95% CI, etc., when x contains infinity, and
       # this function really just isn't designed for this purpose.
       if(any(is.infinite(x))){
@@ -180,10 +180,10 @@ mean_sd <- function(x, stdev.x = NULL,
 
                   # Find which place the 1st digit is for the sd
                   # Apend a decimal if there isn't one.
-                  if(str_detect(as.character(stdev.x), "\\.") == FALSE){
+                  if(stringr::str_detect(as.character(stdev.x), "\\.") == FALSE){
                         stdev.x <- paste0(stdev.x, ".0")
                   }
-                  if(str_detect(as.character(mean.x), "\\.") == FALSE){
+                  if(stringr::str_detect(as.character(mean.x), "\\.") == FALSE){
                         mean.x <- paste0(mean.x, ".0")
                   }
 
