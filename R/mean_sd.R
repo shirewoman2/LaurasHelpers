@@ -57,7 +57,6 @@ mean_sd <- function(x, stdev.x = NULL,
                     calcQuantiles = FALSE,
                     reportn = FALSE,
                     ndig = NA, na.rm = TRUE){
-      require(stringr)
 
       if(all(is.na(x))){
             if(reportn == TRUE){
@@ -149,7 +148,7 @@ mean_sd <- function(x, stdev.x = NULL,
       PlacesSD <- Digits$Place[which(signif(stdev.x, 1) >= Digits$MinValue &
                                            signif(stdev.x, 1) < Digits$MaxValue)]
       if(signif(stdev.x, 1) == 0){
-            if(str_detect(as.character(mean.x), "\\.")){
+            if(stringr::str_detect(as.character(mean.x), "\\.")){
                   PlacesSD <- 0
             } else {
                   PlacesSD <- 2
@@ -161,7 +160,7 @@ mean_sd <- function(x, stdev.x = NULL,
             if(PlacesSD < 1){ # sd value is less than 1, i.e., has a decimal point in it
 
                   # Find the position of the 1st non-zero character after the decimal
-                  DecLocSD <- str_locate(as.character(format(signif(stdev.x, 1),
+                  DecLocSD <- stringr::str_locate(as.character(format(signif(stdev.x, 1),
                                                              scientific = FALSE)),
                                          "\\.(0){0,20}[1-9]")[2]
                   if(is.na(DecLocSD)){ # This will happen if sd(x) == 0 and there are digits after a decimal in mean(x)
@@ -187,8 +186,8 @@ mean_sd <- function(x, stdev.x = NULL,
                         mean.x <- paste0(mean.x, ".0")
                   }
 
-                  DecLocSD <- str_locate(as.character(stdev.x), "\\.")[2] - 1
-                  DecLocMean <- str_locate(as.character(mean.x), "\\.")[2] - 1
+                  DecLocSD <- stringr::str_locate(as.character(stdev.x), "\\.")[2] - 1
+                  DecLocMean <- stringr::str_locate(as.character(mean.x), "\\.")[2] - 1
                   SigFig <- DecLocMean - DecLocSD + 1
 
                   if(SigFig > 0){
