@@ -131,11 +131,11 @@
 #' # The elimination phase begins at t = 0.5 hrs here, so don't start fitting at
 #' # t0; you'll get bad estimates.
 #' Fit <- nls(Concentration ~ A * exp(-k * (TimeHr - tmax)),
-#'            data = IV1 %>% filter(TimeHr >= tmax),
+#'            data = IV1 %>%  dplyr::filter(TimeHr >= tmax),
 #'            start = list(A = max(IV1$Concentration), k = 0.01))
 #' MyCoefs <- summary(Fit)[["coefficients"]]
 #'
-#' # Extapolating to infinity with supplied coefficients
+#' # Extrapolating to infinity with supplied coefficients
 #' noncompAUC(IV1, time = TimeHr, extrap_inf = TRUE,
 #'            extrap_inf_times = c(0.5, NA),
 #'            extrap_inf_coefs = MyCoefs)
@@ -162,6 +162,12 @@ noncompAUC <- function(DF, concentration = Concentration,
                        extrap_t0_times = c(NA, NA),
                        reportC0 = FALSE) {
 
+
+      # Defining pipe operator and bang bang
+      `%>%` <- magrittr::`%>%`
+      `!!` <- rlang::`!!`
+
+
       if(type %in% c("linear", "LULD") == FALSE){
             stop("The only options for type of AUC calculation are 'LULD' for 'linear up, log down' or 'linear'.")
       }
@@ -175,14 +181,14 @@ noncompAUC <- function(DF, concentration = Concentration,
             stop("If you supply coefficients and tmax in a list for back-extrapolating to t0, the names of those items must be 'coefs' and 'tmax'. Please check the names of the items in your supplied list.")
       }
 
-      concentration <- enquo(concentration)
-      time <- enquo(time)
+      concentration <- rlang::enquo(concentration)
+      time <- rlang::enquo(time)
 
-      DF <- DF %>% select(!! time, !! concentration) %>%
-            rename(TIME = !! time,
-                   CONC = !! concentration)
+      DF <- DF %>% dplyr::select(!! time, !! concentration) %>%
+            dplyr::rename(TIME = !! time,
+                          CONC = !! concentration)
 
-      DF <- DF %>% filter(complete.cases(TIME))
+      DF <- DF %>%  dplyr::filter(complete.cases(TIME))
 
       DFmean <- DF %>%
             dplyr::filter(complete.cases(CONC)) %>%
@@ -203,13 +209,13 @@ noncompAUC <- function(DF, concentration = Concentration,
             }
 
             if(is.null(extrap_inf_coefs)){
-                  StartTime <- DFmean %>% filter(TIME >= extrap_inf_times[1]) %>%
-                        pull(TIME) %>% min
-                  EndTime <- DFmean %>% filter(TIME <= extrap_inf_times[2]) %>%
-                        pull(TIME) %>% max
+                  StartTime <- DFmean %>%  dplyr::filter(TIME >= extrap_inf_times[1]) %>%
+                        dplyr::pull(TIME) %>% min
+                  EndTime <- DFmean %>%  dplyr::filter(TIME <= extrap_inf_times[2]) %>%
+                        dplyr::pull(TIME) %>% max
 
-                  Fit_inf <- elimFit(DFmean %>% filter(TIME >= StartTime &
-                                                             TIME <= EndTime),
+                  Fit_inf <- elimFit(DFmean %>%  dplyr::filter(TIME >= StartTime &
+                                                                     TIME <= EndTime),
                                      concentration = CONC,
                                      time = TIME,
                                      tmax = Tmax,
@@ -228,9 +234,9 @@ noncompAUC <- function(DF, concentration = Concentration,
 
             }
 
-            Clast <- DFmean %>% filter(complete.cases(CONC)) %>%
-                  summarize(Clast = CONC[which.max(TIME)],
-                            .groups = "drop_last") %>% pull(Clast)
+            Clast <- DFmean %>%  dplyr::filter(complete.cases(CONC)) %>%
+                  dplyr::summarize(Clast = CONC[which.max(TIME)],
+                                   .groups = "drop_last") %>%  dplyr::pull(Clast)
 
             AUClast_inf <- Clast / Fit_inf$Estimate[Fit_inf$Beta == "k"]
 
@@ -253,17 +259,17 @@ noncompAUC <- function(DF, concentration = Concentration,
             }
 
             if(is.null(extrap_t0_coefs)){
-                  StartTime <- DFmean %>% filter(TIME >= extrap_t0_times[1]) %>%
-                        pull(TIME) %>% min
-                  EndTime <- DFmean %>% filter(TIME <= extrap_t0_times[2]) %>%
-                        pull(TIME) %>% max
+                  StartTime <- DFmean %>%  dplyr::filter(TIME >= extrap_t0_times[1]) %>%
+                        dplyr::pull(TIME) %>% min
+                  EndTime <- DFmean %>%  dplyr::filter(TIME <= extrap_t0_times[2]) %>%
+                        dplyr::pull(TIME) %>% max
 
-                  Fit_t0 <- elimFit(DFmean %>% filter(TIME >= StartTime &
-                                                             TIME <= EndTime),
-                                     concentration = CONC,
-                                     time = TIME,
-                                     tmax = Tmax,
-                                     modelType = extrap_t0_model)
+                  Fit_t0 <- elimFit(DFmean %>%  dplyr::filter(TIME >= StartTime &
+                                                                    TIME <= EndTime),
+                                    concentration = CONC,
+                                    time = TIME,
+                                    tmax = Tmax,
+                                    modelType = extrap_t0_model)
 
                   Tmax <- ifelse(complete.cases(Tmax), Tmax,
                                  DFmean$TIME[which.max(DFmean$CONC)])
@@ -317,9 +323,9 @@ noncompAUC <- function(DF, concentration = Concentration,
             if(any(DFmean$TIME == 0)){
                   DFmean$CONC[DFmean$TIME == 0] <- C0
             } else {
-                  DFmean <- bind_rows(DFmean,
-                                      tibble(CONC = C0, TIME = 0)) %>%
-                        arrange(TIME) %>% unique()
+                  DFmean <- dplyr::bind_rows(DFmean,
+                                             data.frame(CONC = C0, TIME = 0)) %>%
+                        dplyr::arrange(TIME) %>% unique()
             }
 
             rm(Tmax)

@@ -117,9 +117,9 @@ equation can be monoexponential, biexponential, or triexponential.
 \examples{
 # Example data to work with:
 data(ConcTime)
-IV1 <- ConcTime \%>\% filter(SubjectID == 101 & DoseRoute == "IV" &
+IV1 <- ConcTime \%>\%  dplyr::filter(SubjectID == 101 & DoseRoute == "IV" &
                                      Drug == "A") \%>\%
-      select(SubjectID, TimeHr, Concentration)
+      dplyr::select(SubjectID, TimeHr, Concentration)
 
 # Automatically select the start values for the regression and start
 # fitting at whatever time is tmax

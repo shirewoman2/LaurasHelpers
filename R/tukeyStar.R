@@ -45,12 +45,16 @@ tukeyStar <- function(DF, groupColumn, valueColumn,
                       includeN = FALSE,
                       returnStats = FALSE) {
 
-      groupColumn <- enquo(groupColumn)
-      valueColumn <- enquo(valueColumn)
+      # Defining pipe operator and bang bang
+      `%>%` <- magrittr::`%>%`
+      `!!` <- rlang::`!!`
 
-      DF <- DF %>% select(!!groupColumn, !!valueColumn) %>%
-            rename(GroupColumn = !!groupColumn,
-                   ValueColumn = !!valueColumn)
+      groupColumn <- rlang::enquo(groupColumn)
+      valueColumn <- rlang::enquo(valueColumn)
+
+      DF <- DF %>% dplyr::select(!!groupColumn, !!valueColumn) %>%
+            dplyr::rename(GroupColumn = !!groupColumn,
+                          ValueColumn = !!valueColumn)
 
       if(class(DF$GroupColumn) == "factor"){
             Groups <- levels(droplevels(sort(DF$GroupColumn)))
@@ -62,13 +66,13 @@ tukeyStar <- function(DF, groupColumn, valueColumn,
       rm(Groups)
 
       if(includeN){
-            Count <- DF %>% group_by(GroupColumn) %>%
-                  summarize(n = paste("n =", n()))
+            Count <- DF %>% dplyr::group_by(GroupColumn) %>%
+                  dplyr::summarize(n = paste("n =", n()))
 
             DF <- left_join(DF, Count) %>%
-                  mutate(GroupColumn = paste0(GroupColumn, "\n", n)) %>%
-                  arrange(Xorig) %>%
-                  mutate(GroupColumn = factor(GroupColumn, levels = unique(GroupColumn)))
+                  dplyr::mutate(GroupColumn = paste0(GroupColumn, "\n", n)) %>%
+                  dplyr::arrange(Xorig) %>%
+                  dplyr::mutate(GroupColumn = factor(GroupColumn, levels = unique(GroupColumn)))
       }
 
       # anova
@@ -79,13 +83,13 @@ tukeyStar <- function(DF, groupColumn, valueColumn,
       Tukey.df <- Tukey.df[Tukey.df$"p adj" < 0.05 |
                                  is.nan(Tukey.df$"p adj"), ]
 
-      MyPlot <- ggplot2::ggplot(DF, aes(x = GroupColumn, y = ValueColumn,
-                                        fill = GroupColumn)) +
-            geom_boxplot() +
-            xlab(as_label(groupColumn)) +
-            ylab(as_label(valueColumn)) +
-            labs(fill = as_label(valueColumn)) +
-            theme(legend.position = "none")
+      MyPlot <- ggplot2::ggplot(DF, ggplot2::aes(x = GroupColumn, y = ValueColumn,
+                                                 fill = GroupColumn)) +
+            ggplot2::geom_boxplot() +
+            ggplot2::xlab(rlang::as_label(groupColumn)) +
+            ggplot2::ylab(rlang::as_label(valueColumn)) +
+            ggplot2::labs(fill = rlang::as_label(valueColumn)) +
+            ggplot2::theme(legend.position = "none")
 
       if(nrow(Tukey.df) > 0){
             Comparisons <- row.names(Tukey.df)
@@ -134,25 +138,26 @@ tukeyStar <- function(DF, groupColumn, valueColumn,
 
             for(l in 1:length(Comparisons)){
                   MyPlot <- MyPlot +
-                        geom_segment(data = Segments[l, ],
-                                     aes(x = xstart, xend = xend,
-                                         y = ystart, yend = yend),
-                                     size = barsize, inherit.aes = FALSE) +
+                        ggplot2::geom_segment(data = Segments[l, ],
+                                              ggplot2::aes(x = xstart, xend = xend,
+                                                           y = ystart, yend = yend),
+                                              size = barsize, inherit.aes = FALSE) +
                         # Left vertical segment
-                        geom_segment(data = Segments[l, ],
-                                     aes(x = xstart, xend = xstart,
-                                         y = ystart, yend = yendV),
-                                     size = barsize, inherit.aes = FALSE) +
+                        ggplot2::geom_segment(data = Segments[l, ],
+                                              ggplot2::aes(x = xstart, xend = xstart,
+                                                           y = ystart, yend = yendV),
+                                              size = barsize, inherit.aes = FALSE) +
                         # Right vertical segment
-                        geom_segment(data = Segments[l, ],
-                                     aes(x = xend, xend = xend,
-                                         y = ystart, yend = yendV),
-                                     size = barsize, inherit.aes = FALSE) +
+                        ggplot2::geom_segment(data = Segments[l, ],
+                                              ggplot2::aes(x = xend, xend = xend,
+                                                           y = ystart, yend = yendV),
+                                              size = barsize, inherit.aes = FALSE) +
                         # Adding star
-                        geom_text(data = Segments[l, ],
-                                  aes(x = StarPosX, y = StarPosY,
-                                      label = Star),
-                                  size = rel(textsize), inherit.aes = FALSE)
+                        ggplot2::geom_text(data = Segments[l, ],
+                                           ggplot2::aes(x = StarPosX, y = StarPosY,
+                                                        label = Star),
+                                           size = ggplot2::rel(textsize),
+                                           inherit.aes = FALSE)
             }
       }
 

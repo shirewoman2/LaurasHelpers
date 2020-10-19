@@ -19,6 +19,9 @@
 #'
 importChrom <- function(csvfile){
 
+      # Defining the pipe operator
+      `%>%` <- magrittr::`%>%`
+
       # MassHunter puts the file name on the 1st line but only
       # in one cell, and this causes R to interpret the file as
       # having only 1 column. Thus the odd way of reading
@@ -29,7 +32,7 @@ importChrom <- function(csvfile){
       names(DF) <- c("Point", "Time_min", "Count")
       DF$Point[DF$Point == "#Point"] <- "Point"
 
-      InjNameRows <- which(str_detect(DF$Point, "\\#"))
+      InjNameRows <- which( stringr::str_detect(DF$Point, "\\#"))
       DF$Chromatogram <- NA
 
       for(i in 2:length(InjNameRows)){
@@ -56,7 +59,7 @@ importChrom <- function(csvfile){
       # a data.frame with 9 columns and, for SIM chromatograms, 4 columns.
       if(ncol(Injections) > 4){                       # MRM experiments
             # MRM
-            Injections <- tidyr::mutate(
+            Injections <- dplyr::mutate(
                   Injections, Chromatogram = AllInjections,
                   Mode = sub("\\#", "", V1),
                   ChromatogramType = stringr::str_extract(V2, "^[A-Z]{3}"),
@@ -64,7 +67,7 @@ importChrom <- function(csvfile){
                                stringr::str_extract(V2, "[0-9]{2,4}\\.[0-9]{1,}"),
                                gsub("\\(|\\)", "", paste(V5, V6, V7))),
                   Ion = ifelse(ChromatogramType == "TIC", "all", Ion),
-                  ChromatogramType = ifelse(str_detect(Mode, "BinPump"),
+                  ChromatogramType = ifelse(stringr::str_detect(Mode, "BinPump"),
                                             "binpump pressure", ChromatogramType),
                   PrecursorIon = as.numeric(stringr::str_extract(V5, "[0-9]{2,4}\\.[0-9]{1,}")),
                   ProductIon = as.numeric(stringr::str_extract(V7, "[0-9]{2,4}\\.[0-9]{1,}")),
@@ -77,7 +80,7 @@ importChrom <- function(csvfile){
 
       } else {                         # SIM experiments
             # SIM
-            Injections <-  tidyr::mutate(
+            Injections <-  dplyr::mutate(
                   Injections, Chromatogram = AllInjections,
                   Mode = sub("\\#", "", V1),
                   ChromatogramType = stringr::str_extract(V2, "^[A-Z]{3}"),
@@ -89,16 +92,16 @@ importChrom <- function(csvfile){
                                             "binpump pressure", ChromatogramType))
       }
 
-      Injections <- Injections %>% select(-matches("^V"))
+      Injections <- Injections %>% dplyr::select(-matches("^V"))
 
       DF <- suppressWarnings(
-            DF %>% mutate(Chromatogram = stringr::str_trim(Chromatogram),
-                          Chromatogram = sub("    ...ZERO ABUNDANCE...", "",
-                                             Chromatogram)) %>%
-                  left_join(Injections, by = "Chromatogram") %>%
-                  mutate_at(.vars = vars(matches("Point|Time_min|Count")),
-                            .funs = as.numeric) %>%
-                  filter(complete.cases(Time_min))
+            DF %>% dplyr::mutate(Chromatogram = stringr::str_trim(Chromatogram),
+                                 Chromatogram = sub("    ...ZERO ABUNDANCE...", "",
+                                                    Chromatogram)) %>%
+                  dplyr::left_join(Injections, by = "Chromatogram") %>%
+                  dplyr::mutate_at(.vars = dplyr::vars(matches("Point|Time_min|Count")),
+                                   .funs = as.numeric) %>%
+                  dplyr::filter(complete.cases(Time_min))
       )
 
       return(DF)

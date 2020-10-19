@@ -48,16 +48,21 @@ centerBin <- function(x, breaks){
       Outbin <- x
       for(i in seq_along(x)){
             Assignment <- CenterBins$RtBin[which(x[i] >= CenterBins$Lower &
-                                                      x[i] <= CenterBins$Upper)]
+                                                       x[i] <= CenterBins$Upper)]
             Assignment <- ifelse(length(Assignment) > 1,
                                  Assignment[2], Assignment[1])
 
-            if(x[i] < min(breaks, na.rm = TRUE)){
-                  Assignment <- min(breaks, na.rm = TRUE)
-            }
+            if(complete.cases(x[i])){
+                  if(x[i] < min(breaks, na.rm = TRUE)){
+                        Assignment <- min(breaks, na.rm = TRUE)
+                  }
 
-            if(x[i] > max(breaks, na.rm = TRUE)){
-                  Assignment <- max(breaks, na.rm = TRUE)
+                  if(x[i] > max(breaks, na.rm = TRUE)){
+                        Assignment <- max(breaks, na.rm = TRUE)
+                  }
+
+            } else {
+                  Assignment <- NA
             }
 
             Outbin[i] <- Assignment

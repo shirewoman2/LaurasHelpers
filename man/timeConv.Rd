@@ -21,3 +21,11 @@ Since data imported from Excel often changes date and time data to numeric,
 \code{timeConv} converts dates from decimal numbers to Date with a time zone
 of "UTC" unless otherwise specified.
 }
+\examples{
+timeConv(43252.5)
+# "2018-06-01 12:00:00 UTC"
+
+timeConv(18526.2356, dataSource = "R")
+# "2020-09-21 05:39:15 UTC"
+
+}

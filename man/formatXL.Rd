@@ -133,7 +133,7 @@ If this will create a new Excel file or if your current Excel file
 data(iris)
 
 formatXL(DF = iris \%>\%
-         mutate(Date = as.Date("2020-11-03"),
+         dplyr::mutate(Date = as.Date("2020-11-03"),
                 Money = rnorm(nrow(.), 20, 20)),
          file = "test.xlsx", sheet = "iris1",
          colWidth = list(colNum = NA, width = 30),

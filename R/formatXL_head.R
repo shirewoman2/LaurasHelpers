@@ -23,7 +23,10 @@
 #'
 formatXL_head <- function(DF, file, sheet = NA){
 
-      # All the columns must be named for this to work well. Checking that.
+      # Defining pipe operator 
+`%>%` <- magrittr::`%>%`
+	  
+	  # All the columns must be named for this to work well. Checking that.
       if(any(is.na(names(DF)))){
             stop("All the columns in your data.frame must be named.")
       }
@@ -31,11 +34,11 @@ formatXL_head <- function(DF, file, sheet = NA){
       # Guessing at appropriate column width based on max number of characters
       # in that column. First, need to include headers as a row so that it will
       # count those.
-      DFwithHead <- DF %>% mutate_all(as.character) %>%
+      DFwithHead <- DF %>% dplyr::mutate_all(as.character) %>%
             rbind(names(DF))
 
       Nchar <- DFwithHead %>%
-            summarize_all(function(x) max(nchar(as.character(x)), na.rm = TRUE)) %>%
+            dplyr::summarize_all(function(x) max(nchar(as.character(x)), na.rm = TRUE)) %>%
             as.numeric()
 
       # For anything where the max number of characters is > 15, look for spaces
@@ -44,7 +47,7 @@ formatXL_head <- function(DF, file, sheet = NA){
       # wider than if there aren't as many.
 
       splitWords <- function(x){
-            max(as.numeric(sapply(str_split(x, " |-"), nchar)))
+            max(as.numeric(sapply(stringr::str_split(x, " |-"), nchar)))
       }
 
       XWide <- which(Nchar > 15)

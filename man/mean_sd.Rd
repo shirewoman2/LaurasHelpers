@@ -12,7 +12,6 @@ mean_sd(
   calcCV = FALSE,
   calcMedian = FALSE,
   calc95CI = FALSE,
-  calcQuantiles = FALSE,
   reportn = FALSE,
   ndig = NA,
   na.rm = TRUE
@@ -37,8 +36,6 @@ calc95CI is set to TRUE, it will return the 95\% confidence interval as
 calculated as \emph{{\out{mean(x) +/- t<sub>n-1, 1-alpha/2</sub> *
 sd(x)/sqrt(n)}}}}
 
-\item{calcQuantiles}{Should the quantiles be reported? (logical)}
-
 \item{reportn}{Should the number of observations be reported? (logical)}
 
 \item{ndig}{Optionally set the number of sig figs to use if you don't want
@@ -52,23 +49,14 @@ observations if \code{reportn} is TRUE.}
 Returns a character string
 }
 \description{
-\code{mean_sd} takes as input a numeric vector or a number for the
-mean and a second number for the sd and outputs the mean plus or minus the
-standard deviation of that vector with an appropriate number of sig figs.
-Output is ALWAYS of class character.
+\code{mean_sd} takes as input either a) a numeric vector or b) a number for
+the mean and a second number for the sd, and it outputs the mean plus or
+minus the standard deviation of that vector with an appropriate number of sig
+figs. If a vector was supplied, optionally also obtain the median, range, CV,
+and/or 95% confidence interval. Output is \emph{always} of class character.
 }
 \details{
-Example of ultimate output with all possible options set to TRUE:
 
-5.1 (5) +/- 0.2 (4.7 to 5.3, 3.7\%, 95\%CI: 4.6 to 5.2, n = 18)
-
-mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
-= n).
-
-\emph{NB:} I have not set this up to deal with mean values in scientific
-notation.
-
-\emph{NB:} If \code{sd(x) == 0}, output will be unique(x).
 }
 \examples{
 mean_sd(rnorm(10, 5, 1))

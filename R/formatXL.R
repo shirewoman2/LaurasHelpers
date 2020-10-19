@@ -112,7 +112,7 @@
 #' data(iris)
 #'
 #' formatXL(DF = iris %>%
-#'          mutate(Date = as.Date("2020-11-03"),
+#'          dplyr::mutate(Date = as.Date("2020-11-03"),
 #'                 Money = rnorm(nrow(.), 20, 20)),
 #'          file = "test.xlsx", sheet = "iris1",
 #'          colWidth = list(colNum = NA, width = 30),
@@ -149,6 +149,10 @@ formatXL <- function(DF, file, sheet = NA,
                                      colName = NULL,
                                      width = NULL),
                      styles){
+
+      # Defining pipe operator and bang bang
+      `%>%` <- magrittr::`%>%`
+      `!!` <- rlang::`!!`
 
       ### Error catching input argument syntax problems
       # All the columns must be named for this to work well. Checking that.
@@ -199,8 +203,8 @@ formatXL <- function(DF, file, sheet = NA,
       # Check whether the sheet already exists. If it does, remove it.
       AnySheets <- xlsx::getSheets(WB)
       if(!is.null(AnySheets)){
-            if(sheet %in% names(getSheets(WB))){
-                  removeSheet(WB, sheetName = sheet)
+            if(sheet %in% names(xlsx::getSheets(WB))){
+                  xlsx::removeSheet(WB, sheetName = sheet)
             }
       }
 
@@ -211,8 +215,9 @@ formatXL <- function(DF, file, sheet = NA,
 
       # Getting all the cells in that object and then their names
       AllCells <- xlsx::getCells(SheetRows)
-      AllCellNames <- tibble(AllNames = names(AllCells)) %>%
-            separate(AllNames, c("Row", "Column"), "\\.", remove = FALSE)
+      AllCellNames <- data.frame(AllNames = names(AllCells),
+                                 stringsAsFactors = FALSE) %>%
+            tidyr::separate(AllNames, c("Row", "Column"), "\\.", remove = FALSE)
 
       StylesToApply <- list()
 
@@ -223,29 +228,29 @@ formatXL <- function(DF, file, sheet = NA,
             # If they haven't specified rows or columns, apply to all cells.
             if(is.null(styles[[i]]$rows) &
                is.null(styles[[i]]$columns)){
-                  MyCells <- AllCellNames %>% pull(AllNames)
+                  MyCells <- AllCellNames %>%  dplyr::pull(AllNames)
             } else {
                   # If they've specified both rows and columns, apply to those
                   # cells.
                   if(!is.null(styles[[i]]$rows) &
                      !is.null(styles[[i]]$columns)){
                         MyCells <- AllCellNames %>%
-                              filter(Row %in% (styles[[i]]$rows + 1) &
-                                           Column %in% styles[[i]]$columns) %>%
-                              pull(AllNames)
+                              dplyr::filter(Row %in% (styles[[i]]$rows + 1) &
+                                                  Column %in% styles[[i]]$columns) %>%
+                              dplyr::pull(AllNames)
                   } else {
                         # If they've specified the columns but not the rows,
                         # apply to all rows in that column.
                         if(is.null(styles[[i]]$rows)){
                               MyCells <- AllCellNames %>%
-                                    filter(Column %in% styles[[i]]$columns) %>%
-                                    pull(AllNames)
+                                    dplyr::filter(Column %in% styles[[i]]$columns) %>%
+                                    dplyr::pull(AllNames)
                         } else {
                               # If they've specified the rows but not the
                               # columns, apply to all columns in that row.
                               MyCells <- AllCellNames %>%
-                                    filter(Row %in% (styles[[i]]$rows + 1)) %>%
-                                    pull(AllNames)
+                                    dplyr::filter(Row %in% (styles[[i]]$rows + 1)) %>%
+                                    dplyr::pull(AllNames)
                         }
                   }
             }
@@ -266,8 +271,8 @@ formatXL <- function(DF, file, sheet = NA,
 
                         NumFormatArgs <-
                               xlsx::DataFormat(NumFormatOptions %>%
-                                                     filter(Input == styles[[i]]$numberFormat) %>%
-                                                     pull(Output))
+                                                     dplyr::filter(Input == styles[[i]]$numberFormat) %>%
+                                                     dplyr::pull(Output))
                         # See
                         # https://www.excelhowto.com/macros/formatting-a-range-of-cells-in-excel-vba/
                         # for more examples of number formats.
@@ -419,18 +424,18 @@ formatXL <- function(DF, file, sheet = NA,
 
       # Noting which columns are already set and their widths.
       if(length(colWidth$colNum) > 0){
-            ColAlreadySet <- tibble(colIndex = colWidth$colNum,
-                                    colWidth = colWidth$width)
+            ColAlreadySet <- data.frame(colIndex = colWidth$colNum,
+                                        colWidth = colWidth$width)
       }
 
       # Guessing at appropriate column width based on max number of characters
       # in that column. First, need to include headers as a row so that it will
       # count those.
-      DFwithHead <- DF %>% mutate_all(as.character) %>%
+      DFwithHead <- DF %>% dplyr::mutate_all(as.character) %>%
             rbind(names(DF))
 
       Nchar <- DFwithHead %>%
-            summarize_all(function(x) max(nchar(as.character(x)), na.rm = TRUE)) %>%
+            dplyr::summarize_all(function(x) max(nchar(as.character(x)), na.rm = TRUE)) %>%
             as.numeric()
 
       # For anything where the max number of characters is > 15, look for spaces
@@ -439,7 +444,7 @@ formatXL <- function(DF, file, sheet = NA,
       # wider than if there aren't as many.
 
       splitWords <- function(x){
-            max(as.numeric(sapply(str_split(x, " |-"), nchar)))
+            max(as.numeric(sapply(stringr::str_split(x, " |-"), nchar)))
       }
 
       XWide <- which(Nchar > 15)

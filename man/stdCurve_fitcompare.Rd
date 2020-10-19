@@ -59,7 +59,7 @@ stdCurve1 <- stdCurve(ExStdCurve,
                       nominal = MET.nominalmass,
                       poly = "2nd", IDcol = SampleID)
 
-stdCurve2 <- stdCurve(ExStdCurve \%>\% filter(SampleID != "standard 200"),
+stdCurve2 <- stdCurve(ExStdCurve \%>\%  dplyr::filter(SampleID != "standard 200"),
                       normPeak = MET.peakarearatio,
                       nominal = MET.nominalmass,
                       poly = "2nd", IDcol = SampleID)

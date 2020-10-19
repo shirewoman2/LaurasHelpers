@@ -82,7 +82,7 @@
 #'          useNLS_outnames = FALSE)
 #'
 #' # Coloring by some variable
-#' stdCurve(ExStdCurve %>% mutate(Group = c(rep("A", 5), rep("B", 6))),
+#' stdCurve(ExStdCurve %>% dplyr::mutate(Group = c(rep("A", 5), rep("B", 6))),
 #'          normPeak = MET.peakarearatio,
 #'          nominal = MET.nominalmass,
 #'          colorBy = Group,
@@ -104,12 +104,16 @@ stdCurve <- function(DF,
                      colorBy,
                      useNLS_outnames = TRUE) {
 
-      nominal <- dplyr::enquo(nominal)
-      rawPeak <- dplyr::enquo(rawPeak)
-      rawIS <- dplyr::enquo(rawIS)
-      normPeak <- dplyr::enquo(normPeak)
-      IDcol <- dplyr::enquo(IDcol)
-      colorBy <- dplyr::enquo(colorBy)
+      # Defining pipe operator and bang bang
+      `%>%` <- magrittr::`%>%`
+      `!!` <- rlang::`!!`
+
+      nominal <- rlang::enquo(nominal)
+      rawPeak <- rlang::enquo(rawPeak)
+      rawIS <- rlang::enquo(rawIS)
+      normPeak <- rlang::enquo(normPeak)
+      IDcol <- rlang::enquo(IDcol)
+      colorBy <- rlang::enquo(colorBy)
 
       DForig <- DF
 
@@ -121,61 +125,61 @@ stdCurve <- function(DF,
       }
 
       # If normPeak is NOT supplied, calculate it.
-      if(as_label(normPeak) %in% names(DForig) == FALSE){
-            DF <- DF %>% mutate(NormPeak = !!rawPeak / !!rawIS)
+      if(rlang::as_label(normPeak) %in% names(DForig) == FALSE){
+            DF <- DF %>% dplyr::mutate(NormPeak = !!rawPeak / !!rawIS)
 
             # Now, only keep NormPeak, nominal, and, if present, colorBy and
             # IDcol. Rename them to work with more easily later in the function.
-            if(as_label(colorBy) %in% names(DForig)){
-                  DF <- DF %>% select(any_of(c(as_label(nominal), "NormPeak",
-                                               as_label(colorBy),
-                                               as_label(IDcol)))) %>%
-                        rename(Nominal = !!nominal,
-                               ColorBy = !!colorBy)
+            if(rlang::as_label(colorBy) %in% names(DForig)){
+                  DF <- DF %>% dplyr::select(any_of(c(rlang::as_label(nominal), "NormPeak",
+                                                      rlang::as_label(colorBy),
+                                                      rlang::as_label(IDcol)))) %>%
+                        dplyr::rename(Nominal = !!nominal,
+                                      ColorBy = !!colorBy)
             } else {
                   DF <- DF %>%
-                        select(any_of(c(as_label(nominal), "NormPeak"))) %>%
-                        rename(Nominal = !!nominal)
+                        dplyr::select(any_of(c(rlang::as_label(nominal), "NormPeak"))) %>%
+                        dplyr::rename(Nominal = !!nominal)
             }
 
             # Removing any rows the user requests
             if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
-                  DFomit <- DF %>% slice(omit)
-                  DF <- DF %>% slice(-omit)
+                  DFomit <- DF %>% dplyr::slice(omit)
+                  DF <- DF %>% dplyr::slice(-omit)
             }
 
             # Setting the y label for the graphs based on whether normPeak was
             # supplied.
-            Ylabel <- paste0(as_label(rawPeak), "/", as_label(rawIS))
+            Ylabel <- paste0(rlang::as_label(rawPeak), "/", rlang::as_label(rawIS))
 
       } else {
             # If normPeak *is* supplied, keep that. Check for colorBy. Rename
             # everything to make life easier farther down in the function.
-            if(as_label(colorBy) %in% names(DForig)){
-                  DF <- DF %>% select(any_of(c(as_label(nominal),
-                                               as_label(normPeak),
-                                               as_label(colorBy),
-                                               as_label(IDcol)))) %>%
-                        rename(Nominal = !!nominal,
-                               NormPeak = !!normPeak,
-                               ColorBy = !!colorBy)
+            if(rlang::as_label(colorBy) %in% names(DForig)){
+                  DF <- DF %>% dplyr::select(any_of(c(rlang::as_label(nominal),
+                                                      rlang::as_label(normPeak),
+                                                      rlang::as_label(colorBy),
+                                                      rlang::as_label(IDcol)))) %>%
+                        dplyr::rename(Nominal = !!nominal,
+                                      NormPeak = !!normPeak,
+                                      ColorBy = !!colorBy)
             } else {
-                  DF <- DF %>% select(any_of(c(as_label(nominal),
-                                               as_label(normPeak),
-                                               as_label(IDcol)))) %>%
-                        rename(Nominal = !!nominal,
-                               NormPeak = !!normPeak)
+                  DF <- DF %>% dplyr::select(any_of(c(rlang::as_label(nominal),
+                                                      rlang::as_label(normPeak),
+                                                      rlang::as_label(IDcol)))) %>%
+                        dplyr::rename(Nominal = !!nominal,
+                                      NormPeak = !!normPeak)
             }
 
             # Removing any rows the user requests
             if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
-                  DFomit <- DF %>% slice(omit)
-                  DF <- DF %>% slice(-omit)
+                  DFomit <- DF %>% dplyr::slice(omit)
+                  DF <- DF %>% dplyr::slice(-omit)
             }
 
             # Setting the y label for the graphs based on whether normPeak was
             # supplied.
-            Ylabel <- as_label(normPeak)
+            Ylabel <- rlang::as_label(normPeak)
       }
 
       MaxNominal <- max(DF$Nominal, na.rm = TRUE)
@@ -184,18 +188,18 @@ stdCurve <- function(DF,
       if(class(weights) == "character"){
 
             WeightOptions <- DF %>%
-                  select(Nominal, NormPeak) %>%
-                  mutate(One_x = 1/Nominal,
-                         One_x2 = 1/Nominal^2,
-                         One_y = 1/NormPeak,
-                         One_y2 = 1/NormPeak^2)
+                  dplyr::select(Nominal, NormPeak) %>%
+                  dplyr::mutate(One_x = 1/Nominal,
+                                One_x2 = 1/Nominal^2,
+                                One_y = 1/NormPeak,
+                                One_y2 = 1/NormPeak^2)
 
             weights <- tolower(weights)
 
             MyWeights <- c("1/x" = "One_x", "1/x^2" = "One_x2",
                            "1/y" = "One_y", "1/y^2" = "One_y2")
 
-            weights <- WeightOptions %>% pull(MyWeights[weights])
+            weights <- WeightOptions %>%  dplyr::pull(MyWeights[weights])
       }
 
       if(any(is.infinite(weights))){
@@ -234,19 +238,19 @@ stdCurve <- function(DF,
             Fit <- as.data.frame(summary(Fit)[["coefficients"]])
             names(Fit) <- c("Estimate", "SE", "tvalue", "pvalue")
             Fit$Beta <- row.names(Fit)
-            Fit <- Fit %>% select(Beta, Estimate, SE, tvalue, pvalue) %>%
-                  arrange(desc(Beta))
+            Fit <- Fit %>% dplyr::select(Beta, Estimate, SE, tvalue, pvalue) %>%
+                  dplyr::arrange(desc(Beta))
       }
       # ... and for 1st order polynomials.
       if(useNLS_outnames == FALSE & class(Fit) == "lm"){
             Fit <- as.data.frame(summary(Fit)[["coefficients"]])
             names(Fit) <- c("Estimate", "SE", "tvalue", "pvalue")
             Fit$Beta <- c("beta0", "beta1")
-            Fit <- Fit %>% select(Beta, Estimate, SE, tvalue, pvalue) %>%
-                  arrange(desc(Beta))
+            Fit <- Fit %>% dplyr::select(Beta, Estimate, SE, tvalue, pvalue) %>%
+                  dplyr::arrange(desc(Beta))
       }
 
-      if(as_label(colorBy) %in% names(DForig)){
+      if(rlang::as_label(colorBy) %in% names(DForig)){
 
             if(theme_get()$panel.background$fill == "grey92"){
                   ColorsToUse <- c("black",  "green")
@@ -254,37 +258,38 @@ stdCurve <- function(DF,
                   ColorsToUse <- c("black", "#5ECCF3")
             }
 
-            CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak,
-                                                 fill = ColorBy, color = ColorBy,
-                                                 shape = ColorBy)) +
-                  geom_point(size = 2, shape = 21) +
-                  geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
-                            inherit.aes = FALSE, color = "gray60") +
-                  labs(color = as_label(colorBy), fill = as_label(colorBy),
-                       shape = as_label(colorBy)) +
-                  xlab(as_label(nominal)) +
-                  ylab(Ylabel) +
+            CurvePlot <- ggplot2::ggplot(DF, ggplot2::aes(x = Nominal, y = NormPeak,
+                                                          fill = ColorBy, color = ColorBy,
+                                                          shape = ColorBy)) +
+                  ggplot2::geom_point(size = 2, shape = 21) +
+                  ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
+                                     inherit.aes = FALSE, color = "gray60") +
+                  ggplot2::labs(color = rlang::as_label(colorBy),
+                                fill = rlang::as_label(colorBy),
+                                shape = rlang::as_label(colorBy)) +
+                  ggplot2::xlab(rlang::as_label(nominal)) +
+                  ggplot2::ylab(Ylabel) +
                   scale_shape_manual(values = c(16, 17))
 
             if(length(unique(DF$ColorBy)) == 2){
                   CurvePlot <- CurvePlot +
-                        scale_fill_manual(values = ColorsToUse) +
-                        scale_color_manual(values = c("black", "#005883"))
+                        ggplot2::scale_fill_manual(values = ColorsToUse) +
+                        ggplot2::scale_color_manual(values = c("black", "#005883"))
             }
 
       } else {
-            CurvePlot <- ggplot2::ggplot(DF, aes(x = Nominal, y = NormPeak)) +
-                  geom_point() +
-                  geom_line(data = Curve, aes(x = Nominal, y = NormPeak),
-                            color = "gray60") +
-                  xlab(as_label(nominal)) +
-                  ylab(Ylabel)
+            CurvePlot <- ggplot2::ggplot(DF, ggplot2::aes(x = Nominal, y = NormPeak)) +
+                  ggplot2::geom_point() +
+                  ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
+                                     color = "gray60") +
+                  ggplot2::xlab(rlang::as_label(nominal)) +
+                  ggplot2::ylab(Ylabel)
       }
 
       if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
             CurvePlot <- CurvePlot +
-                  geom_point(data = DFomit, aes(x = Nominal, y = NormPeak),
-                             color = "red", inherit.aes = FALSE, shape = "o", size = 2)
+                  ggplot2::geom_point(data = DFomit, ggplot2::aes(x = Nominal, y = NormPeak),
+                                      color = "red", inherit.aes = FALSE, shape = "o", size = 2)
       }
 
       if(poly == "1st"){
@@ -297,36 +302,36 @@ stdCurve <- function(DF,
       }
 
       DF <- DF %>%
-            mutate(PercentDifference = (Calculated - Nominal)/Nominal,
-                   PercentDifference = ifelse(Nominal == 0,
-                                              NA, PercentDifference),
-                   Nominal = signif(Nominal, 3),
-                   NormPeak = signif(NormPeak, 3),
-                   Calculated = round(Calculated, 2),
-                   PercentDifference = round(PercentDifference, 2)) %>%
-            select(any_of(c(as_label(IDcol), "ColorBy", "Nominal", "NormPeak",
-                            "Calculated", "PercentDifference"))) %>%
-            arrange(Nominal)
+            dplyr::mutate(PercentDifference = (Calculated - Nominal)/Nominal,
+                          PercentDifference = ifelse(Nominal == 0,
+                                                     NA, PercentDifference),
+                          Nominal = signif(Nominal, 3),
+                          NormPeak = signif(NormPeak, 3),
+                          Calculated = round(Calculated, 2),
+                          PercentDifference = round(PercentDifference, 2)) %>%
+            dplyr::select(any_of(c(rlang::as_label(IDcol), "ColorBy", "Nominal", "NormPeak",
+                                   "Calculated", "PercentDifference"))) %>%
+            dplyr::arrange(Nominal)
 
-      if(as_label(normPeak) %in% names(DForig)){
-            names(DF)[names(DF) == "Nominal"] <- as_label(nominal)
-            names(DF)[names(DF) == "NormPeak"] <- as_label(normPeak)
-            names(Curve)[names(Curve) == "Nominal"] <- as_label(nominal)
-            names(Curve)[names(Curve) == "NormPeak"] <- as_label(normPeak)
+      if(rlang::as_label(normPeak) %in% names(DForig)){
+            names(DF)[names(DF) == "Nominal"] <- rlang::as_label(nominal)
+            names(DF)[names(DF) == "NormPeak"] <- rlang::as_label(normPeak)
+            names(Curve)[names(Curve) == "Nominal"] <- rlang::as_label(nominal)
+            names(Curve)[names(Curve) == "NormPeak"] <- rlang::as_label(normPeak)
 
       } else {
-            names(DF)[names(DF) == "Nominal"] <- as_label(nominal)
+            names(DF)[names(DF) == "Nominal"] <- rlang::as_label(nominal)
             names(DF)[names(DF) == "NormPeak"] <-
-                  paste0(as_label(rawPeak), "/", as_label(rawIS))
-            names(Curve)[names(Curve) == "Nominal"] <- as_label(nominal)
+                  paste0(rlang::as_label(rawPeak), "/", rlang::as_label(rawIS))
+            names(Curve)[names(Curve) == "Nominal"] <- rlang::as_label(nominal)
             names(Curve)[names(Curve) == "NormPeak"] <-
-                  paste0(as_label(rawPeak), "/", as_label(rawIS))
+                  paste0(rlang::as_label(rawPeak), "/", rlang::as_label(rawIS))
 
       }
 
-      if(as_label(colorBy) %in% names(DForig)){
-            names(DF)[names(DF) == "ColorBy"] <- as_label(colorBy)
-            names(Curve)[names(Curve) == "ColorBy"] <- as_label(colorBy)
+      if(rlang::as_label(colorBy) %in% names(DForig)){
+            names(DF)[names(DF) == "ColorBy"] <- rlang::as_label(colorBy)
+            names(Curve)[names(Curve) == "ColorBy"] <- rlang::as_label(colorBy)
       }
 
       CurveResults <- list(Fit, CurvePlot, Curve, DF)

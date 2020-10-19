@@ -1,9 +1,10 @@
 #' Calculate mean +/- sd or other parameters with appropriate sig figs
 #'
-#' \code{mean_sd} takes as input a numeric vector or a number for the
-#' mean and a second number for the sd and outputs the mean plus or minus the
-#' standard deviation of that vector with an appropriate number of sig figs.
-#' Output is ALWAYS of class character.
+#' \code{mean_sd} takes as input either a) a numeric vector or b) a number for
+#' the mean and a second number for the sd, and it outputs the mean plus or
+#' minus the standard deviation of that vector with an appropriate number of sig
+#' figs. If a vector was supplied, optionally also obtain the median, range, CV,
+#' and/or 95% confidence interval. Output is \emph{always} of class character.
 #'
 #' @param x A vector of numbers \emph{or} a single mean
 #' @param stdev.x The sd when you want to provide it (leave as NULL if providing
@@ -16,25 +17,27 @@
 #'   calc95CI is set to TRUE, it will return the 95\% confidence interval as
 #'   calculated as \emph{{\out{mean(x) +/- t<sub>n-1, 1-alpha/2</sub> *
 #'   sd(x)/sqrt(n)}}}
-#' @param calcQuantiles Should the quantiles be reported? (logical)
 #' @param reportn Should the number of observations be reported? (logical)
 #' @param ndig Optionally set the number of sig figs to use if you don't want
 #'   that calculated automatically
 #' @param na.rm Should NA values be removed when calculating the mean, standard
 #'   deviation, etc.? (logical) They'll still be included in the count of
 #'   observations if \code{reportn} is TRUE.
-#' @details
-#' Example of ultimate output with all possible options set to TRUE:
+#' @details Example of ultimate output with all possible options set to TRUE:
 #'
-#' 5.1 (5) +/- 0.2 (4.7 to 5.3, 3.7\%, 95\%CI: 4.6 to 5.2, n = 18)
+#'   5.1 (5) +/- 0.2 (4.7 to 5.3, 3.7\%, 95\%CI: 4.6 to 5.2, n = 18)
 #'
-#' mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper, n
-#' = n).
+#'   mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper,
+#'   n = n).
 #'
-#' \emph{NB:} I have not set this up to deal with mean values in scientific
-#' notation.
-#'
-#' \emph{NB:} If \code{sd(x) == 0}, output will be unique(x).
+#'   A few important notes: \itemize{ \item I have not set this up to deal with
+#'   mean values in scientific notation. \item If \code{sd(x) == 0}, output will
+#'   be unique(x). \item If you want to supply the mean and standard deviation
+#'   and have this function return that with appropriate sig figs, you
+#'   \emph{cannot} supply a vector of values for x and stdev.x. That does not
+#'   work. If x is a vector of length > 1, the function will calculate mean,
+#'   standard deviation, etc. rather than taking those values from a second
+#'   vector. It will result in output, just not the \emph{correct} output.
 #'
 #' @return Returns a character string
 #'
@@ -50,13 +53,14 @@
 #' @export
 
 mean_sd <- function(x, stdev.x = NULL,
-                    calcRange = FALSE, numDigRange = NA,
+                    calcRange = FALSE,
+                    numDigRange = NA,
                     calcCV = FALSE,
                     calcMedian = FALSE,
                     calc95CI = FALSE,
-                    calcQuantiles = FALSE,
                     reportn = FALSE,
-                    ndig = NA, na.rm = TRUE){
+                    ndig = NA,
+                    na.rm = TRUE){
 
       if(all(is.na(x))){
             if(reportn == TRUE){
@@ -77,14 +81,14 @@ mean_sd <- function(x, stdev.x = NULL,
 
             if(reportn == TRUE){
                   return(paste(signif(x, ndig),
-                                "(n = 1)"))
+                               "(n = 1)"))
             } else {
                   return(as.character(signif(x, ndig)))
             }
       }
 
       # If there are any infinite values, return Inf, which is what the mean of
-      # a vector containing Inf would be, and issue warning message. Not truly
+      # a vector contain ing Inf would be, and issue warning message. Not truly
       # meaningful to calculate sd, 95% CI, etc., when x contains infinity, and
       # this function really just isn't designed for this purpose.
       if(any(is.infinite(x))){
@@ -94,17 +98,17 @@ mean_sd <- function(x, stdev.x = NULL,
 
 
       if(sd(x, na.rm = T) == 0 & is.null(stdev.x) |
-            is.na(sd(x, na.rm = T)) & is.null(stdev.x)){
-               if(is.na(ndig)){
+         is.na(sd(x, na.rm = T)) & is.null(stdev.x)){
+            if(is.na(ndig)){
                   ndig <- 3
-               }
+            }
 
-               if(reportn == TRUE){
-                     return(paste0(signif(sort(unique(x)), ndig),
-                                  " (n =", length(x), ")"))
-               } else {
-                     return(as.character(signif(sort(unique(x)), ndig)))
-               }
+            if(reportn == TRUE){
+                  return(paste0(signif(sort(unique(x)), ndig),
+                                " (n =", length(x), ")"))
+            } else {
+                  return(as.character(signif(sort(unique(x)), ndig)))
+            }
       }
 
       if(na.rm == FALSE & (all(complete.cases(x)) == FALSE |
@@ -161,8 +165,8 @@ mean_sd <- function(x, stdev.x = NULL,
 
                   # Find the position of the 1st non-zero character after the decimal
                   DecLocSD <- stringr::str_locate(as.character(format(signif(stdev.x, 1),
-                                                             scientific = FALSE)),
-                                         "\\.(0){0,20}[1-9]")[2]
+                                                                      scientific = FALSE)),
+                                                  "\\.(0){0,20}[1-9]")[2]
                   if(is.na(DecLocSD)){ # This will happen if sd(x) == 0 and there are digits after a decimal in mean(x)
                         nsmall <- 3 # Arbitrarily setting this.
                   } else {
@@ -245,60 +249,35 @@ mean_sd <- function(x, stdev.x = NULL,
 
             if(calc95CI == TRUE){
                   if(length(x) < 2){
-                        CI95 <- "cannot calculate 95% confidence interval"
+                        CIhigh <- "cannot calculate 95% confidence interval"
                   } else {
                         if(PlacesSD < 1){
-                              CI5 <- round(as.numeric(mean(x) - qt(0.975, length(x) - 1) * sd(x)/sqrt(length(x))),
-                                           nsmall)
-                              CI95 <- round(as.numeric(mean(x) + qt(0.975, length(x) - 1) * sd(x)/sqrt(length(x))),
-                                            nsmall)
-                              xCI95 <- paste(prettyNum(CI5, big.mark = ",",
+                              CIlow <- round(as.numeric(mean(x) - qt(0.975, length(x) - 1) *
+                                                              sd(x)/sqrt(length(x))),
+                                             nsmall)
+                              CIhigh <- round(as.numeric(mean(x) + qt(0.975, length(x) - 1) *
+                                                               sd(x)/sqrt(length(x))),
+                                              nsmall)
+                              xCI95 <- paste(prettyNum(CIlow, big.mark = ",",
                                                        nsmall = nsmall),
                                              "to",
-                                             prettyNum(CI95, big.mark = ",",
+                                             prettyNum(CIhigh, big.mark = ",",
                                                        nsmall = nsmall))
                         } else {
-                              CI5 <- signif(as.numeric(mean(x) - qt(0.975, length(x) - 1) * sd(x)/sqrt(length(x))),
-                                            SigFig)
-                              CI95 <- signif(as.numeric(mean(x) + qt(0.975, length(x) - 1) * sd(x)/sqrt(length(x))),
-                                             SigFig)
-                              xCI95 <- paste(prettyNum(CI5, big.mark = ",",
+                              CIlow <- signif(as.numeric(mean(x) - qt(0.975, length(x) - 1) *
+                                                               sd(x)/sqrt(length(x))),
+                                              SigFig)
+                              CIhigh <- signif(as.numeric(mean(x) + qt(0.975, length(x) - 1) *
+                                                                sd(x)/sqrt(length(x))),
+                                               SigFig)
+                              xCI95 <- paste(prettyNum(CIlow, big.mark = ",",
                                                        nsmall = 0),
                                              "to",
-                                             prettyNum(CI95, big.mark = ",",
+                                             prettyNum(CIhigh, big.mark = ",",
                                                        nsmall = 0))
                         }
                   }
             }
-
-            if(calcQuantiles == TRUE){
-                  if(length(x) < 2){
-                        Q95 <- "cannot calculate 95% confidence interval"
-                  } else {
-                        if(PlacesSD < 1){
-                              Q5 <- round(as.numeric(quantile(x, c(0.025))),
-                                           nsmall)
-                              Q95 <- round(as.numeric(quantile(x, c(0.975))),
-                                            nsmall)
-                              xQ95 <- paste(prettyNum(Q5, big.mark = ",",
-                                                       nsmall = nsmall),
-                                             "to",
-                                             prettyNum(Q95, big.mark = ",",
-                                                       nsmall = nsmall))
-                        } else {
-                              Q5 <- signif(as.numeric(quantile(x, c(0.025))),
-                                            SigFig)
-                              Q95 <- signif(as.numeric(quantile(x, c(0.975))),
-                                             SigFig)
-                              xQ95 <- paste(prettyNum(Q5, big.mark = ",",
-                                                       nsmall = 0),
-                                             "to",
-                                             prettyNum(Q95, big.mark = ",",
-                                                       nsmall = 0))
-                        }
-                  }
-            }
-
 
             if(calcMedian == TRUE){
                   if(length(x) < 2){
@@ -319,11 +298,9 @@ mean_sd <- function(x, stdev.x = NULL,
 
 
       } else {
-            mean.x.sig <- prettyNum(signif(as.numeric(mean.x),
-                                           ndig),
-                                    big.mark = ",")
-            stdev.x.sig <- prettyNum(signif(as.numeric(stdev.x), ndig),
-                                     big.mark = ",")
+            mean.x.sig <- formatC(mean.x, big.mark = ",", format = "f", digits = ndig)
+
+            stdev.x.sig <- formatC(stdev.x, big.mark = ",", format = "f", digits = ndig)
 
             if(calcRange == TRUE){
                   if(length(x) < 2){
@@ -340,38 +317,6 @@ mean_sd <- function(x, stdev.x = NULL,
                   }
             }
 
-            if(calc95CI == TRUE){
-                  if(length(x) < 2){
-                        CI95 <- "cannot calculate 95% confidence interval"
-                  } else {
-                        CI5 <- round(as.numeric(quantile(x, c(0.025))),
-                                     ndig)
-                        CI95 <- round(as.numeric(quantile(x, c(0.975))),
-                                      ndig)
-                        xCI95 <- paste(prettyNum(CI5, big.mark = ",",
-                                                 nsmall = ndig),
-                                       "to",
-                                       prettyNum(CI95, big.mark = ",",
-                                                 nsmall = ndig))
-                  }
-            }
-
-            if(calcQuantiles == TRUE){
-                  if(length(x) < 2){
-                        Q95 <- "cannot calculate 95% confidence interval"
-                  } else {
-                        Q5 <- round(as.numeric(quantile(x, c(0.025))),
-                                     ndig)
-                        Q95 <- round(as.numeric(quantile(x, c(0.975))),
-                                      ndig)
-                        xQ95 <- paste(prettyNum(Q5, big.mark = ",",
-                                                 nsmall = ndig),
-                                       "to",
-                                       prettyNum(Q95, big.mark = ",",
-                                                 nsmall = ndig))
-                  }
-            }
-
             if(calcMedian == TRUE){
                   if(length(x) < 2){
                         xMed <- "cannot calculate median"
@@ -382,6 +327,23 @@ mean_sd <- function(x, stdev.x = NULL,
                   }
             }
 
+            if(calc95CI == TRUE){
+                  if(length(x) < 2){
+                        CIhigh <- "cannot calculate 95% confidence interval"
+                  } else {
+                        CIlow <- round(as.numeric(mean(x) - qt(0.975, length(x) - 1) *
+                                                        sd(x)/sqrt(length(x))),
+                                       ndig)
+                        CIhigh <- round(as.numeric(mean(x) + qt(0.975, length(x) - 1) *
+                                                         sd(x)/sqrt(length(x))),
+                                        ndig)
+                        xCI95 <- paste(prettyNum(CIlow, big.mark = ",",
+                                                 nsmall = nsmall),
+                                       "to",
+                                       prettyNum(CIhigh, big.mark = ",",
+                                                 nsmall = ndig))
+                  }
+            }
       }
 
       if(IsNeg){
@@ -410,31 +372,26 @@ mean_sd <- function(x, stdev.x = NULL,
       xCV <- ifelse(calcCV, xCV, "")
       xCI95 <- ifelse(calc95CI, xCI95, "")
       xn <- ifelse(reportn, xn, "")
-      xQ95 <- ifelse(calcQuantiles, xQ95, "")
 
       # Median is listed right after the mean, so that value is inside its
       # own set of parentheses.
       xMed <- ifelse(calcMedian, paste0(" (", xMed, ")"), "") # Adding spaces and parentheses
 
       # All the others are within the last set of parentheses.
-      if(any(calcRange, calcCV, calc95CI, calcQuantiles, reportn)){
-            if(calcRange & any(calcCV, calc95CI, calcQuantiles, reportn)){
+      if(any(calcRange, calcCV, calc95CI, reportn)){
+            if(calcRange & any(calcCV, calc95CI, reportn)){
                   xrange <- paste0(xrange, ", ")
             }
 
-            if(calcCV & any(calc95CI, calcQuantiles, reportn)){
+            if(calcCV & any(calc95CI, reportn)){
                   xCV <- paste0(xCV, ", ")
             }
 
-            if(calc95CI & any(calcQuantiles, reportn)){
+            if(calc95CI & any(reportn)){
                   xCI95 <- paste0(xCI95, ", ")
             }
 
-            if(calcQuantiles & reportn){
-                  xQ95 <- paste0(xQ95, ", ")
-            }
-
-            Parenth2 <- paste0(" (", xrange, xCV, xCI95, xQ95, xn, ")")
+            Parenth2 <- paste0(" (", xrange, xCV, xCI95, xn, ")")
       } else {
             Parenth2 <- ""
       }

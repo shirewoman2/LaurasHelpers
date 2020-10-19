@@ -83,9 +83,9 @@
 #' @examples
 #' # Example data to work with:
 #' data(ConcTime)
-#' IV1 <- ConcTime %>% filter(SubjectID == 101 & DoseRoute == "IV" &
+#' IV1 <- ConcTime %>%  dplyr::filter(SubjectID == 101 & DoseRoute == "IV" &
 #'                                      Drug == "A") %>%
-#'       select(SubjectID, TimeHr, Concentration)
+#'       dplyr::select(SubjectID, TimeHr, Concentration)
 #'
 #' # Automatically select the start values for the regression and start
 #' # fitting at whatever time is tmax
@@ -170,6 +170,10 @@ elimFit <- function(DF, concentration = Concentration,
                     maxiter = 50,
                     graph = FALSE){
 
+      # Defining pipe operator and bang bang
+      `%>%` <- magrittr::`%>%`
+      `!!` <- rlang::`!!`
+
       # Catching inappropriate model input
       if(modelType %in% c("monoexponential", "biexponential",
                           "triexponential") == FALSE){
@@ -178,8 +182,8 @@ elimFit <- function(DF, concentration = Concentration,
 
       # Setting up the input data.frame
       DFinit <- DF
-      concentration <- enquo(concentration)
-      time <- enquo(time)
+      concentration <- rlang::enquo(concentration)
+      time <- rlang::enquo(time)
 
       # If the user supplied a value for "omit" but that value doesn't fall
       # within DF, issue a warning but keep going.
@@ -188,14 +192,14 @@ elimFit <- function(DF, concentration = Concentration,
             message("One or more of the values supplied for 'omit' do not fall within the range of the data.frame supplied. All of the points supplied were included in the regression.")
       }
 
-      DF <- DF %>% select(!! concentration, !! time) %>%
-            rename(TIME = !! time,
-                   CONC = !! concentration)
+      DF <- DF %>% dplyr::select(!! concentration, !! time) %>%
+            dplyr::rename(TIME = !! time,
+                          CONC = !! concentration)
 
       # DFinit2 is for the purposes of graphing only.
-      DFinit2 <- DFinit %>% select(!! concentration, !! time) %>%
-            rename(TIME = !! time,
-                   CONC = !! concentration)
+      DFinit2 <- DFinit %>% dplyr::select(!! concentration, !! time) %>%
+            dplyr::rename(TIME = !! time,
+                          CONC = !! concentration)
 
       # Adding user-supplied weights. I need to add it here and then remove it
       # b/c I need to filter out the points that are before tmax and also
@@ -206,9 +210,9 @@ elimFit <- function(DF, concentration = Concentration,
 
       # Removing any rows the user requests
       if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DF))){
-            DFomit <- DF %>% slice(omit)
-            DF <- DF %>% slice(-omit)
-            DFinit2 <- DFinit2 %>% slice(-omit)
+            DFomit <- DF %>% dplyr::slice(omit)
+            DF <- DF %>% dplyr::slice(-omit)
+            DFinit2 <- DFinit2 %>% dplyr::slice(-omit)
       }
 
       DF <- DF[complete.cases(DF$CONC) & complete.cases(DF$TIME), ]
@@ -283,18 +287,18 @@ elimFit <- function(DF, concentration = Concentration,
       if(class(weights) == "character"){
 
             WeightOptions <- DF %>%
-                  select(CONC, TIME) %>%
-                  mutate(One_x = 1/TIME,
-                         One_x2 = 1/TIME^2,
-                         One_y = 1/CONC,
-                         One_y2 = 1/CONC^2)
+                  dplyr::select(CONC, TIME) %>%
+                  dplyr::mutate(One_x = 1/TIME,
+                                One_x2 = 1/TIME^2,
+                                One_y = 1/CONC,
+                                One_y2 = 1/CONC^2)
 
             weights <- tolower(weights)
 
             MyWeights <- c("1/x" = "One_x", "1/x^2" = "One_x2",
                            "1/y" = "One_y", "1/y^2" = "One_y2")
 
-            weights <- WeightOptions %>% pull(MyWeights[weights])
+            weights <- WeightOptions %>%  dplyr::pull(MyWeights[weights])
       }
 
       if(any(is.infinite(weights))){
@@ -389,9 +393,9 @@ elimFit <- function(DF, concentration = Concentration,
       }
 
       # Setting up the data to graph
-      CurveData <- tibble(Time.offset = seq(min(DF$Time.offset, na.rm = T),
-                                            max(DF$Time.offset, na.rm = T),
-                                            length.out = 100))
+      CurveData <- data.frame(Time.offset = seq(min(DF$Time.offset, na.rm = T),
+                                                max(DF$Time.offset, na.rm = T),
+                                                length.out = 100))
 
       # Checking whether the fit worked at all
       if(class(Fit) == "character"){
@@ -408,14 +412,14 @@ elimFit <- function(DF, concentration = Concentration,
 
             Estimates$Message <- "Cannot fit to model"
 
-            Graph <- ggplot2::ggplot(DFinit2, aes(x = TIME, y = CONC)) +
-                  geom_point() +
-                  scale_y_log10() +
-                  xlab(as_label(time)) + ylab(as_label(concentration))
+            Graph <- ggplot2::ggplot(DFinit2, ggplot2::aes(x = TIME, y = CONC)) +
+                  ggplot2::geom_point() +
+                  ggplot2::scale_y_log10() +
+                  ggplot2::xlab(rlang::as_label(time)) + ggplot2::ylab(rlang::as_label(concentration))
 
             if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DFinit))){
                   Graph <- Graph +
-                        geom_point(data = DFomit, color = "red", shape = "O", size = 2)
+                        ggplot2::geom_point(data = DFomit, color = "red", shape = "O", size = 2)
 
             }
 
@@ -427,69 +431,69 @@ elimFit <- function(DF, concentration = Concentration,
 
             if(modelType == "monoexponential"){
                   CurveData <- CurveData %>%
-                        mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
-                               k = Estimates[row.names(Estimates) == "k", "Estimate"],
-                               CONC = A * exp(-k * Time.offset))
+                        dplyr::mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
+                                      k = Estimates[row.names(Estimates) == "k", "Estimate"],
+                                      CONC = A * exp(-k * Time.offset))
 
                   Estimates <- Estimates %>%
-                        mutate(Beta = row.names(Estimates)) %>%
-                        select(Beta, everything())
+                        dplyr::mutate(Beta = row.names(Estimates)) %>%
+                        dplyr::select(Beta, everything())
 
             }
 
             if(modelType == "biexponential"){
                   CurveData <- CurveData %>%
-                        mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
-                               alpha = Estimates[row.names(Estimates) == "alpha", "Estimate"],
-                               B = Estimates[row.names(Estimates) == "B", "Estimate"],
-                               beta = Estimates[row.names(Estimates) == "beta", "Estimate"],
-                               CONC = A * exp(-alpha * Time.offset) +
-                                     B * exp(-beta * Time.offset))
+                        dplyr::mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
+                                      alpha = Estimates[row.names(Estimates) == "alpha", "Estimate"],
+                                      B = Estimates[row.names(Estimates) == "B", "Estimate"],
+                                      beta = Estimates[row.names(Estimates) == "beta", "Estimate"],
+                                      CONC = A * exp(-alpha * Time.offset) +
+                                            B * exp(-beta * Time.offset))
 
                   # Figuring out which beta is which and making it consistent
                   Betas <- Estimates %>%
-                        mutate(ParamSet = c("Set1", "Set1", "Set2", "Set2"),
-                               ParamType = rep(c("A0", "rate"), 2)) %>%
-                        select(Estimate, ParamSet, ParamType) %>%
-                        spread(key = ParamType, value = Estimate) %>%
-                        arrange(-A0) %>%
-                        mutate(ParamSet = c("A", "B"))
+                        dplyr::mutate(ParamSet = c("Set1", "Set1", "Set2", "Set2"),
+                                      ParamType = rep(c("A0", "rate"), 2)) %>%
+                        dplyr::select(Estimate, ParamSet, ParamType) %>%
+                        tidyr::spread(key = ParamType, value = Estimate) %>%
+                        dplyr::arrange(-A0) %>%
+                        dplyr::mutate(ParamSet = c("A", "B"))
 
                   A <- Betas$A0[Betas$ParamSet == "A"]
                   alpha <- Betas$rate[Betas$ParamSet == "A"]
                   B <- Betas$A0[Betas$ParamSet == "B"]
                   beta <- Betas$rate[Betas$ParamSet == "B"]
 
-                  Betas <- tibble(Beta = c("A", "alpha", "B", "beta"),
-                                  Estimate = c(A, alpha, B, beta)) %>%
-                        mutate(Beta = factor(Beta, levels = Beta))
+                  Betas <- data.frame(Beta = c("A", "alpha", "B", "beta"),
+                                      Estimate = c(A, alpha, B, beta)) %>%
+                        dplyr::mutate(Beta = factor(Beta, levels = Beta))
 
                   Estimates <- Estimates %>% left_join(Betas, by = "Estimate") %>%
-                        arrange(Beta) %>%
-                        select(Beta, everything())
+                        dplyr::arrange(Beta) %>%
+                        dplyr::select(Beta, everything())
             }
 
             if(modelType == "triexponential"){
                   CurveData <- CurveData %>%
-                        mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
-                               alpha = Estimates[row.names(Estimates) == "alpha", "Estimate"],
-                               B = Estimates[row.names(Estimates) == "B", "Estimate"],
-                               beta = Estimates[row.names(Estimates) == "beta", "Estimate"],
-                               G = Estimates[row.names(Estimates) == "G", "Estimate"],
-                               gamma = Estimates[row.names(Estimates) == "gamma", "Estimate"],
-                               CONC = A * exp(-alpha * Time.offset) +
-                                     B * exp(-beta * Time.offset) +
-                                     G * exp(-gamma * Time.offset))
+                        dplyr::mutate(A = Estimates[row.names(Estimates) == "A", "Estimate"],
+                                      alpha = Estimates[row.names(Estimates) == "alpha", "Estimate"],
+                                      B = Estimates[row.names(Estimates) == "B", "Estimate"],
+                                      beta = Estimates[row.names(Estimates) == "beta", "Estimate"],
+                                      G = Estimates[row.names(Estimates) == "G", "Estimate"],
+                                      gamma = Estimates[row.names(Estimates) == "gamma", "Estimate"],
+                                      CONC = A * exp(-alpha * Time.offset) +
+                                            B * exp(-beta * Time.offset) +
+                                            G * exp(-gamma * Time.offset))
 
                   # Figuring out which beta is which and making it consistent
                   Betas <- Estimates %>%
-                        mutate(ParamSet = c("Set1", "Set1", "Set2", "Set2",
-                                            "Set3", "Set3"),
-                               ParamType = rep(c("A0", "rate"), 3)) %>%
-                        select(Estimate, ParamSet, ParamType) %>%
-                        spread(key = ParamType, value = Estimate) %>%
-                        arrange(-A0) %>%
-                        mutate(ParamSet = c("A", "B", "G"))
+                        dplyr::mutate(ParamSet = c("Set1", "Set1", "Set2", "Set2",
+                                                   "Set3", "Set3"),
+                                      ParamType = rep(c("A0", "rate"), 3)) %>%
+                        dplyr::select(Estimate, ParamSet, ParamType) %>%
+                        tidyr::spread(key = ParamType, value = Estimate) %>%
+                        dplyr::arrange(-A0) %>%
+                        dplyr::mutate(ParamSet = c("A", "B", "G"))
 
                   A <- Betas$A0[Betas$ParamSet == "A"]
                   alpha <- Betas$rate[Betas$ParamSet == "A"]
@@ -498,28 +502,28 @@ elimFit <- function(DF, concentration = Concentration,
                   G <- Betas$A0[Betas$ParamSet == "G"]
                   gamma <- Betas$rate[Betas$ParamSet == "G"]
 
-                  Betas <- tibble(Beta = c("A", "alpha", "B", "beta",
-                                           "G", "gamma"),
-                                  Estimate = c(A, alpha, B, beta, G, gamma)) %>%
-                        mutate(Beta = factor(Beta, levels = Beta))
+                  Betas <- data.frame(Beta = c("A", "alpha", "B", "beta",
+                                               "G", "gamma"),
+                                      Estimate = c(A, alpha, B, beta, G, gamma)) %>%
+                        dplyr::mutate(Beta = factor(Beta, levels = Beta))
 
                   Estimates <- Estimates %>% left_join(Betas, by = "Estimate") %>%
-                        arrange(Beta) %>%
-                        select(Beta, everything())
+                        dplyr::arrange(Beta) %>%
+                        dplyr::select(Beta, everything())
             }
 
             CurveData <- CurveData %>%
-                  mutate(TIME = Time.offset + tmax)
+                  dplyr::mutate(TIME = Time.offset + tmax)
 
-            Graph <- ggplot2::ggplot(DFinit2, aes(x = TIME, y = CONC)) +
-                  geom_point() +
-                  geom_line(data = CurveData) +
-                  scale_y_log10() +
-                  xlab(as_label(time)) + ylab(as_label(concentration))
+            Graph <- ggplot2::ggplot(DFinit2, ggplot2::aes(x = TIME, y = CONC)) +
+                  ggplot2::geom_point() +
+                  ggplot2::geom_line(data = CurveData) +
+                  ggplot2::scale_y_log10() +
+                  ggplot2::xlab(rlang::as_label(time)) + ggplot2::ylab(rlang::as_label(concentration))
 
             if(any(complete.cases(omit)) & any(omit %in% 1:nrow(DFinit))){
                   Graph <- Graph +
-                        geom_point(data = DFomit, color = "red", shape = "O", size = 2)
+                        ggplot2::geom_point(data = DFomit, color = "red", shape = "O", size = 2)
 
             }
       }

@@ -165,11 +165,11 @@ tmax <- 0.5
 # The elimination phase begins at t = 0.5 hrs here, so don't start fitting at
 # t0; you'll get bad estimates.
 Fit <- nls(Concentration ~ A * exp(-k * (TimeHr - tmax)),
-           data = IV1 \%>\% filter(TimeHr >= tmax),
+           data = IV1 \%>\%  dplyr::filter(TimeHr >= tmax),
            start = list(A = max(IV1$Concentration), k = 0.01))
 MyCoefs <- summary(Fit)[["coefficients"]]
 
-# Extapolating to infinity with supplied coefficients
+# Extrapolating to infinity with supplied coefficients
 noncompAUC(IV1, time = TimeHr, extrap_inf = TRUE,
            extrap_inf_times = c(0.5, NA),
            extrap_inf_coefs = MyCoefs)

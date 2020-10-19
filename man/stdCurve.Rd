@@ -114,7 +114,7 @@ stdCurve(ExStdCurve,
          useNLS_outnames = FALSE)
 
 # Coloring by some variable
-stdCurve(ExStdCurve \%>\% mutate(Group = c(rep("A", 5), rep("B", 6))),
+stdCurve(ExStdCurve \%>\% dplyr::mutate(Group = c(rep("A", 5), rep("B", 6))),
          normPeak = MET.peakarearatio,
          nominal = MET.nominalmass,
          colorBy = Group,

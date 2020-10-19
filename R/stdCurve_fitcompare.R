@@ -50,7 +50,7 @@
 #'                       nominal = MET.nominalmass,
 #'                       poly = "2nd", IDcol = SampleID)
 #'
-#' stdCurve2 <- stdCurve(ExStdCurve %>% filter(SampleID != "standard 200"),
+#' stdCurve2 <- stdCurve(ExStdCurve %>%  dplyr::filter(SampleID != "standard 200"),
 #'                       normPeak = MET.peakarearatio,
 #'                       nominal = MET.nominalmass,
 #'                       poly = "2nd", IDcol = SampleID)
@@ -66,6 +66,11 @@
 #'
 #'
 stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
+
+      # Defining pipe operator and bang bang
+      `%>%` <- magrittr::`%>%`
+      `!!` <- rlang::`!!`
+
       OrigNames1 <- names(stdCurve1$Data)
       OrigNames2 <- names(stdCurve1$Data)
 
@@ -100,45 +105,45 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
 
       }
 
-      OutData <- dplyr::full_join(stdCurve1$Data %>% ungroup(),
-                                  stdCurve2$Data %>% ungroup()) %>%
-            select(any_of(c("IDcol", "colorBy", "Nominal",
-                            "Calculated_A", "Calculated_B",
-                            "PercDiff_A", "PercDiff_B"))) %>%
-            arrange(Nominal)
+      OutData <- dplyr::full_join(stdCurve1$Data %>% dplyr::ungroup(),
+                                  stdCurve2$Data %>% dplyr::ungroup()) %>%
+            dplyr::select(any_of(c("IDcol", "colorBy", "Nominal",
+                                   "Calculated_A", "Calculated_B",
+                                   "PercDiff_A", "PercDiff_B"))) %>%
+            dplyr::arrange(Nominal)
 
       # Making graph
-      PlotData <- stdCurve1$Data %>% mutate(Fit = "Fit_A") %>%
-            select(Nominal, NormPeak, Fit) %>%
-            bind_rows(stdCurve2$Data %>% mutate(Fit = "Fit_B") %>%
-                            select(Nominal, NormPeak, Fit))
+      PlotData <- stdCurve1$Data %>% dplyr::mutate(Fit = "Fit_A") %>%
+            dplyr::select(Nominal, NormPeak, Fit) %>%
+            dplyr::bind_rows(stdCurve2$Data %>% dplyr::mutate(Fit = "Fit_B") %>%
+                                   dplyr::select(Nominal, NormPeak, Fit))
 
-      CurveData <- stdCurve1$CurveDF %>% mutate(Fit = "Fit_A") %>%
-            bind_rows(stdCurve2$CurveDF %>% mutate(Fit = "Fit_B"))
+      CurveData <- stdCurve1$CurveDF %>% dplyr::mutate(Fit = "Fit_A") %>%
+            dplyr::bind_rows(stdCurve2$CurveDF %>% dplyr::mutate(Fit = "Fit_B"))
       names(CurveData) <- c("Nominal", "NormPeak", "Fit")
 
       # Removing any replicates and arranging out data.
       if("IDcol" %in% names(OutData)){
             if(anyDuplicated(OutData$IDcol)){
                   OutData <- OutData %>%
-                        group_by(IDcol, Nominal) %>%
-                        summarize(Calculated_A = mean(Calculated_A, na.rm = T),
-                                  Calculated_B = mean(Calculated_B, na.rm = T),
-                                  PercDiff_A = mean(PercDiff_A, na.rm = T),
-                                  PercDiff_B = mean(PercDiff_B, na.rm = T)) %>%
-                        ungroup()
+                        dplyr::group_by(IDcol, Nominal) %>%
+                        dplyr::summarize(Calculated_A = mean(Calculated_A, na.rm = T),
+                                         Calculated_B = mean(Calculated_B, na.rm = T),
+                                         PercDiff_A = mean(PercDiff_A, na.rm = T),
+                                         PercDiff_B = mean(PercDiff_B, na.rm = T)) %>%
+                        dplyr::ungroup()
             }
       }
 
-      OutData <- OutData %>% arrange(Nominal)
+      OutData <- OutData %>% dplyr::arrange(Nominal)
 
       if(all(complete.cases(fitNames)) & length(fitNames == 2)){
             PlotData <- PlotData %>%
-                  mutate(Fit = recode(Fit, "Fit_A" = fitNames[1],
-                                      "Fit_B" = fitNames[2]))
+                  dplyr::mutate(Fit = dplyr::recode(Fit, "Fit_A" = fitNames[1],
+                                             "Fit_B" = fitNames[2]))
             CurveData <- CurveData %>%
-                  mutate(Fit = recode(Fit, "Fit_A" = fitNames[1],
-                                      "Fit_B" = fitNames[2]))
+                  dplyr::mutate(Fit = dplyr::recode(Fit, "Fit_A" = fitNames[1],
+                                             "Fit_B" = fitNames[2]))
 
             names(OutData) <- sub("_A", paste0("_", fitNames[1]),
                                   names(OutData))
@@ -146,13 +151,13 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
                                   names(OutData))
       }
 
-      CurvePlot <- ggplot2::ggplot(PlotData, aes(x = Nominal, y = NormPeak,
-                                                 color = Fit, shape = Fit)) +
-            geom_point() +
-            geom_line(data = CurveData, aes(x = Nominal, y = NormPeak,
-                                            color = Fit)) +
-            # scale_color_manual(values = c("dodgerblue3", "#3E8853")) +
-            xlab(Xlab) + ylab(Ylab)
+      CurvePlot <- ggplot2::ggplot(PlotData, ggplot2::aes(x = Nominal, y = NormPeak,
+                                                          color = Fit, shape = Fit)) +
+            ggplot2::geom_point() +
+            ggplot2::geom_line(data = CurveData, ggplot2::aes(x = Nominal, y = NormPeak,
+                                                              color = Fit)) +
+            # ggplot2::scale_color_manual(values = c("dodgerblue3", "#3E8853")) +
+            ggplot2::xlab(Xlab) + ggplot2::ylab(Ylab)
 
       names(OutData)[1] <- OrigNames1[1]
 
