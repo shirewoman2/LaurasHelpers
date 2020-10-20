@@ -23,10 +23,10 @@
 #'
 formatXL_head <- function(DF, file, sheet = NA){
 
-      # Defining pipe operator 
-`%>%` <- magrittr::`%>%`
-	  
-	  # All the columns must be named for this to work well. Checking that.
+      # Defining pipe operator
+      `%>%` <- magrittr::`%>%`
+
+      # All the columns must be named for this to work well. Checking that.
       if(any(is.na(names(DF)))){
             stop("All the columns in your data.frame must be named.")
       }
@@ -58,10 +58,10 @@ formatXL_head <- function(DF, file, sheet = NA){
       NumWord <- rep(1, length(names(DF)))
       for(i in XWide){
             Nchar_word[i] <- mean(sapply(apply(DFwithHead[i], MARGIN = 1, splitWords),
-                                        as.vector), na.rm = TRUE)
+                                         as.vector), na.rm = TRUE)
 
             NumWord[i] <- max(apply(DFwithHead[i], MARGIN = 1, countWords),
-                            na.rm = TRUE)
+                              na.rm = TRUE)
             # If there are at least 3 words, you probably want to see the first
             # three, so multiplying Nchar_word by 3 to allow for that. If there
             # are fewer words, just set it to the number of characters.
@@ -77,8 +77,8 @@ formatXL_head <- function(DF, file, sheet = NA){
                                           c("POSIXct", "POSIXlt", "Date"),
                                     Nchar[i], Nchar_word[i])
             NumWord[i] <- ifelse(Classes[[i]][1] %in%
-                                     c("POSIXct", "POSIXlt", "Date"),
-                               NA, NumWord[i])
+                                       c("POSIXct", "POSIXlt", "Date"),
+                                 NA, NumWord[i])
       }
 
       # Words in the header should NOT be split up, so Nchar_word should

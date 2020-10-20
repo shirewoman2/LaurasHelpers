@@ -131,34 +131,33 @@ If this will create a new Excel file or if your current Excel file
 }
 \examples{
 data(iris)
+iris$Date <- as.Date("2020-11-03")
+iris$Money <- rnorm(nrow(iris), 20, 20)
 
-formatXL(DF = iris \%>\%
-         dplyr::mutate(Date = as.Date("2020-11-03"),
-                Money = rnorm(nrow(.), 20, 20)),
-         file = "test.xlsx", sheet = "iris1",
-         colWidth = list(colNum = NA, width = 30),
-         styles = list(list(rows = 0, columns = NA,
+formatXL(DF = iris, file = "test.xlsx", sheet = "iris1",
+         colWidth = list(width = 30),
+         styles = list(list(columns = 6,
+                            numberFormat = "date"),
+                       list(columns = 7,
+                            numberFormat = "currency"),
+                       list(rows = 0,
                             font = list(bold = TRUE, size = 18),
                             textposition = list(alignment = "middle",
-                                                wrapping = TRUE)),
-                       list(rows = NA, columns = 6,
-                            numberFormat = "date"),
-                       list(rows = NA, columns = 7,
-                            numberFormat = "currency")))
+                                                wrapping = TRUE))))
 
 formatXL(DF = iris, file = "test.xlsx", sheet = "iris2",
          colWidth = list(colNum = c(1, 5, 6), width = c(25, 10, 30)),
-         styles = list(list(rows = 4, columns = NA,
+        styles = list(list(rows = 4,
                             font = list(color = "blue", bold = TRUE)),
                        list(rows = 8:9, columns = 3,
                             font = list(color = "red", italics = TRUE),
                             textposition = list(alignment = "center",
                                                 wrapping = TRUE),
                             fill = "dodgerblue3"),
-                       list(rows = 0, columns = 1),
+                       list(rows = 0, columns = 1,
                             font = list(color = "purple", underline = TRUE),
                             textposition = list(alignment = "right",
-                                                wrapping = TRUE)))
+                                                wrapping = TRUE))))
 
 
 }
