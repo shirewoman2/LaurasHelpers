@@ -238,11 +238,9 @@ elimFit <- function(DF, concentration = Concentration,
                   Result <- list(DataUsed = DFinit,
                                  Estimates = "Insufficient data to create model")
                   return(Result)
-                  break
             }
             else{
                   return("Insufficient data to create model")
-                  break
             }
       }
 
