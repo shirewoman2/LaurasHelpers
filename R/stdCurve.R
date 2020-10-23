@@ -279,7 +279,7 @@ stdCurve <- function(DF,
 
       } else {
             CurvePlot <- ggplot2::ggplot(DF, ggplot2::aes(x = Nominal, y = NormPeak)) +
-                  ggplot2::geom_point() +
+                  ggplot2::geom_point(size = 2) +
                   ggplot2::geom_line(data = Curve, ggplot2::aes(x = Nominal, y = NormPeak),
                                      color = "gray60") +
                   ggplot2::xlab(rlang::as_label(nominal)) +
