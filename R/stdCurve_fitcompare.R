@@ -153,7 +153,7 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
 
       CurvePlot <- ggplot2::ggplot(PlotData, ggplot2::aes(x = Nominal, y = NormPeak,
                                                           color = Fit, shape = Fit)) +
-            ggplot2::geom_point() +
+            ggplot2::geom_point(size = 2) +
             ggplot2::geom_line(data = CurveData, ggplot2::aes(x = Nominal, y = NormPeak,
                                                               color = Fit)) +
             # ggplot2::scale_color_manual(values = c("dodgerblue3", "#3E8853")) +
