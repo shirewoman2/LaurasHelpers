@@ -75,12 +75,13 @@ importChrom <- function(csvfile){
       if(any(stringr::str_detect(Injections$V2, "MRM"))){
             # When the type was TIC, 1st column with file is V9
             # When MRM, 1st column w/file is V8
-            # When SIM, 1st column w/file is XXXXXXXXXXXXXX
             # When BinPump, 1st column w/file is V5
             # For all of these, all the remaining columns are only pieces of the file names.
             TIC <- Injections[stringr::str_detect(Injections$V2, "TIC"), ]
-            TIC$V9 <- apply(TIC[, 9:ncol(TIC)], MARGIN = 1, FUN = concat)
-            TIC <- TIC[, 1:9]
+            if(ncol(TIC) > 9){
+                  TIC$V9 <- apply(TIC[, 9:ncol(TIC)], MARGIN = 1, FUN = concat)
+                  TIC <- TIC[, 1:9]
+            }
 
             MRM <- Injections[stringr::str_detect(Injections$V2, "MRM"), ]
             MRM$V8 <- apply(MRM[, 8:ncol(MRM)], MARGIN = 1, FUN = concat)
@@ -93,22 +94,26 @@ importChrom <- function(csvfile){
             Injections <- dplyr::bind_rows(TIC, MRM, BinP)
 
       } else { # SIM experiments
-            # When the type was TIC, 1st column with file is V9
-            # When MRM, 1st column w/file is V8
-            # When SIM, 1st column w/file is XXXXXXXXXXXXXX
-            # When BinPump, 1st column w/file is V5
-            # For all of these, all the remaining columns are only pieces of the file names.
+            # When the type was SIM, 1st column w/file is V4 for TIC, SIM, and
+            # BinPump chromatograms. For all of these, all the remaining columns
+            # are only pieces of the file names.
             TIC <- Injections[stringr::str_detect(Injections$V2, "TIC"), ]
-            TIC$V4 <- apply(TIC[, 4:ncol(TIC)], MARGIN = 1, FUN = concat)
-            TIC <- TIC[, 1:4]
+            if(ncol(TIC) > 4){
+                  TIC$V4 <- apply(TIC[, 4:ncol(TIC)], MARGIN = 1, FUN = concat)
+                  TIC <- TIC[, 1:4]
+            }
 
             SIM <- Injections[stringr::str_detect(Injections$V2, "EIC"), ]
-            SIM$V4 <- apply(SIM[, 4:ncol(SIM)], MARGIN = 1, FUN = concat)
-            SIM <- SIM[, 1:4]
+            if(ncol(SIM) > 4){
+                  SIM$V4 <- apply(SIM[, 4:ncol(SIM)], MARGIN = 1, FUN = concat)
+                  SIM <- SIM[, 1:4]
+            }
 
             BinP <- Injections[stringr::str_detect(Injections$V1, "BinPump"), ]
-            BinP$V4 <- apply(BinP[, 4:ncol(BinP)], MARGIN = 1, FUN = concat)
-            BinP <- BinP[, 1:4]
+            if(ncol(BinP) > 4){
+                  BinP$V4 <- apply(BinP[, 4:ncol(BinP)], MARGIN = 1, FUN = concat)
+                  BinP <- BinP[, 1:4]
+            }
 
             Injections <- dplyr::bind_rows(TIC, SIM, BinP)
       }
