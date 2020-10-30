@@ -23,19 +23,40 @@ importChrom <- function(csvfile){
       # Defining the pipe operator
       `%>%` <- magrittr::`%>%`
 
-      # MassHunter puts the file name on the 1st line but only
-      # in one cell, and this causes R to interpret the file as
-      # having only 1 column. Thus the odd way of reading
-      # in the file.
+      # Newer vs. older versions of MassHunter export chromatograms differently.
+      # Checking on whether the file provided is one of the older versions,
+      # circa mid 2000s, I think.
       DF1 <- scan(csvfile, nlines = 1, what = "character", sep = "|")
-      # Sometimes getting extra commas at end of this. Removing.
-      DF1 <- gsub(",", "", DF1)
-      DF <- read.csv(csvfile, stringsAsFactors = FALSE,
-                     skip = 1)
-      names(DF) <- c("Point", "Time_min", "Count")
-      DF$Point[DF$Point == "#Point"] <- "Point"
 
-      InjNameRows <- which( stringr::str_detect(DF$Point, "\\#"))
+      FileEra <- ifelse(DF1[[1]] == "Sample Information", "older", "newer")
+
+      if(FileEra == "newer"){
+            # Newer versions of MassHunter put the file name on the 1st line but
+            # only in one cell, and this causes R to interpret the file as
+            # having only 1 column. Thus the odd way of reading in the file
+            # w/nlines = 1 above.
+
+            # Sometimes getting extra commas at end of this. Removing.
+            DF1 <- gsub(",", "", DF1)
+            DF <- read.csv(csvfile, stringsAsFactors = FALSE,
+                           skip = 1)
+            names(DF) <- c("Point", "Time_min", "Count")
+            DF$Point[DF$Point == "#Point"] <- "Point"
+
+            InjNameRows <- which(stringr::str_detect(DF$Point, "\\#"))
+
+      } else {
+            DF1 <- data.table::fread(csvfile, sep = ",", header = FALSE,
+                                     select = 1, fill = TRUE, data.table = FALSE)
+            # Finding 1st row w/actual data
+            StartRow <- which(DF1 == "Raw Data")[1]
+            DF <- read.csv(csvfile, header = FALSE, skip = StartRow)
+            names(DF) <- c("Point", "Time_min", "Count")
+
+            InjNameRows <- which(DF$Point == "Point") - 1
+
+      }
+
       DF$Chromatogram <- NA
 
       for(i in 2:length(InjNameRows)){
@@ -48,15 +69,16 @@ importChrom <- function(csvfile){
       }
 
       # Taking care of the special case of 1st chromatogram
-      DF$Chromatogram[1:(InjNameRows[1]-1)] <- DF1
-      InjNameRows <- c(1, InjNameRows)
+      if(FileEra == "newer"){
+            DF$Chromatogram[1:(InjNameRows[1]-1)] <- DF1
+            InjNameRows <- c(1, InjNameRows)
+      }
 
       # Sometimes, I think only w/SIM experiments, there are quotes around
-      # Chromatogram. Removing those.
-      DF$Chromatogram <- gsub("\"", "", DF$Chromatogram)
+      # Chromatogram. Removing those. Also trimming white space.
+      DF$Chromatogram <- stringr::str_trim(gsub("\"", "", DF$Chromatogram))
 
-
-      AllInjections <- stringr::str_trim(DF[InjNameRows, "Chromatogram"])
+      AllInjections <- DF[InjNameRows, "Chromatogram"]
       # If there were any injections where there was "ZERO ABUNDANCE", that adds
       # a bunch of spaces after the .d. Removing those.
       AllInjections <- sub("    ...ZERO ABUNDANCE...", "", AllInjections)
@@ -73,25 +95,46 @@ importChrom <- function(csvfile){
 
       # MRM experiments
       if(any(stringr::str_detect(Injections$V2, "MRM"))){
-            # When the type was TIC, 1st column with file is V9
-            # When MRM, 1st column w/file is V8
-            # When BinPump, 1st column w/file is V5
-            # For all of these, all the remaining columns are only pieces of the file names.
-            TIC <- Injections[stringr::str_detect(Injections$V2, "TIC"), ]
-            if(ncol(TIC) > 9){
-                  TIC$V9 <- apply(TIC[, 9:ncol(TIC)], MARGIN = 1, FUN = concat)
-                  TIC <- TIC[, 1:9]
+            if(FileEra == "newer"){
+                  # When the type was TIC, 1st column with file is V9
+                  # When MRM, 1st column w/file is V8
+                  # When BinPump, 1st column w/file is V5
+                  # For all of these, all the remaining columns are only pieces of the file names.
+                  TIC <- Injections[stringr::str_detect(Injections$V2, "TIC"), ]
+                  if(ncol(TIC) > 9){
+                        TIC$V9 <- apply(TIC[, 9:ncol(TIC)], MARGIN = 1, FUN = concat)
+                        TIC <- TIC[, 1:9]
+                  }
+
+                  MRM <- Injections[stringr::str_detect(Injections$V2, "MRM"), ]
+                  MRM$V8 <- apply(MRM[, 8:ncol(MRM)], MARGIN = 1, FUN = concat)
+                  MRM <- MRM[, 1:8]
+
+                  BinP <- Injections[stringr::str_detect(Injections$V1, "BinPump"), ]
+                  BinP$V5 <- apply(BinP[, 5:ncol(BinP)], MARGIN = 1, FUN = concat)
+                  BinP <- BinP[, 1:5]
+
+                  Injections <- dplyr::bind_rows(TIC, MRM, BinP)
+            } else {
+                  # When the type was TIC, 1st column with file is V7
+                  # When MRM, 1st column w/file is V6
+                  # The older instrument I've got access to does not store binary
+                  # pump pressure traces, so that's moot.
+
+                  # For all of these, all the remaining columns are only pieces
+                  # of the file names.
+                  TIC <- Injections[stringr::str_detect(Injections$V2, "TIC"), ]
+                  if(ncol(TIC) > 7){
+                        TIC$V7 <- apply(TIC[, 7:ncol(TIC)], MARGIN = 1, FUN = concat)
+                        TIC <- TIC[, 1:7]
+                  }
+
+                  MRM <- Injections[stringr::str_detect(Injections$V2, "MRM"), ]
+                  MRM$V6 <- apply(MRM[, 6:ncol(MRM)], MARGIN = 1, FUN = concat)
+                  MRM <- MRM[, 1:6]
+
+                  Injections <- dplyr::bind_rows(TIC, MRM)
             }
-
-            MRM <- Injections[stringr::str_detect(Injections$V2, "MRM"), ]
-            MRM$V8 <- apply(MRM[, 8:ncol(MRM)], MARGIN = 1, FUN = concat)
-            MRM <- MRM[, 1:8]
-
-            BinP <- Injections[stringr::str_detect(Injections$V1, "BinPump"), ]
-            BinP$V5 <- apply(BinP[, 5:ncol(BinP)], MARGIN = 1, FUN = concat)
-            BinP <- BinP[, 1:5]
-
-            Injections <- dplyr::bind_rows(TIC, MRM, BinP)
 
       } else { # SIM experiments
             # When the type was SIM, 1st column w/file is V4 for TIC, SIM, and
@@ -119,28 +162,43 @@ importChrom <- function(csvfile){
       }
 
 
-      # With MRM chromatograms, the spaces work out to a data.frame with 9
-      # columns and, with SIM chromatograms, 4 columns.
+      # With MRM chromatograms for newer files, the spaces work out to a
+      # data.frame with 9 columns. For MRM experiments w/older files, there are
+      # 6 columns. With SIM chromatograms, 4 columns.
       if(any(stringr::str_detect(Injections$V2, "MRM"))){         # MRM experiments
             # MRM
-            Injections <- dplyr::mutate(
-                  Injections, Chromatogram = AllInjections,
-                  Mode = sub("\\#", "", V1),
-                  ChromatogramType = stringr::str_extract(V2, "^[A-Z]{3}"),
-                  Ion = ifelse(ChromatogramType == "SIM",
-                               stringr::str_extract(V2, "[0-9]{2,4}\\.[0-9]{1,}"),
-                               gsub("\\(|\\)", "", paste(V5, V6, V7))),
-                  Ion = ifelse(ChromatogramType == "TIC", "all", Ion),
-                  ChromatogramType = ifelse(stringr::str_detect(Mode, "BinPump"),
-                                            "binpump pressure", ChromatogramType),
-                  PrecursorIon = as.numeric(stringr::str_extract(V5, "[0-9]{2,4}\\.[0-9]{1,}")),
-                  ProductIon = as.numeric(stringr::str_extract(V7, "[0-9]{2,4}\\.[0-9]{1,}")),
-                  File = V8) # Will need to adjust this with files that have spaces!
+            if(FileEra == "newer"){
+                  Injections <- dplyr::mutate(
+                        Injections,
+                        Chromatogram = AllInjections,
+                        Mode = sub("\\#", "", V1),
+                        ChromatogramType = stringr::str_extract(V2, "^[A-Z]{3}"),
+                        Ion = gsub("\\(|\\)", "", paste(V5, V6, V7)),
+                        Ion = ifelse(ChromatogramType == "TIC", "all", Ion),
+                        ChromatogramType = ifelse(stringr::str_detect(Mode, "BinPump"),
+                                                  "binpump pressure", ChromatogramType),
+                        PrecursorIon = as.numeric(stringr::str_extract(V5, "[0-9]{2,4}\\.[0-9]{1,}")),
+                        ProductIon = as.numeric(stringr::str_extract(V7, "[0-9]{2,4}\\.[0-9]{1,}")),
+                        File = V8)
 
-            Injections$File[Injections$ChromatogramType == "TIC"] <-
-                  Injections$V9[Injections$ChromatogramType == "TIC"]
-            Injections$File[Injections$ChromatogramType == "binpump pressure"] <-
-                  Injections$V5[Injections$ChromatogramType == "binpump pressure"]
+                  Injections$File[Injections$ChromatogramType == "TIC"] <-
+                        Injections$V9[Injections$ChromatogramType == "TIC"]
+                  Injections$File[Injections$ChromatogramType == "binpump pressure"] <-
+                        Injections$V5[Injections$ChromatogramType == "binpump pressure"]
+
+            } else {
+                  Injections <- dplyr::mutate(
+                        Injections,
+                        Chromatogram = AllInjections,
+                        Mode = V1,
+                        ChromatogramType = stringr::str_extract(V2, "^[A-Z]{3}"),
+                        Ion = gsub("\\(|\\)", "", paste(V3, V4, V5)),
+                        Ion = ifelse(ChromatogramType == "TIC", "all", Ion),
+                        PrecursorIon = as.numeric(stringr::str_extract(V3, "[0-9]{2,4}\\.[0-9]{1,}")),
+                        ProductIon = as.numeric(stringr::str_extract(V5, "[0-9]{2,4}\\.[0-9]{1,}")),
+                        File = ifelse(ChromatogramType == "MRM", V6, V7))
+
+            }
 
       } else {                         # SIM experiments
             # SIM
