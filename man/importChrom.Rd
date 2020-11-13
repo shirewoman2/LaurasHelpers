@@ -5,7 +5,7 @@
 \title{Import an Agilent MassHunter chromatogram from a csv file into a useful
 format}
 \usage{
-importChrom(csvfile)
+importChrom(csvfile, saveFile = FALSE)
 }
 \arguments{
 \item{csvfile}{The csv file name that was exported from MassHunter Qual}

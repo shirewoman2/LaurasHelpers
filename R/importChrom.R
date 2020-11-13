@@ -17,7 +17,7 @@
 #'
 #'
 #'
-importChrom <- function(csvfile){
+importChrom <- function(csvfile, saveFile = FALSE){
 
       # Defining the pipe operator
       `%>%` <- magrittr::`%>%`
@@ -86,8 +86,8 @@ importChrom <- function(csvfile){
       DF$Chromatogram <- sub("    ...ZERO ABUNDANCE...|    ...NO DATA POINTS...",
                              "", DF$Chromatogram)
 
-      Injections <- as.data.frame(stringr::str_split(AllInjections, " ",
-                                                     simplify = TRUE))
+      Injections_init <- as.data.frame(stringr::str_split(AllInjections, " ",
+                                                          simplify = TRUE))
 
       ## Dealing with spaces and quotes in the file name columns
       concat <- function(x){
@@ -96,211 +96,268 @@ importChrom <- function(csvfile){
             )
       }
 
-      # MRM experiments
-      if(any(Injections$V2 == "MRM" | Injections$V3 == "MRM")){
-            if(FileEra == "newer"){
-                  # When the chromatogram type is TIC for an MRM experiment, 1st
-                  # column with file is V9. When chromatogram type is MRM, 1st
-                  # column w/file is V8. When BinPump for an MRM experiment, 1st
-                  # column w/file is V5. For all of these, all the remaining
-                  # columns are only pieces of the file names.
-                  TIC_MRM <- Injections[Injections$V2 == "TIC" &
-                                          Injections$V3 == "MRM", ]
-                  if(ncol(TIC_MRM) > 9){
-                        TIC_MRM$V9 <- apply(TIC_MRM[, 9:ncol(TIC_MRM)],
-                                            MARGIN = 1, FUN = concat)
-                        TIC_MRM <- TIC_MRM[, 1:9]
+      ## SIM experiments
+
+      # "SIM" seems to show up in V3 for pretty much every instrument and mode,
+      # so that makes things a little easier.
+      if(any(stringr::str_detect(Injections_init$V3, "SIM"), na.rm = T)){
+
+            # SIM traces
+            SIMrows <- which(stringr::str_detect(Injections_init$V3, "SIM") &
+                                   !stringr::str_detect(Injections_init$V2, "TIC"))
+            SIM <- Injections_init[SIMrows, ]
+
+            if(nrow(SIM) > 0){
+
+                  # ChemStation will only create 3 columns for stuff that's not
+                  # a file name. Checking for whether the number of columns is >
+                  # 4 b/c if it's exactly 4, then it must be a ChemStation
+                  # chromatogram and the file doesn't have spaces and it's
+                  # located in V4.
+                  if(ncol(SIM) == 4){
+                        SIM <- SIM %>%
+                              dplyr::mutate(
+                                    File = V4,
+                                    ChromatogramType = "SIM",
+                                    Ion = gsub("EIC\\(|\\)", "", V2))
+                  } else {
+
+                        # If there are more than 4 columns, could be ChemStation
+                        # file, could be more modern QQQ file. Figuring out
+                        # where the last column that's *not* a file name is so
+                        # that we can figure out where the file column should
+                        # begin.
+                        FileStart <- which(as.logical(
+                              apply(SIM[1, ], MARGIN = 1,
+                                    FUN = function(x){
+                                          stringr::str_detect(x, "DF=")}))) + 1
+
+                        # If it's a modern QQQ file, then FileStart will have a
+                        # numeric value and all the columns after that should be
+                        # concatenated.
+                        if(length(FileStart) > 0){
+                              # If there are no other columns after FileStart,
+                              # attempting to concatenate will throw an error.
+                              # Dealing with that.
+                              if(FileStart > ncol(SIM)){
+                                    SIM[, FileStart] <-
+                                          apply(SIM[, FileStart:ncol(SIM)],
+                                                MARGIN = 1, FUN = concat)
+                              }
+
+                              names(SIM)[FileStart] <- "File"
+
+                        } else {
+                              # This is the situation where it's a ChemStation
+                              # file with spaces.
+                              SIM[, 4] <-
+                                    apply(SIM[, 4:ncol(SIM)], MARGIN = 1,
+                                          FUN = concat)
+                        }
                   }
 
-                  MRM <- Injections[stringr::str_detect(Injections$V2, "MRM"), ]
-                  MRM$V8 <- apply(MRM[, 8:ncol(MRM)], MARGIN = 1, FUN = concat)
-                  MRM <- MRM[, 1:8]
+                  SIM <- SIM %>%
+                        dplyr::mutate(
+                              Ion = gsub("SIM\\(|\\)|EIC\\(", "", V2),
+                              ChromatogramType = "SIM")
 
-                  BinP <- Injections[stringr::str_detect(Injections$V1, "BinPump"), ]
-                  BinP$V5 <- apply(BinP[, 5:ncol(BinP)], MARGIN = 1, FUN = concat)
-                  BinP <- BinP[, 1:5]
+                  # For all of these, adding the column "Chromatogram" from
+                  # AllInjections.
+                  SIM$Chromatogram <- AllInjections[SIMrows]
+            }
 
-            } else {
-                  # When the type was TIC, 1st column with file is V7. When MRM,
-                  # 1st column w/file is V6. The older instrument I've got access
-                  # to does not store binary pump pressure traces, so that's
-                  # moot.
+            # SIM TIC traces
+            SIM_TICrows <- which(stringr::str_detect(Injections_init$V3, "SIM") &
+                                       stringr::str_detect(Injections_init$V2, "TIC"))
+            SIM_TIC <- Injections_init[SIM_TICrows, ]
 
-                  # For all of these, all the remaining columns are only pieces
-                  # of the file names.
-                  TIC_MRM <- Injections[stringr::str_detect(Injections$V2, "TIC"), ]
-                  if(ncol(TIC_MRM) > 7){
-                        TIC_MRM$V7 <- apply(TIC_MRM[, 7:ncol(TIC_MRM)],
-                                            MARGIN = 1, FUN = concat)
-                        TIC_MRM <- TIC_MRM[, 1:7]
+            if(nrow(SIM_TIC) > 0){
+
+                  # ChemStation will only create 3 columns for stuff that's not
+                  # a file name. Checking for whether the number of columns is >
+                  # 4 b/c if it's exactly 4, then it must be a ChemStation
+                  # chromatogram and the file doesn't have spaces and it's
+                  # located in V4.
+                  if(ncol(SIM_TIC) == 4){
+                        SIM_TIC <- SIM_TIC %>%
+                              dplyr::mutate(
+                                    File = V4,
+                                    ChromatogramType = "TIC")
+                  } else {
+
+                        # If there are more than 4 columns, could be ChemStation
+                        # file, could be more modern QQQ file. Figuring out
+                        # where the last column that's *not* a file name is so
+                        # that we can figure out where the file column should
+                        # begin.
+                        FileStart <- which(as.logical(
+                              apply(SIM_TIC[1, ], MARGIN = 1,
+                                    FUN = function(x){
+                                          stringr::str_detect(x, "DF=")}))) + 1
+
+                        if(length(FileStart) > 0){
+                              # If there are no other columns after FileStart,
+                              # attempting to concatenate will throw an error.
+                              # Dealing with that.
+                              if(FileStart > ncol(SIM_TIC)){
+                                    SIM_TIC[, FileStart] <-
+                                          apply(SIM_TIC[, FileStart:ncol(SIM_TIC)],
+                                                MARGIN = 1, FUN = concat)
+                              }
+
+                              names(SIM_TIC)[FileStart] <- "File"
+
+                        } else {
+                              # This is the situation where it's a ChemStation
+                              # file with spaces.
+                              SIM_TIC[, FileStart] <-
+                                    apply(SIM_TIC[, FileStart:ncol(SIM_TIC)],
+                                          MARGIN = 1, FUN = concat)
+                        }
+                        names(SIM_TIC)[FileStart] <- "File"
+                        SIM_TIC$ChromatogramType <- "TIC"
                   }
-
-                  MRM <- Injections[stringr::str_detect(Injections$V2, "MRM"), ]
-                  MRM$V6 <- apply(MRM[, 6:ncol(MRM)], MARGIN = 1, FUN = concat)
-                  MRM <- MRM[, 1:6]
+                  # For all of these, adding the column "Chromatogram" from
+                  # AllInjections.
+                  SIM_TIC$Chromatogram <- AllInjections[SIM_TICrows]
             }
       }
 
-      if(any(stringr::str_detect(Injections$V2, "SIM") |
-             Injections$V3 == "SIM")){
+      ## MRM experiments
 
-            TIC_SIM <- Injections[Injections$V2 == "TIC" &
-                                        Injections$V3 == "SIM", ]
+      # MRM shows up only in V2 when it's exclusively an MRM trace and not an
+      # MRM TIC trace.
+      if(any(stringr::str_detect(Injections_init$V2, "MRM"), na.rm = T)){
 
-            # For SIM experiments When the type was SIM but there were NO MRM
-            # experiments, 1st column w/file is V4 for TIC, SIM, and BinPump
-            # chromatograms. For all of these, all the remaining columns are
-            # only pieces of the file names. However, if there were any MRM
-            # experiments at all, then the file is stored in V6 for TICs and V4
-            # for everything else.
-            if(any(Injections$V2 == "MRM" | Injections$V3 == "MRM")){
-                  if(ncol(TIC_SIM) > 6){
-                        TIC_SIM$V6 <- apply(TIC_SIM[, 6:ncol(TIC_SIM)],
-                                            MARGIN = 1, FUN = concat)
-                        TIC_SIM <- TIC_SIM[, 1:6]
+            MRMrows <- which(stringr::str_detect(Injections_init$V2, "MRM"))
+            MRM <- Injections_init[MRMrows, ]
+
+            if(nrow(MRM) > 0){
+
+                  # Determining which columns to check for file names.
+                  FileStart <- ifelse(stringr::str_detect(MRM$V4[1], "DF="),
+                                      8, 6)
+
+                  if(ncol(MRM) > FileStart){
+                        MRM[, FileStart] <-
+                              apply(MRM[, FileStart:ncol(MRM)],
+                                    MARGIN = 1, FUN = concat)
                   }
-            } else {
-                  if(ncol(TIC_SIM) > 4){
-                        TIC_SIM$V4 <- apply(TIC_SIM[, 4:ncol(TIC_SIM)],
-                                            MARGIN = 1, FUN = concat)
-                        TIC_SIM <- TIC_SIM[, 1:4]
+
+                  names(MRM)[FileStart] <- "File"
+
+                  # FileStart also informs where to find ions, etc.
+                  if(FileStart == 8){
+                        MRM <- MRM %>%
+                              dplyr::mutate(
+                                    PrecursorIon = as.numeric(sub("\\(", "", V5)),
+                                    ProductIon = as.numeric(sub("\\)", "", V7)))
+
+                  } else {
+                        MRM <- MRM %>%
+                              dplyr::mutate(
+                                    PrecursorIon = as.numeric(sub("\\(", "", V3)),
+                                    ProductIon = as.numeric(sub("\\)", "", V5)))
                   }
+
+                  MRM$Ion <- paste(MRM$PrecursorIon, "->", MRM$ProductIon)
+                  MRM$ChromatogramType <- "MRM"
+                  # For all of these, adding the column "Chromatogram" from
+                  # AllInjections.
+                  MRM$Chromatogram <- AllInjections[MRMrows]
             }
+      }
 
-            SIM <- Injections[stringr::str_detect(Injections$V2, "EIC"), ]
-            if(any(Injections$V2 == "MRM")){
-                  # If there were any MRM injections, then the file name is in V8.
-                  if(ncol(SIM) > 8){
-                        SIM$V8 <- apply(SIM[, 8:ncol(SIM)], MARGIN = 1, FUN = concat)
-                        SIM <- SIM[, 1:8]
+      # MRM TIC
+      if(any(stringr::str_detect(Injections_init$V3, "MRM") &
+             stringr::str_detect(Injections_init$V2, "TIC"), na.rm = T)){
+
+            MRM_TICrows <- which(stringr::str_detect(Injections_init$V3, "MRM") &
+                                       stringr::str_detect(Injections_init$V2, "TIC"))
+            MRM_TIC <- Injections_init[MRM_TICrows, ]
+
+            if(nrow(MRM_TIC) > 0){
+
+                  # Determining which columns to check for file names.
+                  FileStart <- ifelse(stringr::str_detect(MRM_TIC$V5[1], "DF="),
+                                      9, 7)
+
+                  if(ncol(MRM_TIC) > FileStart){
+                        MRM_TIC[, FileStart] <-
+                              apply(MRM_TIC[, FileStart:ncol(MRM_TIC)],
+                                    MARGIN = 1, FUN = concat)
                   }
-                  # If there were no data points, then that messes up the file name.
-                  # Removing the "no data point" warning.
-                  SIM$V8 <- sub("    ...NO DATA POINTS...", "", SIM$V8)
 
-            } else {
-                  # If there were no MRM injections, then file is in V4.
-                  if(ncol(SIM) > 4){
-                        SIM$V4 <- apply(SIM[, 4:ncol(SIM)], MARGIN = 1, FUN = concat)
-                        SIM <- SIM[, 1:4]
-
-                  }
-
-                  # If there were no data points, then that messes up the file name.
-                  # Removing the "no data point" warning.
-                  SIM$V4 <- sub("    ...NO DATA POINTS...", "", SIM$V4)
+                  names(MRM_TIC)[FileStart] <- "File"
+                  MRM_TIC$ChromatogramType <- "TIC"
+                  # For all of these, adding the column "Chromatogram" from
+                  # AllInjections.
+                  MRM_TIC$Chromatogram <- AllInjections[MRM_TICrows]
             }
+      }
 
-            if(any(Injections$V2 == "MRM" | Injections$V3 == "MRM") == FALSE){
-                  BinP <- Injections[stringr::str_detect(Injections$V1, "BinPump"), ]
-                  if(ncol(BinP) > 4){
-                        BinP$V4 <- apply(BinP[, 4:ncol(BinP)], MARGIN = 1, FUN = concat)
-                        BinP <- BinP[, 1:4]
+
+      ## BinP traces
+
+      if(any(stringr::str_detect(Injections_init$V1, "BinP"))){
+            BinProws <- which(stringr::str_detect(Injections_init$V1, "BinP"))
+            BinP <- Injections_init[BinProws, ]
+
+            if(nrow(BinP) > 0){
+                  # Determining column with beginning of file name.
+                  FileStart <- which(as.logical(
+                        apply(BinP[1, ], MARGIN = 1,
+                              FUN = function(x){
+                                    stringr::str_detect(x, "Pressure")}))) + 1
+                  if(ncol(BinP) > FileStart){
+                        BinP[, FileStart] <- apply(BinP[, FileStart:ncol(BinP)],
+                                                   MARGIN = 1, FUN = concat)
                   }
-            }
 
+                  names(BinP)[FileStart] <- "File"
+                  BinP$ChromatogramType <- "binary pump pressure"
+                  # For all of these, adding the column "Chromatogram" from
+                  # AllInjections.
+                  BinP$Chromatogram <- AllInjections[BinProws]
+            }
       }
 
       # Make 0 row data.frames out of any of these objects that do not exist so
       # that I can bind_rows all of them into one.
-      if(exists("TIC_MRM") == FALSE){
-            TIC_MRM <- data.frame()
+      if(exists("MRM_TIC") == FALSE){
+            MRM_TIC <- data.frame(V1 = NA)
       }
-      if(exists("TIC_SIM") == FALSE){
-            TIC_SIM <- data.frame()
+      if(exists("SIM_TIC") == FALSE){
+            SIM_TIC <- data.frame(V1 = NA)
       }
       if(exists("BinP") == FALSE){
-            BinP <- data.frame()
+            BinP <- data.frame(V1 = NA)
       }
       if(exists("MRM") == FALSE){
-            MRM <- data.frame()
+            MRM <- data.frame(V1 = NA)
       }
       if(exists("SIM") == FALSE){
-            SIM <- data.frame()
+            SIM <- data.frame(V1 = NA)
       }
 
-      # Putting everything together. NOTE: This removes any data for anything
-      # that wasn't a SIM, TIC, MRM or BinP chromatogram.
-      Injections <- dplyr::bind_rows(TIC_MRM, TIC_SIM, MRM, SIM, BinP)
+      Injections <- dplyr::bind_rows(MRM_TIC, SIM_TIC, MRM, SIM, BinP) %>%
+            dplyr::mutate(Mode = stringr::str_extract(V1, "\\+|-")) %>%
+            dplyr::select(tidyselect::any_of(c("Mode", "ChromatogramType", "Ion",
+                                               "PrecursorIon", "ProductIon",
+                                               "File", "Chromatogram"))) %>%
+            dplyr::filter(complete.cases(File))
 
-      # Adding back in the original line that started with "#"
-      myPaste <- function(x){
-            x[is.na(x)] <- ""
-            stringr::str_trim(stringr::str_c(x, collapse = " "))
-      }
-
-      Injections$Chromatogram <- apply(Injections, MARGIN = 1,
-                                       FUN = myPaste)
-
-      # With MRM chromatograms for newer files, the spaces work out to a
-      # data.frame with 9 columns. For MRM experiments w/older files, there are
-      # 6 columns. With SIM chromatograms, 4 columns.
-      if(any(stringr::str_detect(Injections$V3, "MRM"))){
-            # MRM
-            if(FileEra == "newer"){
-                  Injections <- dplyr::mutate(
-                        Injections,
-                        Mode = sub("\\#", "", V1),
-                        ChromatogramType = stringr::str_extract(V2, "^[A-Z]{3}"),
-                        Ion = gsub("\\(|\\)", "", paste(V5, V6, V7)),
-                        Ion = ifelse(ChromatogramType == "TIC", "all", Ion),
-                        ChromatogramType = ifelse(stringr::str_detect(Mode, "BinPump"),
-                                                  "binpump pressure", ChromatogramType),
-                        PrecursorIon = as.numeric(stringr::str_extract(V5, "[0-9]{2,4}\\.[0-9]{1,}")),
-                        ProductIon = as.numeric(stringr::str_extract(V7, "[0-9]{2,4}\\.[0-9]{1,}")),
-                        # File is in various places depending on the type. For
-                        # most types, it's in V8 for ESI+ and V9 for ESI-.
-                        File = ifelse(V1 == "\\#-", V9, V8),
-                        # If it's an MRM TIC, then it's in V9.
-                        File = ifelse(V2 == "TIC" & V3 == "MRM", V9, File),
-                        # If it's an SIM TIC, then it's in V6
-                        File = ifelse(V2 == "TIC" & V3 == "SIM", V6, File),
-                        # If it's bin pump, then it's V5
-                        File = ifelse(ChromatogramType == "binpump pressure",
-                                      V5, File))
-
-            } else {
-                  Injections <- dplyr::mutate(
-                        Injections,
-                        Mode = V1,
-                        ChromatogramType = stringr::str_extract(V2, "^[A-Z]{3}"),
-                        Ion = gsub("\\(|\\)", "", paste(V3, V4, V5)),
-                        Ion = ifelse(ChromatogramType == "TIC", "all", Ion),
-                        PrecursorIon = as.numeric(stringr::str_extract(V3, "[0-9]{2,4}\\.[0-9]{1,}")),
-                        ProductIon = as.numeric(stringr::str_extract(V5, "[0-9]{2,4}\\.[0-9]{1,}")),
-                        # File is in various places depending on the type. For
-                        # most types, it's in V6, but for binpump, V7.
-                        File = ifelse(ChromatogramType == "MRM", V6, V7))
-            }
-      }
-
-      # SIM experiments
-      if(any(stringr::str_detect(Injections$V3, "SIM")) &
-         !(any(stringr::str_detect(Injections$V3, "MRM")))) {
-
-            # If there were only SIM files, then File exists only in column V4.
-            # If there were any MRM files, then File exists in V6 for TIC
-            # chromatograms and V4 for everything else.
-            Injections <-  dplyr::mutate(
-                  Injections, Chromatogram = AllInjections,
-                  Mode = sub("\\#", "", V1),
-                  ChromatogramType = stringr::str_extract(V2, "^[A-Z]{3}"),
-                  Ion = as.numeric(stringr::str_extract(V2, "[0-9]{2,4}\\.[0-9]{1,}")),
-                  File = ifelse(any(V3 == "MRM"), V6, V4),
-                  ChromatogramType = ifelse(Mode == "BinPump1",
-                                            "binpump pressure", ChromatogramType))
-
-            # Sometimes, the MRM experiments aren't showing up. Not sure why. For those
-      }
-
-      Injections <- Injections %>% dplyr::select(-matches("^V"))
 
       DF <- suppressWarnings(
             DF %>% dplyr::left_join(Injections, by = "Chromatogram") %>%
-                  dplyr::mutate_at(.vars = dplyr::vars(matches("Point|Time_min|Count")),
+                  dplyr::mutate_at(.vars = dplyr::vars(matches("Time_min|Count")),
                                    .funs = as.numeric) %>%
                   dplyr::filter(complete.cases(Time_min))
       )
+
+      if(saveFile){
+            write.csv(DF, file = csvfile, row.names = FALSE)
+      }
 
       return(DF)
 
