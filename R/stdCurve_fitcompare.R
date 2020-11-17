@@ -22,8 +22,8 @@
 #'
 #'   \item{Data}{The input data, including the nominal concentration or mass,
 #'   columns of the calculated concentration for each of the two fit methods,
-#'   and colums of the percent differences between the calculated and the
-#'   nominal concentrations or masses.}}
+#'   and columns of the calculated concentration or mass as a percent of nominal
+#'   concentration or mass for each of the two fits.}}
 #'
 #'
 #' @examples
@@ -81,8 +81,8 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
 
       # If they didn't include IDcol or colorBy, then there should be 4 columns.
       if(ncol(stdCurve1$Data) == 4){
-            names(stdCurve1$Data) <- c("Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
-            names(stdCurve2$Data) <- c("Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+            names(stdCurve1$Data) <- c("Nominal", "NormPeak", "Calculated_A", "PercOfNom_A")
+            names(stdCurve2$Data) <- c("Nominal", "NormPeak", "Calculated_B", "PercOfNom_B")
             Xlab <- OrigNames1[1]
             Ylab <- OrigNames1[2]
       }
@@ -90,27 +90,54 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
       # If they included IDcol but not colorBy OR if they included colorBy but
       # not IDcol, then these should be the names:
       if(ncol(stdCurve1$Data) == 5){
-            names(stdCurve1$Data) <- c("IDcol", "Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
-            names(stdCurve2$Data) <- c("IDcol", "Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+            names(stdCurve1$Data) <- c("IDcol", "Nominal", "NormPeak", "Calculated_A", "PercOfNom_A")
+            names(stdCurve2$Data) <- c("IDcol", "Nominal", "NormPeak", "Calculated_B", "PercOfNom_B")
             Xlab <- OrigNames1[2]
             Ylab <- OrigNames1[3]
       }
 
       # If they included both IDcol AND colorBy, then these should be the names:
       if(ncol(stdCurve1$Data) == 6){
-            names(stdCurve1$Data) <- c("IDcol", "colorBy", "Nominal", "NormPeak", "Calculated_A", "PercDiff_A")
-            names(stdCurve2$Data) <- c("IDcol", "colorBy", "Nominal", "NormPeak", "Calculated_B", "PercDiff_B")
+            names(stdCurve1$Data) <- c("IDcol", "colorBy", "Nominal", "NormPeak", "Calculated_A", "PercOfNom_A")
+            names(stdCurve2$Data) <- c("IDcol", "colorBy", "Nominal", "NormPeak", "Calculated_B", "PercOfNom_B")
             Xlab <- OrigNames1[3]
             Ylab <- OrigNames1[4]
 
       }
 
-      OutData <- dplyr::full_join(stdCurve1$Data %>% dplyr::ungroup(),
-                                  stdCurve2$Data %>% dplyr::ungroup()) %>%
-            dplyr::select(any_of(c("IDcol", "colorBy", "Nominal",
+      # If the names of the samples differ between stdCurve1$Data and
+      # stdCurve2$Data but any of them have the same nominal mass, combine those
+      # so that they're on the same row. That requires renaming the IDcol.
+
+      OutData <- dplyr::full_join(
+            stdCurve1$Data %>%
+                  rename(IDcol_A = IDcol) %>%
+                  dplyr::select(any_of(c("IDcol_A", "colorBy", "Nominal",
+                                         "Calculated_A", "Calculated_B",
+                                         "PercOfNom_A", "PercOfNom_B"))),
+            stdCurve2$Data %>%
+                  rename(IDcol_B = IDcol) %>%
+                  dplyr::select(any_of(c("IDcol_B", "colorBy", "Nominal",
+                                         "Calculated_A", "Calculated_B",
+                                         "PercOfNom_A", "PercOfNom_B"))) %>%
+                  dplyr::ungroup()) %>%
+            dplyr::select(any_of(c("IDcol_A", "IDcol_B", "IDcol", "colorBy",
+                                   "Nominal",
                                    "Calculated_A", "Calculated_B",
-                                   "PercDiff_A", "PercDiff_B"))) %>%
+                                   "PercOfNom_A", "PercOfNom_B"))) %>%
             dplyr::arrange(Nominal)
+
+      if(all(OutData$IDcol_A == OutData$IDcol_B, na.rm = T)){
+            OutData$IDcol <- OutData$IDcol_A
+            OutData$IDcol_A <- NULL
+            OutData$IDcol_B <- NULL
+      }
+
+      OutData <- OutData %>%
+            dplyr::select(any_of(c("IDcol_A", "IDcol_B", "IDcol", "colorBy",
+                                   "Nominal",
+                                   "Calculated_A", "Calculated_B",
+                                   "PercOfNom_A", "PercOfNom_B")))
 
       # Making graph
       PlotData <- stdCurve1$Data %>% dplyr::mutate(Fit = "Fit_A") %>%
@@ -129,8 +156,20 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
                         dplyr::group_by(IDcol, Nominal) %>%
                         dplyr::summarize(Calculated_A = mean(Calculated_A, na.rm = T),
                                          Calculated_B = mean(Calculated_B, na.rm = T),
-                                         PercDiff_A = mean(PercDiff_A, na.rm = T),
-                                         PercDiff_B = mean(PercDiff_B, na.rm = T)) %>%
+                                         PercOfNom_A = mean(PercOfNom_A, na.rm = T),
+                                         PercOfNom_B = mean(PercOfNom_B, na.rm = T)) %>%
+                        dplyr::ungroup()
+            }
+      }
+
+      if("IDcol_A" %in% names(OutData)){
+            if(anyDuplicated(OutData$IDcol_A) | anyDuplicated(OutData$IDcol_B)){
+                  OutData <- OutData %>%
+                        dplyr::group_by(IDcol_A, IDcol_B, Nominal) %>%
+                        dplyr::summarize(Calculated_A = mean(Calculated_A, na.rm = T),
+                                         Calculated_B = mean(Calculated_B, na.rm = T),
+                                         PercOfNom_A = mean(PercOfNom_A, na.rm = T),
+                                         PercOfNom_B = mean(PercOfNom_B, na.rm = T)) %>%
                         dplyr::ungroup()
             }
       }
@@ -159,7 +198,7 @@ stdCurve_fitcompare <- function(stdCurve1, stdCurve2, fitNames = NA){
             # ggplot2::scale_color_manual(values = c("dodgerblue3", "#3E8853")) +
             ggplot2::xlab(Xlab) + ggplot2::ylab(Ylab)
 
-      names(OutData)[1] <- OrigNames1[1]
+      names(OutData) <- sub("IDcol", OrigNames1[1], names(OutData))
 
       Out <- list(CurvePlot, OutData)
       names(Out) <- c("CurvePlot", "Data")

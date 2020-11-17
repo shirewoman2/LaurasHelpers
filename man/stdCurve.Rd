@@ -67,9 +67,8 @@ Output is a list of the following named objects:\describe{
   \item{CurveDF}{A data.frame of the points used for graphing the fitted
   line.}
 
-  \item{Data}{The original data with a column calculating the percent
-  difference between the calculated and the nominal concentrations or
-  masses}}
+  \item{Data}{The original data with a column of the calculated concentration
+  or mass as a percent of the nominal.}}
 }
 \description{
 \code{stdCurve}, which was designed with mass spectrometry data in mind, fits

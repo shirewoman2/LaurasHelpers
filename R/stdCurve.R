@@ -43,9 +43,8 @@
 #'   \item{CurveDF}{A data.frame of the points used for graphing the fitted
 #'   line.}
 #'
-#'   \item{Data}{The original data with a column calculating the percent
-#'   difference between the calculated and the nominal concentrations or
-#'   masses}}
+#'   \item{Data}{The original data with a column of the calculated concentration
+#'   or mass as a percent of the nominal.}}
 #' @examples
 #' data(ExStdCurve)
 #'
@@ -302,15 +301,15 @@ stdCurve <- function(DF,
       }
 
       DF <- DF %>%
-            dplyr::mutate(PercentDifference = (Calculated - Nominal)/Nominal,
-                          PercentDifference = ifelse(Nominal == 0,
-                                                     NA, PercentDifference),
+            dplyr::mutate(PercentOfNominal = Calculated/Nominal,
+                          PercentOfNominal = ifelse(Nominal == 0,
+                                                     NA, PercentOfNominal),
                           Nominal = signif(Nominal, 3),
                           NormPeak = signif(NormPeak, 3),
                           Calculated = round(Calculated, 2),
-                          PercentDifference = round(PercentDifference, 2)) %>%
+                          PercentOfNominal = round(PercentOfNominal, 2)) %>%
             dplyr::select(any_of(c(rlang::as_label(IDcol), "ColorBy", "Nominal", "NormPeak",
-                                   "Calculated", "PercentDifference"))) %>%
+                                   "Calculated", "PercentOfNominal"))) %>%
             dplyr::arrange(Nominal)
 
       if(rlang::as_label(normPeak) %in% names(DForig)){

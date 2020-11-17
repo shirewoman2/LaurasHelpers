@@ -24,8 +24,8 @@ Output is a list of the following named objects:\describe{
 
   \item{Data}{The input data, including the nominal concentration or mass,
   columns of the calculated concentration for each of the two fit methods,
-  and colums of the percent differences between the calculated and the
-  nominal concentrations or masses.}}
+  and columns of the calculated concentration or mass as a percent of nominal
+  concentration or mass for each of the two fits.}}
 }
 \description{
 To use this function, use \code{\link{stdCurve}} to fit the same data.frame
