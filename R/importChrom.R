@@ -10,9 +10,11 @@
 #'
 #' @param csvfile The csv file name that was exported from MassHunter Qual
 #'
-#' @return Output is a tidy data.frame with column indicating the file, the
+#' @return Output is a tidy data.frame with columns indicating the file, the
 #'   chromatogram type, the ionization mode, the retention time, the counts,
-#'   etc.
+#'   etc. If \code{saveFile} is set to TRUE, a new csv file of the tidied
+#'   chromatographic data will be saved in the same directory, and it will have
+#'   "- tidied" appended to the input file name.
 #' @export
 #'
 #'
@@ -356,7 +358,7 @@ importChrom <- function(csvfile, saveFile = FALSE){
       )
 
       if(saveFile){
-            write.csv(DF, file = csvfile, row.names = FALSE)
+            write.csv(DF, file = sub(".csv", " - tidy.csv", csvfile), row.names = FALSE)
       }
 
       return(DF)
