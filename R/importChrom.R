@@ -14,7 +14,7 @@
 #'   chromatogram type, the ionization mode, the retention time, the counts,
 #'   etc. If \code{saveFile} is set to TRUE, a new csv file of the tidied
 #'   chromatographic data will be saved in the same directory, and it will have
-#'   "- tidied" appended to the input file name.
+#'   "- tidy" appended to the input file name.
 #' @export
 #'
 #'
