@@ -12,11 +12,13 @@ noncompAUC(
   extrap_inf = FALSE,
   extrap_inf_coefs = NULL,
   extrap_inf_times = c(NA, NA),
+  reportTermFit = FALSE,
   reportFractExtrap = FALSE,
   extrap_t0 = FALSE,
   extrap_t0_coefs = NULL,
   extrap_t0_model = "monoexponential",
   extrap_t0_times = c(NA, NA),
+  reportBackExtrapFit = FALSE,
   reportC0 = FALSE
 )
 }
@@ -49,10 +51,15 @@ the coefficients from fitting a monoexponential decay to your data, specify
 the time range to use for fitting as \code{c(minTime, maxTime)}. If this is
 left as \code{c(NA, NA)}, the time range from tmax to tlast will be used.}
 
+\item{reportTermFit}{TRUE or FALSE for whether to report the fit for the
+terminal elimination calculation. If TRUE, this changes the output from a
+single number to a named list that includes the AUC and the terminal
+elimination fit from \code{\link[stats]{nls}}.}
+
 \item{reportFractExtrap}{TRUE or FALSE for whether to report the fraction of
 the AUC extrapolated to infinity. If TRUE, this changes the output from a
-to a named list that includes the AUC as a number and the fraction
-extrapolated as a named item in the list.}
+single number to a named list that includes the AUC and the fraction
+extrapolated to infinity.}
 
 \item{extrap_t0}{TRUE or FALSE for whether to back extrapolate the curve to
 0. This is useful when the dose was administered IV and you know you're
@@ -82,6 +89,11 @@ and defaults to "monoexponential".}
 use for fitting the exponential decay as \code{c(minTime, maxTime)}. If
 this is left as \code{c(NA, NA)}, the full time range from tmax to tlast
 will be used.}
+
+\item{reportBackExtrapFit}{TRUE or FALSE for whether to report the fit for
+the back-extrapolation to t0 calculation. If TRUE, this changes the output
+from a single number to a named list that includes the AUC and the back
+extrapolated fit from \code{\link[stats]{nls}}.}
 
 \item{reportC0}{TRUE or FALSE for whether to report the back-extrapolated
 concentration at t0. If TRUE, the output becomes a named list that includes

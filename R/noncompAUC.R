@@ -27,10 +27,14 @@
 #'   the coefficients from fitting a monoexponential decay to your data, specify
 #'   the time range to use for fitting as \code{c(minTime, maxTime)}. If this is
 #'   left as \code{c(NA, NA)}, the time range from tmax to tlast will be used.
+#' @param reportTermFit  TRUE or FALSE for whether to report the fit for the
+#'   terminal elimination calculation. If TRUE, this changes the output from a
+#'   single number to a named list that includes the AUC and the terminal
+#'   elimination fit from \code{\link[stats]{nls}}.
 #' @param reportFractExtrap TRUE or FALSE for whether to report the fraction of
 #'   the AUC extrapolated to infinity. If TRUE, this changes the output from a
-#'   to a named list that includes the AUC as a number and the fraction
-#'   extrapolated as a named item in the list.
+#'   single number to a named list that includes the AUC and the fraction
+#'   extrapolated to infinity.
 #'
 #' @param extrap_t0 TRUE or FALSE for whether to back extrapolate the curve to
 #'   0. This is useful when the dose was administered IV and you know you're
@@ -63,6 +67,10 @@
 #'   because the maximum concentration at t0 in, e.g., plasma should be no
 #'   larger than approximately the dose / total plasma volume, which is ~3 L in
 #'   a healthy, 70-kg adult.
+#' @param reportBackExtrapFit  TRUE or FALSE for whether to report the fit for
+#'   the back-extrapolation to t0 calculation. If TRUE, this changes the output
+#'   from a single number to a named list that includes the AUC and the back
+#'   extrapolated fit from \code{\link[stats]{nls}}.
 #'
 #' @details \strong{A few notes:}\itemize{
 #'
@@ -79,6 +87,12 @@
 #'   concentration-time data and are thus less desireable than the trapezoidal
 #'   rule. For more details, please see
 #'   \url{https://www.certara.com/2011/04/02/calculating-auc-linear-and-log-linear/}.}
+#'
+#'
+#'
+#'
+#'
+#'
 #'
 #'
 #' @return Returns the calculated AUC as a number or, depending on the options
@@ -154,12 +168,14 @@ noncompAUC <- function(DF, concentration = Concentration,
                        extrap_inf = FALSE,
                        extrap_inf_coefs = NULL,
                        extrap_inf_times = c(NA, NA),
+                       reportTermFit = FALSE,
                        reportFractExtrap = FALSE,
 
                        extrap_t0 = FALSE,
                        extrap_t0_coefs = NULL,
                        extrap_t0_model = "monoexponential",
                        extrap_t0_times = c(NA, NA),
+                       reportBackExtrapFit = FALSE,
                        reportC0 = FALSE) {
 
 
@@ -407,17 +423,26 @@ noncompAUC <- function(DF, concentration = Concentration,
       # FALSE, then AUClast_inf is 0.
       AUC <- AUClast + AUClast_inf
 
-      if(reportFractExtrap | reportC0){
+      if(reportFractExtrap | reportC0 | reportTermFit | reportBackExtrapFit){
             AUC <- list(AUC = AUC)
 
             if(reportC0 & extrap_t0){
                   AUC[["C0"]] <- C0
             }
 
+            if(reportBackExtrapFit & extrap_t0){
+                  AUC[["Back-extrapolation to t0 fit"]] <- Fit_t0
+            }
+
             if(reportFractExtrap & extrap_inf){
                   AUC[["Fraction extrapolated to infinity"]] <-
                         AUClast_inf / AUC[["AUC"]]
             }
+
+            if(reportTermFit & extrap_inf){
+                  AUC[["Terminal elimination fit"]] <- Fit_inf
+            }
+
       }
 
       return(AUC)
