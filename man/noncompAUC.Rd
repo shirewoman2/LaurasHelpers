@@ -95,10 +95,6 @@ will be used.}
 \item{reportBackExtrapFit}{TRUE or FALSE for whether to report the fit for
 the back-extrapolation to t0 calculation. If TRUE, this changes the output
 from a single number to a named list that includes the AUC and the back
-extrapolated fit from \code{\link[stats]{nls}}.}
-\item{reportBackExtrapFit}{TRUE or FALSE for whether to report the fit for
-the back-extrapolation to t0 calculation. If TRUE, this changes the output
-from a single number to a named list that includes the AUC and the back
 extrapolated fit (will be named "Back-extrapolation to t0 fit") from
 \code{\link[stats]{nls}}.}
 

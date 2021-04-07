@@ -93,15 +93,6 @@
 #'
 #'
 #'
-#'
-#'
-#'
-#'
-#'
-#'
-#'
-#'
-#'
 #' @return Returns the calculated AUC as a number or, depending on the options
 #'   selected, a named list of the AUC (\code{AUC[["AUC"]]}), the fraction of
 #'   the curve extrapolated to infinity (\code{AUC[["Fraction extrapolated to
