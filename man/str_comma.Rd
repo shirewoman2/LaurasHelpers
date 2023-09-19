@@ -8,6 +8,8 @@ commas and by "and"}
 str_comma(x, oxford = TRUE)
 }
 \arguments{
+\item{x}{values to be concatenated}
+
 \item{oxford}{TRUE or FALSE for whether to use the Oxford comma}
 }
 \value{

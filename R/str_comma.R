@@ -13,7 +13,7 @@
 #' make your final document more polished, readable, and professional.
 #'
 #'
-#' @param x
+#' @param x values to be concatenated
 #' @param oxford TRUE or FALSE for whether to use the Oxford comma
 #'
 #' @return Returns a single, collapsed character string

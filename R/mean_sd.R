@@ -30,14 +30,14 @@
 #'   mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper,
 #'   n = n).
 #'
-#'   A few important notes: \itemize{ \item I have not set this up to deal with
-#'   mean values in scientific notation. \item If \code{sd(x) == 0}, output will
-#'   be unique(x). \item If you want to supply the mean and standard deviation
+#'   A few important notes: \itemize{\item{I have not set this up to deal with
+#'   mean values in scientific notation.} \item{If \code{sd(x) == 0}, output will
+#'   be unique(x).}\item{If you want to supply the mean and standard deviation
 #'   and have this function return that with appropriate sig figs, you
 #'   \emph{cannot} supply a vector of values for x and stdev.x. That does not
 #'   work. If x is a vector of length > 1, the function will calculate mean,
 #'   standard deviation, etc. rather than taking those values from a second
-#'   vector. It will result in output, just not the \emph{correct} output.
+#'   vector. It will result in output, just not the \emph{correct} output.}}
 #'
 #' @return Returns a character string
 #'

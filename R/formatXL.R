@@ -139,7 +139,6 @@
 #'                                                 wrapping = TRUE))))
 #'
 #'
-#' @return
 #' @export
 #'
 #'

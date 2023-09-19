@@ -17,7 +17,7 @@ FALSE}, then one missing value and one complete case always counts as a
 mismatch.}
 }
 \value{
-
+a character vector of the column names where value differ
 }
 \description{
 This function takes a two-row data.frame and determines which cells differ.

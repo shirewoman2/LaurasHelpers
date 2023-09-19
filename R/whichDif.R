@@ -14,7 +14,7 @@
 #'   FALSE}, then one missing value and one complete case always counts as a
 #'   mismatch.
 #'
-#' @return
+#' @return a character vector of the column names where value differ
 #' @export
 #'
 #' @examples

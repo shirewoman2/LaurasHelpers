@@ -17,7 +17,7 @@
 #' formatXL_head(DF = iris, file = "test.xlsx", sheet = "iris1")
 #'
 #'
-#' @return
+#' @return This does not return any R objects; it saves an Excel file.
 #' @export
 #'
 #'

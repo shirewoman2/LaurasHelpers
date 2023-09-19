@@ -56,7 +56,21 @@ figs. If a vector was supplied, optionally also obtain the median, range, CV,
 and/or 95% confidence interval. Output is \emph{always} of class character.
 }
 \details{
+Example of ultimate output with all possible options set to TRUE:
 
+  5.1 (5) +/- 0.2 (4.7 to 5.3, 3.7\%, 95\%CI: 4.6 to 5.2, n = 18)
+
+  mean (median) +/- sd (range.min to range.max, CV\%, 95\%CI: lower to upper,
+  n = n).
+
+  A few important notes: \itemize{\item{I have not set this up to deal with
+  mean values in scientific notation.} \item{If \code{sd(x) == 0}, output will
+  be unique(x).}\item{If you want to supply the mean and standard deviation
+  and have this function return that with appropriate sig figs, you
+  \emph{cannot} supply a vector of values for x and stdev.x. That does not
+  work. If x is a vector of length > 1, the function will calculate mean,
+  standard deviation, etc. rather than taking those values from a second
+  vector. It will result in output, just not the \emph{correct} output.}}
 }
 \examples{
 mean_sd(rnorm(10, 5, 1))
