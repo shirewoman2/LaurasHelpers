@@ -22,13 +22,31 @@
 #'
 #' @export
 
-starSig <- function(pval, sig = 1,
-                    starlevels = c(0.001, 0.01, 0.05)) {
+starSig <- function(pval,
+                    sig = 1,
+                    starlevels = c(0.001, 0.01, 0.05)){
 
-      pval <- signif(pval, sig)
-      star <- ifelse(pval <= starlevels[1], "\\*\\*\\*",
-                     ifelse(pval <= starlevels[2], "\\*\\*",
-                            ifelse(pval <= starlevels[3], "\\*", "")))
-      return(paste0(pval, star))
+      starSig_subfun <- function(pval){
+
+            pval <- signif(pval, sig)
+
+            if(is.na(pval)){
+                  star <- ""
+            } else if(pval <= starlevels[1]){
+                  star <- "\\*\\*\\*"
+            } else if(pval <= starlevels[2]){
+                  star <- "\\*\\*"
+            } else if(pval <= starlevels[3]){
+                  star <- "\\*"
+            } else {
+                  star <- ""
+            }
+
+            return(paste0(ifelse(is.na(pval), "", pval), star))
+
+      }
+
+      return(unlist(lapply(X = pval, FUN = starSig_subfun)))
+
 }
 
